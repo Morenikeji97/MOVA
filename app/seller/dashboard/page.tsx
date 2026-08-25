@@ -6,11 +6,13 @@ export default async function SellerDashboard() {
     data: { user },
   } = await supabase.auth.getUser();
 
-  const { data: profile } = await supabase
+  const { data } = await supabase
     .from("seller_profiles")
     .select("*")
     .eq("user_id", user!.id)
     .single();
+
+  const profile = data as { verification_status?: string } | null;
 
   return (
     <main className="mx-auto max-w-4xl px-6 py-16">
