@@ -1,0 +1,394 @@
+"use client";
+
+import { type ReactNode } from "react";
+import Link from "next/link";
+import { useRouter } from "next/navigation";
+import { useForm } from "react-hook-form";
+import { zodResolver } from "@hookform/resolvers/zod";
+import { z } from "zod";
+import { createClient } from "@/lib/supabase/client";
+import { cn } from "@/lib/utils";
+import { Button } from "@/components/ui/button";
+
+const MAX_YEAR = new Date().getFullYear() + 1;
+const VIN_RE = /^[A-HJ-NPR-Z0-9]{17}$/;
+
+const TRANSMISSIONS = ["Automatic", "Manual", "CVT", "Dual-clutch", "Other"] as const;
+const FUEL_TYPES = [
+  "Gasoline",
+  "Diesel",
+  "Hybrid",
+  "Plug-in hybrid",
+  "Electric",
+  "Flex fuel",
+  "Other",
+] as const;
+const CONDITIONS = ["Excellent", "Very good", "Good", "Fair", "Poor"] as const;
+const ACCIDENT_HISTORY = [
+  "None reported",
+  "Minor damage",
+  "Moderate damage",
+  "Severe damage",
+  "Unknown",
+] as const;
+const TITLE_STATUSES = ["Clean", "Salvage", "Rebuilt", "Flood", "Lemon / buyback", "Other"] as const;
+
+const US_STATES: ReadonlyArray<readonly [string, string]> = [
+  ["AL", "Alabama"], ["AK", "Alaska"], ["AZ", "Arizona"], ["AR", "Arkansas"],
+  ["CA", "California"], ["CO", "Colorado"], ["CT", "Connecticut"], ["DE", "Delaware"],
+  ["DC", "District of Columbia"], ["FL", "Florida"], ["GA", "Georgia"], ["HI", "Hawaii"],
+  ["ID", "Idaho"], ["IL", "Illinois"], ["IN", "Indiana"], ["IA", "Iowa"],
+  ["KS", "Kansas"], ["KY", "Kentucky"], ["LA", "Louisiana"], ["ME", "Maine"],
+  ["MD", "Maryland"], ["MA", "Massachusetts"], ["MI", "Michigan"], ["MN", "Minnesota"],
+  ["MS", "Mississippi"], ["MO", "Missouri"], ["MT", "Montana"], ["NE", "Nebraska"],
+  ["NV", "Nevada"], ["NH", "New Hampshire"], ["NJ", "New Jersey"], ["NM", "New Mexico"],
+  ["NY", "New York"], ["NC", "North Carolina"], ["ND", "North Dakota"], ["OH", "Ohio"],
+  ["OK", "Oklahoma"], ["OR", "Oregon"], ["PA", "Pennsylvania"], ["RI", "Rhode Island"],
+  ["SC", "South Carolina"], ["SD", "South Dakota"], ["TN", "Tennessee"], ["TX", "Texas"],
+  ["UT", "Utah"], ["VT", "Vermont"], ["VA", "Virginia"], ["WA", "Washington"],
+  ["WV", "West Virginia"], ["WI", "Wisconsin"], ["WY", "Wyoming"],
+];
+
+const schema = z.object({
+  vin: z
+    .string()
+    .trim()
+    .toUpperCase()
+    .regex(VIN_RE, "Enter a valid 17-character VIN (letters and numbers, no I, O or Q)."),
+  year: z
+    .string()
+    .trim()
+    .regex(/^\d{4}$/, "Enter the 4-digit model year.")
+    .refine(
+      (v) => Number(v) >= 1900 && Number(v) <= MAX_YEAR,
+      `Year must be between 1900 and ${MAX_YEAR}.`,
+    ),
+  make: z.string().trim().min(1, "Make is required.").max(60),
+  model: z.string().trim().min(1, "Model is required.").max(60),
+  trim: z.string().trim().max(60),
+  mileage: z
+    .string()
+    .trim()
+    .regex(/^\d{1,7}$/, "Enter the mileage as a whole number.")
+    .refine((v) => Number(v) <= 1_000_000, "Mileage looks too high."),
+  exterior_color: z.string().trim().max(40),
+  interior_color: z.string().trim().max(40),
+  transmission: z.string().trim().max(40),
+  fuel_type: z.string().trim().max(40),
+  condition: z.string().trim().max(40),
+  accident_history: z.string().trim().max(40),
+  title_status: z.string().trim().max(40),
+  location_city: z.string().trim().min(1, "City is required.").max(80),
+  location_state: z
+    .string()
+    .trim()
+    .toUpperCase()
+    .regex(/^[A-Z]{2}$/, "Select the state where the vehicle is located."),
+  price_usd: z
+    .string()
+    .trim()
+    .regex(/^\d{1,9}(\.\d{1,2})?$/, "Enter the asking price, e.g. 14500.")
+    .refine(
+      (v) => Number(v) > 0 && Number(v) <= 5_000_000,
+      "Price must be between 1 and 5,000,000.",
+    ),
+  description: z.string().trim().max(5000),
+});
+
+type FormValues = z.infer<typeof schema>;
+
+const EMPTY: FormValues = {
+  vin: "",
+  year: "",
+  make: "",
+  model: "",
+  trim: "",
+  mileage: "",
+  exterior_color: "",
+  interior_color: "",
+  transmission: "",
+  fuel_type: "",
+  condition: "",
+  accident_history: "",
+  title_status: "",
+  location_city: "",
+  location_state: "",
+  price_usd: "",
+  description: "",
+};
+
+const inputClass = "h-11 rounded border border-paper-200 bg-paper-100 px-3 text-ink-900";
+
+/** Trims a form string, returning null for empty values so the column stays NULL. */
+function orNull(value: string): string | null {
+  const v = value.trim();
+  return v.length > 0 ? v : null;
+}
+
+function SectionLabel({ children, className }: { children: ReactNode; className?: string }) {
+  return (
+    <p className={cn("font-mono text-xs uppercase tracking-wider text-ink-400", className)}>
+      {children}
+    </p>
+  );
+}
+
+function Field({
+  label,
+  error,
+  optional,
+  children,
+  className,
+}: {
+  label: string;
+  error?: string;
+  optional?: boolean;
+  children: ReactNode;
+  className?: string;
+}) {
+  return (
+    <label className={cn("flex flex-col gap-1", className)}>
+      <span className="text-sm text-slate-500">
+        {label}
+        {optional ? <span className="text-ink-400"> (optional)</span> : null}
+      </span>
+      {children}
+      {error ? <span className="text-sm text-copper-700">{error}</span> : null}
+    </label>
+  );
+}
+
+export default function NewListingPage() {
+  const router = useRouter();
+  const {
+    register,
+    handleSubmit,
+    setError,
+    formState: { errors, isSubmitting },
+  } = useForm<FormValues>({
+    resolver: zodResolver(schema),
+    defaultValues: EMPTY,
+  });
+
+  async function onSubmit(values: FormValues) {
+    const supabase = createClient();
+    const {
+      data: { user },
+    } = await supabase.auth.getUser();
+
+    if (!user) {
+      setError("root", { message: "Your session has expired. Please sign in again." });
+      return;
+    }
+
+    const { error } = await supabase.from("vehicles").insert({
+      seller_id: user.id,
+      vin: values.vin.trim().toUpperCase(),
+      year: Number(values.year),
+      make: values.make.trim(),
+      model: values.model.trim(),
+      trim: orNull(values.trim),
+      mileage: Number(values.mileage),
+      exterior_color: orNull(values.exterior_color),
+      interior_color: orNull(values.interior_color),
+      transmission: orNull(values.transmission),
+      fuel_type: orNull(values.fuel_type),
+      condition: orNull(values.condition),
+      accident_history: orNull(values.accident_history),
+      title_status: orNull(values.title_status),
+      location_city: values.location_city.trim(),
+      location_state: values.location_state.trim().toUpperCase(),
+      price_usd: Number(values.price_usd),
+      description: orNull(values.description),
+      status: "draft",
+    });
+
+    if (error) {
+      setError("root", { message: error.message });
+      return;
+    }
+
+    router.push("/seller/listings");
+    router.refresh();
+  }
+
+  return (
+    <main className="mx-auto max-w-2xl px-6 py-16">
+      <Link
+        href="/seller/listings"
+        className="font-mono text-xs uppercase tracking-wider text-ink-400 hover:text-ink-900"
+      >
+        &larr; My listings
+      </Link>
+      <h1 className="mt-4 text-2xl font-semibold text-ink-900">New vehicle listing</h1>
+      <p className="mt-2 text-sm text-slate-500">
+        This saves as a draft. Submit it for review once the details look right.
+      </p>
+
+      <form onSubmit={handleSubmit(onSubmit)} className="mt-8 flex flex-col gap-8">
+        <section className="flex flex-col gap-3">
+          <SectionLabel>Vehicle identification</SectionLabel>
+          <Field label="VIN" error={errors.vin?.message}>
+            <input
+              {...register("vin")}
+              className={cn(inputClass, "font-mono uppercase tracking-wide")}
+              maxLength={17}
+              autoCapitalize="characters"
+              autoComplete="off"
+              spellCheck={false}
+              placeholder="1HGCM82633A004352"
+            />
+          </Field>
+        </section>
+
+        <section className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+          <SectionLabel className="sm:col-span-2">Vehicle details</SectionLabel>
+          <Field label="Model year" error={errors.year?.message}>
+            <input
+              type="number"
+              inputMode="numeric"
+              min={1900}
+              max={MAX_YEAR}
+              {...register("year")}
+              className={inputClass}
+            />
+          </Field>
+          <Field label="Mileage" error={errors.mileage?.message}>
+            <input
+              type="number"
+              inputMode="numeric"
+              min={0}
+              {...register("mileage")}
+              className={inputClass}
+            />
+          </Field>
+          <Field label="Make" error={errors.make?.message}>
+            <input {...register("make")} className={inputClass} autoComplete="off" />
+          </Field>
+          <Field label="Model" error={errors.model?.message}>
+            <input {...register("model")} className={inputClass} autoComplete="off" />
+          </Field>
+          <Field label="Trim" error={errors.trim?.message} optional>
+            <input {...register("trim")} className={inputClass} autoComplete="off" />
+          </Field>
+          <Field label="Exterior color" error={errors.exterior_color?.message} optional>
+            <input {...register("exterior_color")} className={inputClass} autoComplete="off" />
+          </Field>
+          <Field label="Interior color" error={errors.interior_color?.message} optional>
+            <input {...register("interior_color")} className={inputClass} autoComplete="off" />
+          </Field>
+          <Field label="Transmission" error={errors.transmission?.message} optional>
+            <select {...register("transmission")} className={inputClass}>
+              <option value="">Select…</option>
+              {TRANSMISSIONS.map((t) => (
+                <option key={t} value={t}>
+                  {t}
+                </option>
+              ))}
+            </select>
+          </Field>
+          <Field label="Fuel type" error={errors.fuel_type?.message} optional>
+            <select {...register("fuel_type")} className={inputClass}>
+              <option value="">Select…</option>
+              {FUEL_TYPES.map((t) => (
+                <option key={t} value={t}>
+                  {t}
+                </option>
+              ))}
+            </select>
+          </Field>
+        </section>
+
+        <section className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+          <SectionLabel className="sm:col-span-2">Condition and title</SectionLabel>
+          <Field label="Condition" error={errors.condition?.message} optional>
+            <select {...register("condition")} className={inputClass}>
+              <option value="">Select…</option>
+              {CONDITIONS.map((t) => (
+                <option key={t} value={t}>
+                  {t}
+                </option>
+              ))}
+            </select>
+          </Field>
+          <Field label="Accident history" error={errors.accident_history?.message} optional>
+            <select {...register("accident_history")} className={inputClass}>
+              <option value="">Select…</option>
+              {ACCIDENT_HISTORY.map((t) => (
+                <option key={t} value={t}>
+                  {t}
+                </option>
+              ))}
+            </select>
+          </Field>
+          <Field label="Title status" error={errors.title_status?.message} optional>
+            <select {...register("title_status")} className={inputClass}>
+              <option value="">Select…</option>
+              {TITLE_STATUSES.map((t) => (
+                <option key={t} value={t}>
+                  {t}
+                </option>
+              ))}
+            </select>
+          </Field>
+        </section>
+
+        <section className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+          <SectionLabel className="sm:col-span-2">Location and price</SectionLabel>
+          <Field label="City" error={errors.location_city?.message}>
+            <input {...register("location_city")} className={inputClass} autoComplete="off" />
+          </Field>
+          <Field label="State" error={errors.location_state?.message}>
+            <select {...register("location_state")} className={inputClass}>
+              <option value="">Select…</option>
+              {US_STATES.map(([code, name]) => (
+                <option key={code} value={code}>
+                  {code} — {name}
+                </option>
+              ))}
+            </select>
+          </Field>
+          <Field
+            label="Asking price (USD)"
+            error={errors.price_usd?.message}
+            className="sm:col-span-2"
+          >
+            <input
+              type="number"
+              inputMode="decimal"
+              min={0}
+              step="0.01"
+              {...register("price_usd")}
+              className={inputClass}
+            />
+          </Field>
+        </section>
+
+        <section className="flex flex-col gap-3">
+          <SectionLabel>Description</SectionLabel>
+          <Field label="Description" error={errors.description?.message} optional>
+            <textarea
+              {...register("description")}
+              rows={5}
+              className="rounded border border-paper-200 bg-paper-100 px-3 py-2 text-ink-900"
+              placeholder="Service history, notable features, anything a buyer should know."
+            />
+          </Field>
+        </section>
+
+        {errors.root?.message ? (
+          <p className="text-sm text-copper-700">{errors.root.message}</p>
+        ) : null}
+
+        <div className="flex items-center gap-4">
+          <Button type="submit" disabled={isSubmitting}>
+            {isSubmitting ? "Saving…" : "Save draft"}
+          </Button>
+          <Link href="/seller/listings" className="text-sm text-slate-500 hover:text-ink-900">
+            Cancel
+          </Link>
+        </div>
+      </form>
+    </main>
+  );
+}
