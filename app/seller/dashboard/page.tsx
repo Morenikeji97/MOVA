@@ -1,4 +1,6 @@
+import Link from "next/link";
 import { createClient } from "@/lib/supabase/server";
+import { buttonClasses } from "@/components/ui/button";
 
 export default async function SellerDashboard() {
   const supabase = await createClient();
@@ -21,9 +23,14 @@ export default async function SellerDashboard() {
       <p className="mt-1 font-mono text-sm text-ink-400">
         Verification status: {profile?.verification_status ?? "unverified"}
       </p>
-      <p className="mt-8 text-sm text-slate-500">
-        Listing creation, photo upload, and status tracking ship in Phase 1.
-      </p>
+      <div className="mt-8 flex flex-col items-start gap-3">
+        <Link href="/seller/listings" className={buttonClasses({ size: "sm" })}>
+          My listings
+        </Link>
+        <p className="text-sm text-slate-500">
+          Photo upload and richer status tracking arrive later in Phase 1.
+        </p>
+      </div>
     </main>
   );
 }
