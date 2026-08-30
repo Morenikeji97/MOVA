@@ -1,6 +1,6 @@
 "use client";
 
-import { type ReactNode } from "react";
+import { type ReactNode, useEffect, useMemo, useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useForm } from "react-hook-form";
@@ -9,9 +9,24 @@ import { z } from "zod";
 import { createClient } from "@/lib/supabase/client";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
+import { VinData } from "@/components/ui/vin-data";
 
 const MAX_YEAR = new Date().getFullYear() + 1;
 const VIN_RE = /^[A-HJ-NPR-Z0-9]{17}$/;
+
+// NHTSA's free vPIC VIN decoder. Sends CORS headers, so it's safe to call
+// straight from the browser. https://vpic.nhtsa.dot.gov/api/
+const NHTSA_DECODE_URL =
+  "https://vpic.nhtsa.dot.gov/api/vehicles/DecodeVinValues";
+
+type DecodedVin = {
+  year: number | null;
+  make: string | null;
+  model: string | null;
+  trim: string | null;
+};
+
+type NhtsaResult = Record<string, string>;
 
 const TRANSMISSIONS = ["Automatic", "Manual", "CVT", "Dual-clutch", "Other"] as const;
 const FUEL_TYPES = [
@@ -164,11 +179,125 @@ export default function NewListingPage() {
     register,
     handleSubmit,
     setError,
+    setValue,
+    getValues,
+    watch,
     formState: { errors, isSubmitting },
   } = useForm<FormValues>({
     resolver: zodResolver(schema),
     defaultValues: EMPTY,
   });
+
+  const [vinDecoded, setVinDecoded] = useState<DecodedVin | null>(null);
+  const [vinDecoding, setVinDecoding] = useState(false);
+  const [vinError, setVinError] = useState<string | null>(null);
+
+  const vinValue = watch("vin");
+  const enteredYear = watch("year");
+  const enteredMake = watch("make");
+  const enteredModel = watch("model");
+
+  // A decoded result only describes the VIN it was fetched for; drop it as
+  // soon as the seller edits the VIN field again.
+  useEffect(() => {
+    setVinDecoded(null);
+    setVinError(null);
+  }, [vinValue]);
+
+  async function handleDecodeVin() {
+    const vin = getValues("vin").trim().toUpperCase();
+    if (!VIN_RE.test(vin)) {
+      setVinDecoded(null);
+      setVinError("Enter a valid 17-character VIN before decoding.");
+      return;
+    }
+
+    setVinDecoding(true);
+    setVinError(null);
+    try {
+      const res = await fetch(`${NHTSA_DECODE_URL}/${encodeURIComponent(vin)}?format=json`);
+      if (!res.ok) throw new Error(`NHTSA request failed (${res.status}).`);
+
+      const json = (await res.json()) as { Results?: NhtsaResult[] };
+      const r = json.Results?.[0];
+      if (!r) throw new Error("NHTSA returned no data for that VIN.");
+
+      const decoded: DecodedVin = {
+        year: r.ModelYear && /^\d{4}$/.test(r.ModelYear) ? Number(r.ModelYear) : null,
+        make: r.Make?.trim() || null,
+        model: r.Model?.trim() || null,
+        trim: r.Trim?.trim() || r.Series?.trim() || null,
+      };
+
+      if (decoded.year === null && !decoded.make && !decoded.model) {
+        throw new Error(r.ErrorText?.trim() || "Could not decode that VIN.");
+      }
+
+      setVinDecoded(decoded);
+
+      // Fill in blanks only — never overwrite what the seller already typed.
+      if (decoded.year !== null && getValues("year").trim() === "") {
+        setValue("year", String(decoded.year), { shouldValidate: true });
+      }
+      if (decoded.make && getValues("make").trim() === "") {
+        setValue("make", decoded.make, { shouldValidate: true });
+      }
+      if (decoded.model && getValues("model").trim() === "") {
+        setValue("model", decoded.model, { shouldValidate: true });
+      }
+      if (decoded.trim && getValues("trim").trim() === "") {
+        setValue("trim", decoded.trim, { shouldValidate: true });
+      }
+    } catch (err) {
+      setVinDecoded(null);
+      setVinError(err instanceof Error ? err.message : "VIN decode failed.");
+    } finally {
+      setVinDecoding(false);
+    }
+  }
+
+  function applyVinValues() {
+    if (!vinDecoded) return;
+    if (vinDecoded.year !== null) {
+      setValue("year", String(vinDecoded.year), { shouldValidate: true, shouldDirty: true });
+    }
+    if (vinDecoded.make) {
+      setValue("make", vinDecoded.make, { shouldValidate: true, shouldDirty: true });
+    }
+    if (vinDecoded.model) {
+      setValue("model", vinDecoded.model, { shouldValidate: true, shouldDirty: true });
+    }
+    if (vinDecoded.trim) {
+      setValue("trim", vinDecoded.trim, { shouldValidate: true, shouldDirty: true });
+    }
+  }
+
+  const vinMismatches = useMemo<string[]>(() => {
+    if (!vinDecoded) return [];
+    const norm = (s: string) => s.trim().toLowerCase();
+    const out: string[] = [];
+    if (
+      vinDecoded.year !== null &&
+      enteredYear.trim() !== "" &&
+      Number(enteredYear) !== vinDecoded.year
+    ) {
+      out.push(`Year: you entered ${enteredYear}, the VIN decodes to ${vinDecoded.year}.`);
+    }
+    if (vinDecoded.make && norm(enteredMake) !== "" && norm(enteredMake) !== norm(vinDecoded.make)) {
+      out.push(`Make: you entered "${enteredMake}", the VIN decodes to "${vinDecoded.make}".`);
+    }
+    if (
+      vinDecoded.model &&
+      norm(enteredModel) !== "" &&
+      norm(enteredModel) !== norm(vinDecoded.model)
+    ) {
+      out.push(`Model: you entered "${enteredModel}", the VIN decodes to "${vinDecoded.model}".`);
+    }
+    return out;
+  }, [vinDecoded, enteredYear, enteredMake, enteredModel]);
+
+  const vinDecodeStatus: "pending" | "matched" | "mismatch" =
+    vinDecoded === null ? "pending" : vinMismatches.length > 0 ? "mismatch" : "matched";
 
   async function onSubmit(values: FormValues) {
     const supabase = createClient();
@@ -201,6 +330,7 @@ export default function NewListingPage() {
       price_usd: Number(values.price_usd),
       description: orNull(values.description),
       status: "draft",
+      vin_decode_status: vinDecodeStatus,
     });
 
     if (error) {
@@ -228,17 +358,78 @@ export default function NewListingPage() {
       <form onSubmit={handleSubmit(onSubmit)} className="mt-8 flex flex-col gap-8">
         <section className="flex flex-col gap-3">
           <SectionLabel>Vehicle identification</SectionLabel>
-          <Field label="VIN" error={errors.vin?.message}>
-            <input
-              {...register("vin")}
-              className={cn(inputClass, "font-mono uppercase tracking-wide")}
-              maxLength={17}
-              autoCapitalize="characters"
-              autoComplete="off"
-              spellCheck={false}
-              placeholder="1HGCM82633A004352"
-            />
+          <Field
+            label="VIN"
+            error={errors.vin?.message}
+          >
+            <div className="flex flex-col gap-2 sm:flex-row">
+              <input
+                {...register("vin")}
+                className={cn(inputClass, "flex-1 font-mono uppercase tracking-wide")}
+                maxLength={17}
+                autoCapitalize="characters"
+                autoComplete="off"
+                spellCheck={false}
+                placeholder="1HGCM82633A004352"
+              />
+              <Button
+                type="button"
+                variant="secondary"
+                onClick={handleDecodeVin}
+                disabled={vinDecoding}
+                className="sm:w-auto"
+              >
+                {vinDecoding ? "Decoding…" : "Decode VIN"}
+              </Button>
+            </div>
           </Field>
+
+          {vinError ? <p className="text-sm text-copper-700">{vinError}</p> : null}
+
+          {vinDecoded ? (
+            <div className="rounded-lg border border-paper-200 bg-paper-100 p-4">
+              <p className="font-mono text-xs uppercase tracking-wider text-ink-400">
+                NHTSA VIN decode
+              </p>
+              <div className="mt-3 grid grid-cols-2 gap-4 sm:grid-cols-4">
+                <VinData
+                  label="Year"
+                  value={vinDecoded.year !== null ? String(vinDecoded.year) : "—"}
+                />
+                <VinData label="Make" value={vinDecoded.make ?? "—"} />
+                <VinData label="Model" value={vinDecoded.model ?? "—"} />
+                <VinData label="Trim" value={vinDecoded.trim ?? "—"} />
+              </div>
+
+              {vinMismatches.length > 0 ? (
+                <div className="mt-4 rounded border border-copper-100 bg-copper-50 p-3">
+                  <p className="text-sm font-medium text-copper-700">
+                    These entries do not match the VIN:
+                  </p>
+                  <ul className="mt-1 list-disc space-y-0.5 pl-5 text-sm text-copper-700">
+                    {vinMismatches.map((m) => (
+                      <li key={m}>{m}</li>
+                    ))}
+                  </ul>
+                  <button
+                    type="button"
+                    onClick={applyVinValues}
+                    className="mt-2 text-sm font-medium text-marine-700 underline underline-offset-2"
+                  >
+                    Use the decoded year, make and model
+                  </button>
+                  <p className="mt-2 text-xs text-ink-400">
+                    You can still save and submit. The listing will be flagged as a VIN
+                    mismatch for admin review.
+                  </p>
+                </div>
+              ) : (
+                <p className="mt-3 text-sm text-verified-600">
+                  Matches the details you entered.
+                </p>
+              )}
+            </div>
+          ) : null}
         </section>
 
         <section className="grid grid-cols-1 gap-4 sm:grid-cols-2">
@@ -387,6 +578,9 @@ export default function NewListingPage() {
           <Link href="/seller/listings" className="text-sm text-slate-500 hover:text-ink-900">
             Cancel
           </Link>
+          <span className="ml-auto font-mono text-xs uppercase tracking-wider text-ink-400">
+            VIN check: {vinDecodeStatus}
+          </span>
         </div>
       </form>
     </main>
