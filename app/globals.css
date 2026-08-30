@@ -2,10 +2,11 @@
 @tailwind components;
 @tailwind utilities;
 
-:root {
-  --font-sans: "Inter", system-ui, sans-serif;
-  --font-mono: "JetBrains Mono", ui-monospace, SFMono-Regular, monospace;
-}
+/*
+ * --font-sans / --font-mono are provided by next/font/google (see app/layout.tsx),
+ * which applies them to <html> and bakes in the fallback stack. Tailwind's
+ * fontFamily config maps `font-sans` / `font-mono` onto these variables.
+ */
 
 @layer base {
   body {
