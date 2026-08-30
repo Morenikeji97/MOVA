@@ -53,6 +53,10 @@ const config: Config = {
         DEFAULT: "8px",
         lg: "12px",
       },
+      spacing: {
+        // Keeps the button size rhythm on an 8px step: sm h-9 (36) → md h-11 (44) → lg h-13 (52).
+        "13": "3.25rem",
+      },
     },
   },
   plugins: [],
