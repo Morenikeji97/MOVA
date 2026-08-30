@@ -12,7 +12,7 @@ export default async function SellerDashboard() {
     .eq("user_id", user!.id)
     .single();
 
-  const profile = data as { verification_status?: string } | null;
+  const profile = data;
 
   return (
     <main className="mx-auto max-w-4xl px-6 py-16">

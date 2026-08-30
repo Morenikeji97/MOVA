@@ -14,12 +14,20 @@ export async function updateSession(request: NextRequest) {
         getAll() {
           return request.cookies.getAll();
         },
-        setAll(cookiesToSet: { name: string; value: string; options?: CookieOptions }[]) {
+        setAll(
+          cookiesToSet: { name: string; value: string; options?: CookieOptions }[],
+          headers: Record<string, string>
+        ) {
           cookiesToSet.forEach(({ name, value }) => request.cookies.set(name, value));
           supabaseResponse = NextResponse.next({ request });
           cookiesToSet.forEach(({ name, value, options }) =>
             supabaseResponse.cookies.set(name, value, options)
           );
+          // @supabase/ssr passes cache-control headers here so that responses
+          // carrying refreshed auth cookies are never cached by a CDN/proxy.
+          for (const [key, value] of Object.entries(headers)) {
+            supabaseResponse.headers.set(key, value);
+          }
         },
       },
     }
@@ -36,7 +44,7 @@ export async function updateSession(request: NextRequest) {
       .select("role")
       .eq("id", user.id)
       .single();
-    role = (profile as { role?: "seller" | "buyer" | "admin" } | null)?.role ?? null;
+    role = profile?.role ?? null;
   }
 
   return { supabaseResponse, user, role };
