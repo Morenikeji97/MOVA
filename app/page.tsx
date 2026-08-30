@@ -1,4 +1,5 @@
-import { Button } from "@/components/ui/button";
+import Link from "next/link";
+import { buttonClasses } from "@/components/ui/button";
 import { VerifiedBadge } from "@/components/ui/verified-badge";
 import { VinData } from "@/components/ui/vin-data";
 
@@ -18,14 +19,22 @@ export default function Home() {
             starting in Nigeria.
           </p>
           <div className="mt-8 flex gap-3">
-            <Button variant="primary" size="lg">Browse Vehicles</Button>
-            <Button
-              variant="secondary"
-              size="lg"
-              className="border-white text-white hover:bg-white/10"
+            <Link
+              href="/buyer/dashboard"
+              className={buttonClasses({ variant: "primary", size: "lg" })}
+            >
+              Browse Vehicles
+            </Link>
+            <Link
+              href="/seller/listings/new"
+              className={buttonClasses({
+                variant: "secondary",
+                size: "lg",
+                className: "border-white text-white hover:bg-white/10",
+              })}
             >
               List Your Vehicle
-            </Button>
+            </Link>
           </div>
         </div>
       </header>
