@@ -20,7 +20,7 @@ export default function Home() {
           </p>
           <div className="mt-8 flex gap-3">
             <Link
-              href="/buyer/dashboard"
+              href="/browse"
               className={buttonClasses({ variant: "primary", size: "lg" })}
             >
               Browse Vehicles
