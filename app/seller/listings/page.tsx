@@ -1,10 +1,11 @@
 import Link from "next/link";
 import { createClient } from "@/lib/supabase/server";
-import { Button, buttonClasses } from "@/components/ui/button";
+import { buttonClasses } from "@/components/ui/button";
 import { VerifiedBadge } from "@/components/ui/verified-badge";
 import { cn } from "@/lib/utils";
 import type { VehicleStatus } from "@/types/database";
 import { submitForReview } from "./actions";
+import { SubmitForReviewButton } from "./submit-for-review-button";
 
 const STATUS_META: Record<VehicleStatus, { label: string; pill: string }> = {
   draft: { label: "Draft", pill: "bg-paper-200 text-ink-400" },
@@ -106,9 +107,7 @@ export default async function SellerListingsPage() {
               {v.status === "draft" ? (
                 <form action={submitForReview} className="mt-4">
                   <input type="hidden" name="id" value={v.id} />
-                  <Button type="submit" variant="secondary" size="sm">
-                    Submit for review
-                  </Button>
+                  <SubmitForReviewButton />
                 </form>
               ) : null}
             </li>

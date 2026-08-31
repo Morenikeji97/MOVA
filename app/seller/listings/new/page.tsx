@@ -1,6 +1,6 @@
 "use client";
 
-import { type ReactNode, useEffect, useMemo, useState } from "react";
+import { type ReactNode, useEffect, useMemo, useRef, useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useForm } from "react-hook-form";
@@ -213,6 +213,15 @@ export default function NewListingPage() {
   const [vinDecoding, setVinDecoding] = useState(false);
   const [vinError, setVinError] = useState<string | null>(null);
 
+  // Guards against a double-click or slow-network second submit creating a
+  // duplicate listing. `isSubmitting` from react-hook-form clears the moment
+  // onSubmit returns, which is before the client-side navigation finishes, so
+  // it isn't enough on its own. The ref blocks re-entrant calls synchronously;
+  // `saving` drives the disabled/label state and is intentionally left set on
+  // the success path (the page unmounts on navigation).
+  const savingRef = useRef(false);
+  const [saving, setSaving] = useState(false);
+
   const vinValue = watch("vin");
   const enteredYear = watch("year");
   const enteredMake = watch("make");
@@ -322,13 +331,23 @@ export default function NewListingPage() {
     vinDecoded === null ? "pending" : vinMismatches.length > 0 ? "mismatch" : "matched";
 
   async function onSubmit(values: FormValues) {
+    if (savingRef.current) return;
+    savingRef.current = true;
+    setSaving(true);
+
+    const fail = (message: string) => {
+      setError("root", { message });
+      savingRef.current = false;
+      setSaving(false);
+    };
+
     const supabase = createClient();
     const {
       data: { user },
     } = await supabase.auth.getUser();
 
     if (!user) {
-      setError("root", { message: "Your session has expired. Please sign in again." });
+      fail("Your session has expired. Please sign in again.");
       return;
     }
 
@@ -360,7 +379,7 @@ export default function NewListingPage() {
       .single();
 
     if (error || !created) {
-      setError("root", { message: error?.message ?? "Could not save the listing." });
+      fail(error?.message ?? "Could not save the listing.");
       return;
     }
 
@@ -379,13 +398,13 @@ export default function NewListingPage() {
         // with a photoless listing they can't edit yet. The "delete own draft"
         // RLS policy allows this.
         await supabase.from("vehicles").delete().eq("id", created.id);
-        setError("root", {
-          message: `Could not attach photos: ${photoError.message}. Please try again.`,
-        });
+        fail(`Could not attach photos: ${photoError.message}. Please try again.`);
         return;
       }
     }
 
+    // Leave `saving` set: the form stays disabled through the navigation so a
+    // late click can't insert a second row.
     router.push("/seller/listings");
     router.refresh();
   }
@@ -626,7 +645,7 @@ export default function NewListingPage() {
             onChange={(next: PhotoDraft[]) =>
               setValue("photos", next, { shouldValidate: true, shouldDirty: true })
             }
-            disabled={isSubmitting}
+            disabled={isSubmitting || saving}
             maxPhotos={MAX_PHOTOS}
             error={errors.photos?.message}
           />
@@ -637,8 +656,8 @@ export default function NewListingPage() {
         ) : null}
 
         <div className="flex items-center gap-4">
-          <Button type="submit" disabled={isSubmitting}>
-            {isSubmitting ? "Saving…" : "Save draft"}
+          <Button type="submit" disabled={isSubmitting || saving}>
+            {isSubmitting || saving ? "Saving…" : "Save draft"}
           </Button>
           <Link href="/seller/listings" className="text-sm text-slate-500 hover:text-ink-900">
             Cancel
