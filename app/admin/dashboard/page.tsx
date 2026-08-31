@@ -1,3 +1,4 @@
+import Link from "next/link";
 import { createClient } from "@/lib/supabase/server";
 
 export default async function AdminDashboard() {
@@ -21,18 +22,21 @@ export default async function AdminDashboard() {
           </p>
           <p className="mt-1 text-3xl font-semibold text-ink-900">{userCount ?? 0}</p>
         </div>
-        <div className="rounded-lg border border-paper-200 bg-paper-100 p-5">
+        <Link
+          href="/admin/listings"
+          className="rounded-lg border border-paper-200 bg-paper-100 p-5 transition-colors hover:border-marine"
+        >
           <p className="font-mono text-xs uppercase tracking-wider text-ink-400">
             Listings pending review
           </p>
           <p className="mt-1 text-3xl font-semibold text-ink-900">
             {pendingListings ?? 0}
           </p>
-        </div>
+          <p className="mt-1 text-sm text-marine-700">Open the review queue &rarr;</p>
+        </Link>
       </div>
       <p className="mt-8 text-sm text-slate-500">
-        Listing review queue, transaction management, and shipper
-        applications ship across Phases 1–4.
+        Transaction management and shipper applications ship across Phases 1–4.
       </p>
     </main>
   );
