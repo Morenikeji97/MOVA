@@ -76,7 +76,17 @@ supabase db push
 ```
 
 **Or** paste the contents of `0001_init.sql` into the Supabase dashboard → SQL
-Editor and run it once.
+Editor and run it once. Apply the numbered migrations in order.
+
+### Storage
+
+[`supabase/migrations/0002_vehicle_photos_storage.sql`](supabase/migrations/0002_vehicle_photos_storage.sql)
+creates the public **`vehicle-photos`** bucket (10 MB per file; JPEG, PNG, WebP)
+and its `storage.objects` policies: an authenticated seller may upload, replace
+and delete objects only under their own `‹user-id›/…` key prefix, while reads are
+public so approved-listing images need no signing. The seller upload UI lives in
+the listing form and records each public URL in `public.vehicle_photos`
+(`sort_order` for gallery order, one `is_primary` row per vehicle).
 
 ## Auth & route model
 

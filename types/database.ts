@@ -209,6 +209,30 @@ export interface Database {
         }>;
         Relationships: [];
       };
+      vehicle_photos: {
+        Row: {
+          id: string;
+          vehicle_id: string;
+          url: string;
+          sort_order: number;
+          is_primary: boolean;
+        };
+        Insert: {
+          vehicle_id: string;
+          url: string;
+          id?: string;
+          sort_order?: number;
+          is_primary?: boolean;
+        };
+        Update: Partial<{
+          id: string;
+          vehicle_id: string;
+          url: string;
+          sort_order: number;
+          is_primary: boolean;
+        }>;
+        Relationships: [];
+      };
     };
     Views: Record<string, never>;
     Functions: Record<string, never>;

@@ -10,6 +10,9 @@ import { createClient } from "@/lib/supabase/client";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
 import { VinData } from "@/components/ui/vin-data";
+import { PhotoUploader, type PhotoDraft } from "@/components/ui/photo-uploader";
+
+const MAX_PHOTOS = 20;
 
 const MAX_YEAR = new Date().getFullYear() + 1;
 const VIN_RE = /^[A-HJ-NPR-Z0-9]{17}$/;
@@ -108,6 +111,23 @@ const schema = z.object({
       "Price must be between 1 and 5,000,000.",
     ),
   description: z.string().trim().max(5000),
+  photos: z
+    .array(
+      z.object({
+        path: z.string().min(1),
+        url: z.string().url(),
+        isPrimary: z.boolean(),
+      }),
+    )
+    .max(MAX_PHOTOS, `You can add up to ${MAX_PHOTOS} photos.`)
+    .superRefine((photos, ctx) => {
+      if (photos.length > 0 && photos.filter((p) => p.isPrimary).length !== 1) {
+        ctx.addIssue({
+          code: z.ZodIssueCode.custom,
+          message: "Choose exactly one primary photo.",
+        });
+      }
+    }),
 });
 
 type FormValues = z.infer<typeof schema>;
@@ -130,6 +150,7 @@ const EMPTY: FormValues = {
   location_state: "",
   price_usd: "",
   description: "",
+  photos: [],
 };
 
 const inputClass = "h-11 rounded border border-paper-200 bg-paper-100 px-3 text-ink-900";
@@ -196,6 +217,7 @@ export default function NewListingPage() {
   const enteredYear = watch("year");
   const enteredMake = watch("make");
   const enteredModel = watch("model");
+  const photos = watch("photos");
 
   // A decoded result only describes the VIN it was fetched for; drop it as
   // soon as the seller edits the VIN field again.
@@ -310,32 +332,58 @@ export default function NewListingPage() {
       return;
     }
 
-    const { error } = await supabase.from("vehicles").insert({
-      seller_id: user.id,
-      vin: values.vin.trim().toUpperCase(),
-      year: Number(values.year),
-      make: values.make.trim(),
-      model: values.model.trim(),
-      trim: orNull(values.trim),
-      mileage: Number(values.mileage),
-      exterior_color: orNull(values.exterior_color),
-      interior_color: orNull(values.interior_color),
-      transmission: orNull(values.transmission),
-      fuel_type: orNull(values.fuel_type),
-      condition: orNull(values.condition),
-      accident_history: orNull(values.accident_history),
-      title_status: orNull(values.title_status),
-      location_city: values.location_city.trim(),
-      location_state: values.location_state.trim().toUpperCase(),
-      price_usd: Number(values.price_usd),
-      description: orNull(values.description),
-      status: "draft",
-      vin_decode_status: vinDecodeStatus,
-    });
+    const { data: created, error } = await supabase
+      .from("vehicles")
+      .insert({
+        seller_id: user.id,
+        vin: values.vin.trim().toUpperCase(),
+        year: Number(values.year),
+        make: values.make.trim(),
+        model: values.model.trim(),
+        trim: orNull(values.trim),
+        mileage: Number(values.mileage),
+        exterior_color: orNull(values.exterior_color),
+        interior_color: orNull(values.interior_color),
+        transmission: orNull(values.transmission),
+        fuel_type: orNull(values.fuel_type),
+        condition: orNull(values.condition),
+        accident_history: orNull(values.accident_history),
+        title_status: orNull(values.title_status),
+        location_city: values.location_city.trim(),
+        location_state: values.location_state.trim().toUpperCase(),
+        price_usd: Number(values.price_usd),
+        description: orNull(values.description),
+        status: "draft",
+        vin_decode_status: vinDecodeStatus,
+      })
+      .select("id")
+      .single();
 
-    if (error) {
-      setError("root", { message: error.message });
+    if (error || !created) {
+      setError("root", { message: error?.message ?? "Could not save the listing." });
       return;
+    }
+
+    if (values.photos.length > 0) {
+      const { error: photoError } = await supabase.from("vehicle_photos").insert(
+        values.photos.map((photo, index) => ({
+          vehicle_id: created.id,
+          url: photo.url,
+          sort_order: index,
+          is_primary: photo.isPrimary,
+        })),
+      );
+
+      if (photoError) {
+        // Roll the draft back so the seller can retry cleanly rather than end up
+        // with a photoless listing they can't edit yet. The "delete own draft"
+        // RLS policy allows this.
+        await supabase.from("vehicles").delete().eq("id", created.id);
+        setError("root", {
+          message: `Could not attach photos: ${photoError.message}. Please try again.`,
+        });
+        return;
+      }
     }
 
     router.push("/seller/listings");
@@ -565,6 +613,23 @@ export default function NewListingPage() {
               placeholder="Service history, notable features, anything a buyer should know."
             />
           </Field>
+        </section>
+
+        <section className="flex flex-col gap-3">
+          <SectionLabel>Photos</SectionLabel>
+          <p className="text-sm text-slate-500">
+            Add up to {MAX_PHOTOS} photos. The primary photo leads the listing in
+            search results; drag a thumbnail or use the arrows to reorder the rest.
+          </p>
+          <PhotoUploader
+            value={photos}
+            onChange={(next: PhotoDraft[]) =>
+              setValue("photos", next, { shouldValidate: true, shouldDirty: true })
+            }
+            disabled={isSubmitting}
+            maxPhotos={MAX_PHOTOS}
+            error={errors.photos?.message}
+          />
         </section>
 
         {errors.root?.message ? (
