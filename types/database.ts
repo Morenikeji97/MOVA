@@ -233,6 +233,51 @@ export interface Database {
         }>;
         Relationships: [];
       };
+      purchase_requests: {
+        Row: {
+          id: string;
+          vehicle_id: string;
+          buyer_id: string;
+          shipping_rate_id: string | null;
+          status: PurchaseRequestStatus;
+          mova_fee_usd: number | null;
+          payment_method: string | null;
+          payment_reference: string | null;
+          notes: string | null;
+          assigned_admin_id: string | null;
+          created_at: string;
+          updated_at: string;
+        };
+        Insert: {
+          vehicle_id: string;
+          buyer_id: string;
+          id?: string;
+          shipping_rate_id?: string | null;
+          status?: PurchaseRequestStatus;
+          mova_fee_usd?: number | null;
+          payment_method?: string | null;
+          payment_reference?: string | null;
+          notes?: string | null;
+          assigned_admin_id?: string | null;
+          created_at?: string;
+          updated_at?: string;
+        };
+        Update: Partial<{
+          id: string;
+          vehicle_id: string;
+          buyer_id: string;
+          shipping_rate_id: string | null;
+          status: PurchaseRequestStatus;
+          mova_fee_usd: number | null;
+          payment_method: string | null;
+          payment_reference: string | null;
+          notes: string | null;
+          assigned_admin_id: string | null;
+          created_at: string;
+          updated_at: string;
+        }>;
+        Relationships: [];
+      };
     };
     Views: Record<string, never>;
     Functions: Record<string, never>;

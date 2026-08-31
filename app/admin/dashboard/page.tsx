@@ -4,13 +4,18 @@ import { createClient } from "@/lib/supabase/server";
 export default async function AdminDashboard() {
   const supabase = await createClient();
 
-  const [{ count: userCount }, { count: pendingListings }] = await Promise.all([
-    supabase.from("users").select("*", { count: "exact", head: true }),
-    supabase
-      .from("vehicles")
-      .select("*", { count: "exact", head: true })
-      .eq("status", "pending_review"),
-  ]);
+  const [{ count: userCount }, { count: pendingListings }, { count: openReservations }] =
+    await Promise.all([
+      supabase.from("users").select("*", { count: "exact", head: true }),
+      supabase
+        .from("vehicles")
+        .select("*", { count: "exact", head: true })
+        .eq("status", "pending_review"),
+      supabase
+        .from("purchase_requests")
+        .select("*", { count: "exact", head: true })
+        .in("status", ["submitted", "under_review", "verified"]),
+    ]);
 
   return (
     <main className="mx-auto max-w-4xl px-6 py-16">
@@ -33,6 +38,20 @@ export default async function AdminDashboard() {
             {pendingListings ?? 0}
           </p>
           <p className="mt-1 text-sm text-marine-700">Open the review queue &rarr;</p>
+        </Link>
+        <Link
+          href="/admin/reservations"
+          className="rounded-lg border border-paper-200 bg-paper-100 p-5 transition-colors hover:border-marine"
+        >
+          <p className="font-mono text-xs uppercase tracking-wider text-ink-400">
+            Reservation requests
+          </p>
+          <p className="mt-1 text-3xl font-semibold text-ink-900">
+            {openReservations ?? 0}
+          </p>
+          <p className="mt-1 text-sm text-marine-700">
+            Open the reservation queue &rarr;
+          </p>
         </Link>
       </div>
       <p className="mt-8 text-sm text-slate-500">

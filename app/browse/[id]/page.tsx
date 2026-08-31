@@ -5,6 +5,7 @@ import { createClient } from "@/lib/supabase/server";
 import { cn } from "@/lib/utils";
 import { buttonClasses } from "@/components/ui/button";
 import { VerifiedBadge } from "@/components/ui/verified-badge";
+import { ReserveVehicle, type ReserveState } from "./reserve-vehicle";
 
 const usd = new Intl.NumberFormat("en-US", {
   style: "currency",
@@ -57,6 +58,43 @@ export default async function VehicleDetailPage({
     .maybeSingle();
 
   if (!v) notFound();
+
+  // Reserve CTA state depends on who's viewing.
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+
+  let reserveState: ReserveState = "anonymous";
+  let requestStatus: string | null = null;
+
+  if (user) {
+    const { data: profile } = await supabase
+      .from("users")
+      .select("role")
+      .eq("id", user.id)
+      .single();
+
+    if (profile?.role !== "buyer") {
+      reserveState = "not-buyer";
+    } else {
+      const { data: existing } = await supabase
+        .from("purchase_requests")
+        .select("status")
+        .eq("vehicle_id", id)
+        .eq("buyer_id", user.id)
+        .not("status", "in", "(cancelled,rejected)")
+        .order("created_at", { ascending: false })
+        .limit(1)
+        .maybeSingle();
+
+      if (existing) {
+        reserveState = "requested";
+        requestStatus = existing.status;
+      } else {
+        reserveState = "available";
+      }
+    }
+  }
 
   const { data: photos } = await supabase
     .from("vehicle_photos")
@@ -146,18 +184,11 @@ export default async function VehicleDetailPage({
           </section>
         ) : null}
 
-        <div className="mt-10 rounded-lg border border-paper-200 bg-paper-100 p-6">
-          <p className="text-ink-900">Interested in this vehicle?</p>
-          <p className="mt-1 text-sm text-slate-500">
-            Create a buyer account to save it and start a purchase request.
-          </p>
-          <Link
-            href="/signup"
-            className={cn(buttonClasses({ size: "md" }), "mt-4")}
-          >
-            Create an account
-          </Link>
-        </div>
+        <ReserveVehicle
+          vehicleId={id}
+          state={reserveState}
+          requestStatus={requestStatus}
+        />
       </main>
     </div>
   );
