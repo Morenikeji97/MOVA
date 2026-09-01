@@ -1,8 +1,21 @@
 import Link from "next/link";
 import { createClient } from "@/lib/supabase/server";
 import { buttonClasses } from "@/components/ui/button";
+import { VerificationPanel } from "../verification/verification-panel";
 
-export default async function SellerDashboard() {
+export default async function SellerDashboard({
+  searchParams,
+}: {
+  searchParams: Promise<{ verification?: string }>;
+}) {
+  const { verification } = await searchParams;
+  const notice =
+    verification === "complete"
+      ? "complete"
+      : verification === "error"
+        ? "error"
+        : null;
+
   const supabase = await createClient();
   const {
     data: { user },
@@ -31,6 +44,12 @@ export default async function SellerDashboard() {
           Photo upload and richer status tracking arrive later in Phase 1.
         </p>
       </div>
+
+      <VerificationPanel
+        status={profile?.id_verification_status ?? null}
+        verifiedAt={profile?.id_verified_at ?? null}
+        notice={notice}
+      />
     </main>
   );
 }
