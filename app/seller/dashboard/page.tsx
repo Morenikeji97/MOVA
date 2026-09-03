@@ -34,7 +34,7 @@ export default async function SellerDashboard({
       <h1 className="text-2xl font-semibold text-ink-900">Seller Dashboard</h1>
       <p className="mt-2 text-slate-500">Signed in as {user?.email}</p>
       <p className="mt-1 font-mono text-sm text-ink-400">
-        Verification status: {profile?.verification_status ?? "unverified"}
+        Verification status: {profile?.id_verification_status ?? "unverified"}
       </p>
       <div className="mt-8 flex flex-col items-start gap-3">
         <Link href="/seller/listings" className={buttonClasses({ size: "sm" })}>
