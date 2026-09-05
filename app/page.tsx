@@ -1,13 +1,69 @@
 import Link from "next/link";
+import { createClient } from "@/lib/supabase/server";
 import { buttonClasses } from "@/components/ui/button";
 import { VerifiedBadge } from "@/components/ui/verified-badge";
 import { VinData } from "@/components/ui/vin-data";
+import type { UserRole } from "@/types/database";
 
-export default function Home() {
+// Same role → home mapping middleware.ts uses to gate these prefixes.
+const DASHBOARD_BY_ROLE: Record<UserRole, string> = {
+  seller: "/seller/dashboard",
+  buyer: "/buyer/dashboard",
+  admin: "/admin/dashboard",
+};
+
+export default async function Home() {
+  const supabase = await createClient();
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+
+  // Determine role the same way middleware.ts does: users.role by auth id.
+  let role: UserRole | null = null;
+  if (user) {
+    const { data: profile } = await supabase
+      .from("users")
+      .select("role")
+      .eq("id", user.id)
+      .single();
+    role = profile?.role ?? null;
+  }
+
+  const dashboardHref = role ? DASHBOARD_BY_ROLE[role] : "/browse";
+
   return (
     <main className="min-h-screen bg-paper">
       <header className="bg-ink text-white">
-        <div className="mx-auto max-w-6xl px-6 py-24">
+        <nav className="mx-auto flex max-w-6xl items-center justify-between px-6 py-4">
+          <span className="font-mono text-sm font-semibold uppercase tracking-widest">
+            MOVA
+          </span>
+          <div className="flex items-center gap-4 text-sm">
+            {user ? (
+              <Link
+                href={dashboardHref}
+                className={buttonClasses({
+                  variant: "secondary",
+                  size: "sm",
+                  className: "border-white text-white hover:bg-white/10",
+                })}
+              >
+                Dashboard
+              </Link>
+            ) : (
+              <>
+                <Link href="/login" className="text-ink-100 hover:text-white">
+                  Sign in
+                </Link>
+                <Link href="/signup" className={buttonClasses({ size: "sm" })}>
+                  Create account
+                </Link>
+              </>
+            )}
+          </div>
+        </nav>
+
+        <div className="mx-auto max-w-6xl px-6 pb-24 pt-12">
           <p className="font-mono text-sm uppercase tracking-widest text-marine-400">
             Houston, TX → Lagos, NG
           </p>
@@ -61,3 +117,5 @@ export default function Home() {
     </main>
   );
 }
+
+export const dynamic = "force-dynamic";
