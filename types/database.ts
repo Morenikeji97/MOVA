@@ -10,6 +10,8 @@ export type PurchaseRequestStatus =
   | "rejected"
   | "completed"
   | "cancelled";
+export type FeeResponsibility = "buyer_pays_full" | "split";
+export type MovaFeePaymentStatus = "pending" | "paid";
 
 export interface Database {
   public: {
@@ -144,6 +146,7 @@ export interface Database {
           location_city: string;
           location_state: string;
           price_usd: number;
+          fee_responsibility: FeeResponsibility;
           description: string | null;
           status: VehicleStatus;
           verification_status: VerificationStatus;
@@ -162,6 +165,7 @@ export interface Database {
           location_state: string;
           price_usd: number;
           id?: string;
+          fee_responsibility?: FeeResponsibility;
           vin_decode_status?: "pending" | "matched" | "mismatch";
           trim?: string | null;
           exterior_color?: string | null;
@@ -200,6 +204,7 @@ export interface Database {
           location_city: string;
           location_state: string;
           price_usd: number;
+          fee_responsibility: FeeResponsibility;
           description: string | null;
           status: VehicleStatus;
           verification_status: VerificationStatus;
@@ -240,7 +245,16 @@ export interface Database {
           buyer_id: string;
           shipping_rate_id: string | null;
           status: PurchaseRequestStatus;
+          vehicle_price_usd: number | null;
           mova_fee_usd: number | null;
+          mova_fee_payment_status: MovaFeePaymentStatus;
+          mova_fee_stripe_session_id: string | null;
+          mova_fee_checkout_url: string | null;
+          seller_details_revealed_at: string | null;
+          seller_name: string | null;
+          seller_email: string | null;
+          seller_phone: string | null;
+          seller_whatsapp: string | null;
           payment_method: string | null;
           payment_reference: string | null;
           notes: string | null;
@@ -254,7 +268,16 @@ export interface Database {
           id?: string;
           shipping_rate_id?: string | null;
           status?: PurchaseRequestStatus;
+          vehicle_price_usd?: number | null;
           mova_fee_usd?: number | null;
+          mova_fee_payment_status?: MovaFeePaymentStatus;
+          mova_fee_stripe_session_id?: string | null;
+          mova_fee_checkout_url?: string | null;
+          seller_details_revealed_at?: string | null;
+          seller_name?: string | null;
+          seller_email?: string | null;
+          seller_phone?: string | null;
+          seller_whatsapp?: string | null;
           payment_method?: string | null;
           payment_reference?: string | null;
           notes?: string | null;
@@ -268,7 +291,16 @@ export interface Database {
           buyer_id: string;
           shipping_rate_id: string | null;
           status: PurchaseRequestStatus;
+          vehicle_price_usd: number | null;
           mova_fee_usd: number | null;
+          mova_fee_payment_status: MovaFeePaymentStatus;
+          mova_fee_stripe_session_id: string | null;
+          mova_fee_checkout_url: string | null;
+          seller_details_revealed_at: string | null;
+          seller_name: string | null;
+          seller_email: string | null;
+          seller_phone: string | null;
+          seller_whatsapp: string | null;
           payment_method: string | null;
           payment_reference: string | null;
           notes: string | null;

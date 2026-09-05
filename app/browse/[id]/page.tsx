@@ -5,13 +5,9 @@ import { createClient } from "@/lib/supabase/server";
 import { cn } from "@/lib/utils";
 import { buttonClasses } from "@/components/ui/button";
 import { VerifiedBadge } from "@/components/ui/verified-badge";
+import { PriceBreakdown } from "@/components/ui/price-breakdown";
+import { feeBreakdown } from "@/lib/fees";
 import { ReserveVehicle, type ReserveState } from "./reserve-vehicle";
-
-const usd = new Intl.NumberFormat("en-US", {
-  style: "currency",
-  currency: "USD",
-  maximumFractionDigits: 0,
-});
 
 function BrowseHeader() {
   return (
@@ -125,10 +121,13 @@ export default async function VehicleDetailPage({
           <h1 className="text-2xl font-semibold text-ink-900">{title}</h1>
           <VerifiedBadge />
         </div>
-        <p className="mt-2 text-2xl font-semibold text-ink-900">
-          {usd.format(Number(v.price_usd))}
-        </p>
-        <p className="mt-1 font-mono text-sm text-ink-400">
+        <PriceBreakdown
+          price={Number(v.price_usd)}
+          feeResponsibility={v.fee_responsibility}
+          variant="detail"
+          className="mt-3 max-w-xs"
+        />
+        <p className="mt-2 font-mono text-sm text-ink-400">
           {v.mileage.toLocaleString("en-US")} mi · {v.location_city}, {v.location_state}
         </p>
 
@@ -188,6 +187,7 @@ export default async function VehicleDetailPage({
           vehicleId={id}
           state={reserveState}
           requestStatus={requestStatus}
+          buyerFeeUsd={feeBreakdown(Number(v.price_usd), v.fee_responsibility).buyerFee}
         />
       </main>
     </div>

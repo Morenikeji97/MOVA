@@ -111,6 +111,7 @@ const schema = z.object({
       "Price must be between 1 and 5,000,000.",
     ),
   description: z.string().trim().max(5000),
+  fee_responsibility: z.enum(["buyer_pays_full", "split"]),
   photos: z
     .array(
       z.object({
@@ -150,6 +151,7 @@ const EMPTY: FormValues = {
   location_state: "",
   price_usd: "",
   description: "",
+  fee_responsibility: "buyer_pays_full",
   photos: [],
 };
 
@@ -371,6 +373,7 @@ export default function NewListingPage() {
         location_city: values.location_city.trim(),
         location_state: values.location_state.trim().toUpperCase(),
         price_usd: Number(values.price_usd),
+        fee_responsibility: values.fee_responsibility,
         description: orNull(values.description),
         status: "draft",
         vin_decode_status: vinDecodeStatus,
@@ -620,6 +623,39 @@ export default function NewListingPage() {
               className={inputClass}
             />
           </Field>
+
+          <fieldset className="flex flex-col gap-2 sm:col-span-2">
+            <legend className="text-sm text-slate-500">
+              Who covers MOVA&rsquo;s 8% service fee?
+            </legend>
+            <label className="flex items-start gap-2 rounded border border-paper-200 bg-paper-100 p-3">
+              <input
+                type="radio"
+                value="buyer_pays_full"
+                {...register("fee_responsibility")}
+                className="mt-1"
+              />
+              <span className="text-sm text-ink-900">Buyer pays full fee</span>
+            </label>
+            <label className="flex items-start gap-2 rounded border border-paper-200 bg-paper-100 p-3">
+              <input
+                type="radio"
+                value="split"
+                {...register("fee_responsibility")}
+                className="mt-1"
+              />
+              <span className="text-sm text-ink-900">Split 50/50 with buyer</span>
+            </label>
+            <p className="text-xs text-ink-400">
+              This doesn&rsquo;t change what you receive for the vehicle — MOVA&rsquo;s
+              fee is charged on top of your asking price either way.
+            </p>
+            {errors.fee_responsibility?.message ? (
+              <span className="text-sm text-copper-700">
+                {errors.fee_responsibility.message}
+              </span>
+            ) : null}
+          </fieldset>
         </section>
 
         <section className="flex flex-col gap-3">

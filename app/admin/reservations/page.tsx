@@ -43,7 +43,9 @@ export default async function AdminReservationsPage() {
 
   const { data: requests } = await supabase
     .from("purchase_requests")
-    .select("id, vehicle_id, buyer_id, status, created_at")
+    .select(
+      "id, vehicle_id, buyer_id, status, created_at, vehicle_price_usd, mova_fee_usd, mova_fee_payment_status, mova_fee_checkout_url",
+    )
     .in("status", OPEN_STATUSES)
     .order("created_at", { ascending: true });
 
@@ -138,11 +140,24 @@ export default async function AdminReservationsPage() {
                   <Detail label="Requested">
                     {submitted.format(new Date(r.created_at))}
                   </Detail>
+                  <Detail label="MOVA fee">
+                    {r.mova_fee_payment_status === "paid"
+                      ? "Paid"
+                      : r.mova_fee_checkout_url
+                        ? "Link sent — awaiting payment"
+                        : "Not requested"}
+                  </Detail>
                 </dl>
 
                 <ReservationActions
                   requestId={r.id}
                   canReview={r.status === "submitted"}
+                  canRequestFee={
+                    (r.status === "under_review" || r.status === "verified") &&
+                    r.mova_fee_payment_status !== "paid"
+                  }
+                  feeLinkSent={Boolean(r.mova_fee_checkout_url)}
+                  feePaid={r.mova_fee_payment_status === "paid"}
                 />
               </li>
             );

@@ -3,7 +3,7 @@ import { createClient } from "@/lib/supabase/server";
 import { buttonClasses } from "@/components/ui/button";
 import { VerifiedBadge } from "@/components/ui/verified-badge";
 import { cn } from "@/lib/utils";
-import type { VehicleStatus } from "@/types/database";
+import type { FeeResponsibility, VehicleStatus } from "@/types/database";
 import { submitForReview } from "./actions";
 import { SubmitForReviewButton } from "./submit-for-review-button";
 
@@ -21,6 +21,11 @@ const usd = new Intl.NumberFormat("en-US", {
   currency: "USD",
   maximumFractionDigits: 0,
 });
+
+const FEE_LABEL: Record<FeeResponsibility, string> = {
+  buyer_pays_full: "Buyer pays MOVA's full 8% fee",
+  split: "MOVA's 8% fee split 50/50 with the buyer",
+};
 
 function StatusBadge({ status }: { status: VehicleStatus }) {
   if (status === "approved") {
@@ -52,6 +57,25 @@ export default async function SellerListingsPage() {
     .order("created_at", { ascending: false });
 
   const rows = listings ?? [];
+
+  // Reservations where the buyer has already paid MOVA's service fee — the
+  // seller should now expect direct contact and a wire for the vehicle price.
+  const vehicleIds = rows.map((v) => v.id);
+  const { data: paidReqs } = vehicleIds.length
+    ? await supabase
+        .from("purchase_requests")
+        .select("vehicle_id, vehicle_price_usd, seller_details_revealed_at")
+        .in("vehicle_id", vehicleIds)
+        .eq("mova_fee_payment_status", "paid")
+        .order("seller_details_revealed_at", { ascending: false })
+    : { data: [] };
+
+  const paidByVehicle = new Map<string, { vehicle_price_usd: number | null }>();
+  for (const p of paidReqs ?? []) {
+    if (!paidByVehicle.has(p.vehicle_id)) {
+      paidByVehicle.set(p.vehicle_id, { vehicle_price_usd: p.vehicle_price_usd });
+    }
+  }
 
   return (
     <main className="mx-auto max-w-4xl px-6 py-16">
@@ -96,12 +120,26 @@ export default async function SellerListingsPage() {
                     VIN {v.vin}
                     {v.vin_decode_status === "mismatch" ? " · VIN mismatch flagged" : ""}
                   </p>
+                  <p className="mt-1 text-xs text-ink-400">
+                    {FEE_LABEL[v.fee_responsibility]}
+                  </p>
                 </div>
                 <StatusBadge status={v.status} />
               </div>
               {v.status === "rejected" && v.rejection_reason ? (
                 <p className="mt-3 text-sm text-copper-700">
                   Reason: {v.rejection_reason}
+                </p>
+              ) : null}
+              {paidByVehicle.has(v.id) ? (
+                <p className="mt-3 rounded border border-verified-100 bg-verified-50 p-3 text-sm text-verified-600">
+                  Buyer has paid MOVA&rsquo;s service fee — expect direct contact
+                  {paidByVehicle.get(v.id)!.vehicle_price_usd != null
+                    ? ` for ${usd.format(
+                        Number(paidByVehicle.get(v.id)!.vehicle_price_usd),
+                      )}`
+                    : ""}
+                  .
                 </p>
               ) : null}
               {v.status === "draft" ? (

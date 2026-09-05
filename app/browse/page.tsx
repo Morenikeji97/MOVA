@@ -3,12 +3,7 @@ import { createClient } from "@/lib/supabase/server";
 import { cn } from "@/lib/utils";
 import { buttonClasses } from "@/components/ui/button";
 import { VinData } from "@/components/ui/vin-data";
-
-const usd = new Intl.NumberFormat("en-US", {
-  style: "currency",
-  currency: "USD",
-  maximumFractionDigits: 0,
-});
+import { PriceBreakdown } from "@/components/ui/price-breakdown";
 
 const inputClass =
   "h-11 rounded border border-paper-200 bg-paper-100 px-3 text-ink-900";
@@ -68,7 +63,7 @@ export default async function BrowsePage({
   let query = supabase
     .from("vehicles")
     .select(
-      "id, year, make, model, trim, price_usd, mileage, location_city, location_state"
+      "id, year, make, model, trim, price_usd, fee_responsibility, mileage, location_city, location_state"
     )
     .eq("status", "approved")
     .order("created_at", { ascending: false });
@@ -200,9 +195,10 @@ export default async function BrowsePage({
                       {v.year} {v.make} {v.model}
                       {v.trim ? ` ${v.trim}` : ""}
                     </h2>
-                    <p className="text-xl font-semibold text-ink-900">
-                      {usd.format(Number(v.price_usd))}
-                    </p>
+                    <PriceBreakdown
+                      price={Number(v.price_usd)}
+                      feeResponsibility={v.fee_responsibility}
+                    />
                     <div className="mt-auto grid grid-cols-2 gap-3 pt-1">
                       <VinData
                         label="Mileage"

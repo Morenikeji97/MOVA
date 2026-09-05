@@ -3,7 +3,11 @@
 import { type ComponentProps } from "react";
 import { useFormStatus } from "react-dom";
 import { Button } from "@/components/ui/button";
-import { markReservationUnderReview, releaseReservation } from "./actions";
+import {
+  markReservationUnderReview,
+  releaseReservation,
+  requestFeePayment,
+} from "./actions";
 
 function PendingButton({
   children,
@@ -21,12 +25,18 @@ function PendingButton({
 export function ReservationActions({
   requestId,
   canReview,
+  canRequestFee,
+  feeLinkSent,
+  feePaid,
 }: {
   requestId: string;
   canReview: boolean;
+  canRequestFee: boolean;
+  feeLinkSent: boolean;
+  feePaid: boolean;
 }) {
   return (
-    <div className="mt-4 flex items-center gap-3 border-t border-paper-200 pt-4">
+    <div className="mt-4 flex flex-wrap items-center gap-3 border-t border-paper-200 pt-4">
       {canReview ? (
         <form action={markReservationUnderReview}>
           <input type="hidden" name="id" value={requestId} />
@@ -34,6 +44,19 @@ export function ReservationActions({
             Mark under review
           </PendingButton>
         </form>
+      ) : null}
+      {canRequestFee ? (
+        <form action={requestFeePayment}>
+          <input type="hidden" name="id" value={requestId} />
+          <PendingButton variant="secondary" size="sm" pendingLabel="Generating…">
+            {feeLinkSent ? "Regenerate fee link" : "Request fee payment"}
+          </PendingButton>
+        </form>
+      ) : null}
+      {feePaid ? (
+        <span className="text-sm font-medium text-verified-600">
+          Service fee paid
+        </span>
       ) : null}
       <form action={releaseReservation}>
         <input type="hidden" name="id" value={requestId} />

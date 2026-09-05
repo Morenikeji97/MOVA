@@ -2,6 +2,7 @@
 
 import { revalidatePath } from "next/cache";
 import { createClient } from "@/lib/supabase/server";
+import { feeBreakdown } from "@/lib/fees";
 
 /**
  * Buyer "Reserve this vehicle" action from /browse/[id].
@@ -35,7 +36,7 @@ export async function reserveVehicle(formData: FormData): Promise<void> {
   // The vehicle must exist and be live.
   const { data: vehicle } = await supabase
     .from("vehicles")
-    .select("id")
+    .select("id, price_usd, fee_responsibility")
     .eq("id", vehicleId)
     .eq("status", "approved")
     .maybeSingle();
@@ -53,10 +54,17 @@ export async function reserveVehicle(formData: FormData): Promise<void> {
     .maybeSingle();
   if (existing) return;
 
+  // Snapshot the price and the full 8% fee at reservation time — the listing
+  // price can change later, but this reservation is priced from now.
+  const price = Number(vehicle.price_usd);
+  const { fullFee } = feeBreakdown(price, vehicle.fee_responsibility);
+
   await supabase.from("purchase_requests").insert({
     vehicle_id: vehicleId,
     buyer_id: user.id,
     status: "submitted",
+    vehicle_price_usd: price,
+    mova_fee_usd: fullFee,
   });
 
   revalidatePath(`/browse/${vehicleId}`);

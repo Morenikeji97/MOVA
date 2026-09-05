@@ -8,6 +8,12 @@ import { reserveVehicle } from "./actions";
 
 export type ReserveState = "anonymous" | "not-buyer" | "available" | "requested";
 
+const usdCents = new Intl.NumberFormat("en-US", {
+  style: "currency",
+  currency: "USD",
+  minimumFractionDigits: 2,
+});
+
 const REQUEST_STATUS_COPY: Record<string, string> = {
   submitted: "Submitted — waiting for MOVA to review.",
   under_review: "MOVA is reviewing your request.",
@@ -40,10 +46,12 @@ export function ReserveVehicle({
   vehicleId,
   state,
   requestStatus,
+  buyerFeeUsd,
 }: {
   vehicleId: string;
   state: ReserveState;
   requestStatus: string | null;
+  buyerFeeUsd: number;
 }) {
   if (state === "requested") {
     return (
@@ -107,6 +115,11 @@ export function ReserveVehicle({
       <p className="mt-1 text-sm text-slate-500">
         This sends a reservation request to MOVA. The vehicle stays listed until
         our team confirms who proceeds.
+      </p>
+      <p className="mt-2 text-sm text-slate-500">
+        If MOVA approves your reservation, you&rsquo;ll pay a{" "}
+        {usdCents.format(buyerFeeUsd)} MOVA service fee to unlock the seller&rsquo;s
+        contact and payment details. The rest is wired to the seller directly.
       </p>
       <form action={reserveVehicle} className="mt-4">
         <input type="hidden" name="vehicleId" value={vehicleId} />
