@@ -18,6 +18,23 @@ const nextConfig: NextConfig = {
         ]
       : [],
   },
+  async headers() {
+    return [
+      {
+        // The homepage renders a per-viewer header nav (signed-in Dashboard vs
+        // signed-out Sign in / Create account). `private` + `no-store` stop any
+        // shared CDN/proxy from caching one visitor's copy and serving it to
+        // another. Matches the document and the RSC request for "/".
+        source: "/",
+        headers: [
+          {
+            key: "Cache-Control",
+            value: "private, no-store, must-revalidate",
+          },
+        ],
+      },
+    ];
+  },
 };
 
 export default nextConfig;

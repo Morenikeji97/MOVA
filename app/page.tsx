@@ -12,23 +12,46 @@ const DASHBOARD_BY_ROLE: Record<UserRole, string> = {
   admin: "/admin/dashboard",
 };
 
-export default async function Home() {
+/**
+ * Resolve the current viewer for the header nav.
+ *
+ * "Signed in" means Supabase positively confirmed a user — a concrete
+ * `data.user.id` and no error. Everything else (no session cookie, an expired
+ * or malformed token, the auth endpoint erroring, an exception) resolves to
+ * `null`, i.e. signed out. We never infer "signed in" from the absence of an
+ * error, so a failed/empty session check can't fall through to the Dashboard
+ * branch.
+ */
+async function resolveViewer(): Promise<{
+  signedIn: boolean;
+  role: UserRole | null;
+}> {
   const supabase = await createClient();
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
 
-  // Determine role the same way middleware.ts does: users.role by auth id.
-  let role: UserRole | null = null;
-  if (user) {
-    const { data: profile } = await supabase
-      .from("users")
-      .select("role")
-      .eq("id", user.id)
-      .single();
-    role = profile?.role ?? null;
+  let userId: string | null = null;
+  try {
+    const { data, error } = await supabase.auth.getUser();
+    if (!error && data.user?.id) {
+      userId = data.user.id;
+    }
+  } catch {
+    userId = null;
   }
 
+  if (!userId) return { signedIn: false, role: null };
+
+  // Determine role the same way middleware.ts does: users.role by auth id.
+  const { data: profile } = await supabase
+    .from("users")
+    .select("role")
+    .eq("id", userId)
+    .single();
+
+  return { signedIn: true, role: profile?.role ?? null };
+}
+
+export default async function Home() {
+  const { signedIn, role } = await resolveViewer();
   const dashboardHref = role ? DASHBOARD_BY_ROLE[role] : "/browse";
 
   return (
@@ -39,7 +62,7 @@ export default async function Home() {
             MOVA
           </span>
           <div className="flex items-center gap-4 text-sm">
-            {user ? (
+            {signedIn ? (
               <Link
                 href={dashboardHref}
                 className={buttonClasses({
@@ -118,4 +141,10 @@ export default async function Home() {
   );
 }
 
+// The nav differs per viewer (signed-in vs not), so this page must be rendered
+// per request and never served from a shared cache. `force-dynamic` renders on
+// every request; `revalidate = 0` and the `Cache-Control` header for `/` in
+// next.config.ts keep any CDN/proxy in front of it from handing one visitor's
+// (e.g. a signed-in) HTML to the next (e.g. an anonymous incognito visitor).
 export const dynamic = "force-dynamic";
+export const revalidate = 0;
