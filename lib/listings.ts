@@ -44,12 +44,18 @@ export async function loadRecentApprovedListings(
   supabase: ServerSupabase,
   limit: number,
 ): Promise<{ rows: VehicleCardData[]; thumbByVehicle: Map<string, string> }> {
-  const { data } = await supabase
+  const { data, error } = await supabase
     .from("vehicles")
     .select(LISTING_CARD_COLUMNS)
     .eq("status", "approved")
     .order("created_at", { ascending: false })
     .limit(limit);
+
+  // Surface a failed fetch instead of letting `data ?? []` mask it as "zero
+  // approved listings" and silently fall back to the homepage sample card.
+  if (error) {
+    console.error("loadRecentApprovedListings: vehicles query failed", error);
+  }
 
   const rows = (data ?? []) as VehicleCardData[];
   const thumbByVehicle = await loadListingThumbnails(
