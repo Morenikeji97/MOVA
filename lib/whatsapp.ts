@@ -7,11 +7,9 @@
  *   NEXT_PUBLIC_WHATSAPP_MESSAGE — text pre-filled in the chat composer.
  *
  * The constants below are the fallbacks used when those env vars are unset.
- * Replace DEFAULT_WHATSAPP_NUMBER with the real support line (or set the env
- * var); "15551234567" is a reserved fictional number and will not connect.
  * Set NEXT_PUBLIC_WHATSAPP_NUMBER to an empty string to hide the button.
  */
-const DEFAULT_WHATSAPP_NUMBER = "15551234567";
+const DEFAULT_WHATSAPP_NUMBER = "16316173816";
 const DEFAULT_WHATSAPP_MESSAGE = "Hi, I have a question about MOVA";
 
 /** Digits only — wa.me rejects "+", spaces and dashes. */
