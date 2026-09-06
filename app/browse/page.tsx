@@ -2,8 +2,8 @@ import Link from "next/link";
 import { createClient } from "@/lib/supabase/server";
 import { cn } from "@/lib/utils";
 import { buttonClasses } from "@/components/ui/button";
-import { VinData } from "@/components/ui/vin-data";
-import { PriceBreakdown } from "@/components/ui/price-breakdown";
+import { VehicleCard, type VehicleCardData } from "@/components/ui/vehicle-card";
+import { LISTING_CARD_COLUMNS, loadListingThumbnails } from "@/lib/listings";
 
 const inputClass =
   "h-11 rounded border border-paper-200 bg-paper-100 px-3 text-ink-900";
@@ -62,9 +62,7 @@ export default async function BrowsePage({
 
   let query = supabase
     .from("vehicles")
-    .select(
-      "id, year, make, model, trim, price_usd, fee_responsibility, mileage, location_city, location_state"
-    )
+    .select(LISTING_CARD_COLUMNS)
     .eq("status", "approved")
     .order("created_at", { ascending: false });
 
@@ -73,24 +71,12 @@ export default async function BrowsePage({
   if (maxPrice !== null) query = query.lte("price_usd", maxPrice);
 
   const { data: vehicles } = await query;
-  const rows = vehicles ?? [];
+  const rows = (vehicles ?? []) as VehicleCardData[];
 
-  const ids = rows.map((v) => v.id);
-  const { data: photos } = ids.length
-    ? await supabase
-        .from("vehicle_photos")
-        .select("vehicle_id, url, is_primary, sort_order")
-        .in("vehicle_id", ids)
-        .order("sort_order", { ascending: true })
-    : { data: [] };
-
-  // First photo by sort order, unless one is explicitly flagged primary.
-  const thumbByVehicle = new Map<string, string>();
-  for (const p of photos ?? []) {
-    if (!thumbByVehicle.has(p.vehicle_id) || p.is_primary) {
-      thumbByVehicle.set(p.vehicle_id, p.url);
-    }
-  }
+  const thumbByVehicle = await loadListingThumbnails(
+    supabase,
+    rows.map((v) => v.id),
+  );
 
   return (
     <div className="min-h-screen bg-paper">
@@ -172,45 +158,10 @@ export default async function BrowsePage({
           <ul className="mt-8 grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3">
             {rows.map((v) => (
               <li key={v.id}>
-                <Link
-                  href={`/browse/${v.id}`}
-                  className="group flex h-full flex-col overflow-hidden rounded-lg border border-paper-200 bg-paper-100 shadow-sm transition-colors hover:border-marine"
-                >
-                  <div className="aspect-[4/3] w-full overflow-hidden bg-paper-200">
-                    {thumbByVehicle.get(v.id) ? (
-                      // eslint-disable-next-line @next/next/no-img-element
-                      <img
-                        src={thumbByVehicle.get(v.id)}
-                        alt={`${v.year} ${v.make} ${v.model}`}
-                        className="h-full w-full object-cover transition-transform duration-200 group-hover:scale-[1.02]"
-                      />
-                    ) : (
-                      <div className="flex h-full items-center justify-center font-mono text-xs uppercase tracking-wider text-ink-400">
-                        No photo
-                      </div>
-                    )}
-                  </div>
-                  <div className="flex flex-1 flex-col gap-3 p-5">
-                    <h2 className="text-lg font-semibold text-ink-900">
-                      {v.year} {v.make} {v.model}
-                      {v.trim ? ` ${v.trim}` : ""}
-                    </h2>
-                    <PriceBreakdown
-                      price={Number(v.price_usd)}
-                      feeResponsibility={v.fee_responsibility}
-                    />
-                    <div className="mt-auto grid grid-cols-2 gap-3 pt-1">
-                      <VinData
-                        label="Mileage"
-                        value={`${v.mileage.toLocaleString("en-US")} mi`}
-                      />
-                      <VinData
-                        label="Location"
-                        value={`${v.location_city}, ${v.location_state}`}
-                      />
-                    </div>
-                  </div>
-                </Link>
+                <VehicleCard
+                  vehicle={v}
+                  thumbnailUrl={thumbByVehicle.get(v.id) ?? null}
+                />
               </li>
             ))}
           </ul>

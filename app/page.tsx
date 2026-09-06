@@ -3,6 +3,8 @@ import { createClient } from "@/lib/supabase/server";
 import { buttonClasses } from "@/components/ui/button";
 import { VerifiedBadge } from "@/components/ui/verified-badge";
 import { VinData } from "@/components/ui/vin-data";
+import { VehicleCard } from "@/components/ui/vehicle-card";
+import { loadRecentApprovedListings } from "@/lib/listings";
 import type { UserRole } from "@/types/database";
 
 // Same role → home mapping middleware.ts uses to gate these prefixes.
@@ -53,6 +55,14 @@ async function resolveViewer(): Promise<{
 export default async function Home() {
   const { signedIn, role } = await resolveViewer();
   const dashboardHref = role ? DASHBOARD_BY_ROLE[role] : "/browse";
+
+  // Live inventory for the listings grid — most recent approved listings,
+  // newest first, same source as /browse.
+  const supabase = await createClient();
+  const { rows: listings, thumbByVehicle } = await loadRecentApprovedListings(
+    supabase,
+    8,
+  );
 
   return (
     <main className="min-h-screen bg-paper">
@@ -119,23 +129,51 @@ export default async function Home() {
       </header>
 
       <section className="mx-auto max-w-6xl px-6 py-16">
-        <h2 className="mb-6 font-mono text-xs uppercase tracking-wider text-ink-400">
-          Sample vehicle card — design system preview
-        </h2>
-        <div className="max-w-sm rounded-lg border border-paper-200 bg-paper-100 p-5 shadow-sm">
-          <div className="mb-4 flex items-start justify-between">
-            <h3 className="text-lg font-semibold text-ink-900">
-              2019 Toyota Camry SE
-            </h3>
-            <VerifiedBadge />
-          </div>
-          <div className="grid grid-cols-2 gap-4">
-            <VinData label="Mileage" value="62,000 mi" />
-            <VinData label="Location" value="Houston, TX" />
-            <VinData label="Price" value="$14,500" />
-            <VinData label="VIN" value="4T1B11HK..." />
-          </div>
-        </div>
+        {listings.length > 0 ? (
+          <>
+            <div className="mb-6 flex items-baseline justify-between gap-4">
+              <h2 className="font-mono text-xs uppercase tracking-wider text-ink-400">
+                Latest verified listings
+              </h2>
+              <Link
+                href="/browse"
+                className="text-sm text-marine-700 hover:underline"
+              >
+                Browse all &rarr;
+              </Link>
+            </div>
+            <ul className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3">
+              {listings.map((v) => (
+                <li key={v.id}>
+                  <VehicleCard
+                    vehicle={v}
+                    thumbnailUrl={thumbByVehicle.get(v.id) ?? null}
+                  />
+                </li>
+              ))}
+            </ul>
+          </>
+        ) : (
+          <>
+            <h2 className="mb-6 font-mono text-xs uppercase tracking-wider text-ink-400">
+              Sample vehicle card — design system preview
+            </h2>
+            <div className="max-w-sm rounded-lg border border-paper-200 bg-paper-100 p-5 shadow-sm">
+              <div className="mb-4 flex items-start justify-between">
+                <h3 className="text-lg font-semibold text-ink-900">
+                  2019 Toyota Camry SE
+                </h3>
+                <VerifiedBadge />
+              </div>
+              <div className="grid grid-cols-2 gap-4">
+                <VinData label="Mileage" value="62,000 mi" />
+                <VinData label="Location" value="Houston, TX" />
+                <VinData label="Price" value="$14,500" />
+                <VinData label="VIN" value="4T1B11HK..." />
+              </div>
+            </div>
+          </>
+        )}
       </section>
     </main>
   );
