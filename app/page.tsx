@@ -72,6 +72,9 @@ export default async function Home() {
             MOVA
           </span>
           <div className="flex items-center gap-4 text-sm">
+            <Link href="/shipper" className="text-ink-100 hover:text-white">
+              Shippers
+            </Link>
             {signedIn ? (
               <Link
                 href={dashboardHref}
