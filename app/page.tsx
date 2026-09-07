@@ -5,56 +5,26 @@ import { VerifiedBadge } from "@/components/ui/verified-badge";
 import { VinData } from "@/components/ui/vin-data";
 import { VehicleCard } from "@/components/ui/vehicle-card";
 import { loadRecentApprovedListings } from "@/lib/listings";
-import type { UserRole } from "@/types/database";
-
-// Same role → home mapping middleware.ts uses to gate these prefixes.
-const DASHBOARD_BY_ROLE: Record<UserRole, string> = {
-  seller: "/seller/dashboard",
-  buyer: "/buyer/dashboard",
-  admin: "/admin/dashboard",
-};
 
 /**
- * Resolve the current viewer for the header nav.
- *
- * "Signed in" means Supabase positively confirmed a user — a concrete
- * `data.user.id` and no error. Everything else (no session cookie, an expired
- * or malformed token, the auth endpoint erroring, an exception) resolves to
- * `null`, i.e. signed out. We never infer "signed in" from the absence of an
- * error, so a failed/empty session check can't fall through to the Dashboard
- * branch.
+ * Is there a signed-in viewer? "Signed in" means Supabase positively confirmed
+ * a user — a concrete `data.user.id` and no error. Everything else (no session
+ * cookie, an expired or malformed token, the auth endpoint erroring, an
+ * exception) resolves to `false`. We never infer "signed in" from the absence
+ * of an error. Role-specific links live in the persistent <AccountMenu />.
  */
-async function resolveViewer(): Promise<{
-  signedIn: boolean;
-  role: UserRole | null;
-}> {
+async function isSignedIn(): Promise<boolean> {
   const supabase = await createClient();
-
-  let userId: string | null = null;
   try {
     const { data, error } = await supabase.auth.getUser();
-    if (!error && data.user?.id) {
-      userId = data.user.id;
-    }
+    return Boolean(!error && data.user?.id);
   } catch {
-    userId = null;
+    return false;
   }
-
-  if (!userId) return { signedIn: false, role: null };
-
-  // Determine role the same way middleware.ts does: users.role by auth id.
-  const { data: profile } = await supabase
-    .from("users")
-    .select("role")
-    .eq("id", userId)
-    .single();
-
-  return { signedIn: true, role: profile?.role ?? null };
 }
 
 export default async function Home() {
-  const { signedIn, role } = await resolveViewer();
-  const dashboardHref = role ? DASHBOARD_BY_ROLE[role] : "/browse";
+  const signedIn = await isSignedIn();
 
   // Live inventory for the listings grid — most recent approved listings,
   // newest first, same source as /browse.
@@ -75,18 +45,9 @@ export default async function Home() {
             <Link href="/shipper" className="text-ink-100 hover:text-white">
               Shippers
             </Link>
-            {signedIn ? (
-              <Link
-                href={dashboardHref}
-                className={buttonClasses({
-                  variant: "secondary",
-                  size: "sm",
-                  className: "border-white text-white hover:bg-white/10",
-                })}
-              >
-                Dashboard
-              </Link>
-            ) : (
+            {/* Signed-in users get Dashboard + Log out from the persistent
+                <AccountMenu /> (mounted in app/layout.tsx). */}
+            {signedIn ? null : (
               <>
                 <Link href="/login" className="text-ink-100 hover:text-white">
                   Sign in
