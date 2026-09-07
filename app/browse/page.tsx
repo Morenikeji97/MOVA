@@ -27,6 +27,9 @@ function BrowseHeader() {
           MOVA
         </Link>
         <nav className="flex items-center gap-4 text-sm">
+          <Link href="/shipper" className="text-slate-500 hover:text-ink-900">
+            Shippers
+          </Link>
           <Link href="/login" className="text-slate-500 hover:text-ink-900">
             Sign in
           </Link>
