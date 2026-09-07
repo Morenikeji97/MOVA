@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import Link from "next/link";
 import { createClient } from "@/lib/supabase/client";
 import { Button } from "@/components/ui/button";
 import type { UserRole } from "@/types/database";
@@ -94,6 +95,12 @@ export default function SignupPage() {
           {loading ? "Creating account…" : "Create account"}
         </Button>
       </form>
+      <p className="mt-6 text-center text-sm text-slate-500">
+        Shipping company?{" "}
+        <Link href="/shipper" className="text-marine-700 hover:underline">
+          Shipper portal
+        </Link>
+      </p>
     </main>
   );
 }

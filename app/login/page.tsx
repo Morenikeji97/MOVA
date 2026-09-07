@@ -1,6 +1,7 @@
 "use client";
 
 import { Suspense, useState } from "react";
+import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
 import { createClient } from "@/lib/supabase/client";
 import { Button } from "@/components/ui/button";
@@ -60,6 +61,12 @@ function LoginForm() {
           {loading ? "Signing in…" : "Sign in"}
         </Button>
       </form>
+      <p className="mt-6 text-center text-sm text-slate-500">
+        Shipping company?{" "}
+        <Link href="/shipper" className="text-marine-700 hover:underline">
+          Shipper portal
+        </Link>
+      </p>
     </main>
   );
 }
