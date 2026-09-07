@@ -12,6 +12,10 @@ export type PurchaseRequestStatus =
   | "cancelled";
 export type FeeResponsibility = "buyer_pays_full" | "split";
 export type MovaFeePaymentStatus = "pending" | "paid";
+export type ShipperStatus = "pending" | "approved" | "rejected";
+export type ShipperPaymentStatus = "good_standing" | "past_due" | "suspended";
+export type CommissionChargeStatus = "pending" | "charged" | "failed";
+export type ShipmentRequestStatus = "pending" | "completed";
 
 export interface Database {
   public: {
@@ -310,8 +314,186 @@ export interface Database {
         }>;
         Relationships: [];
       };
+      shippers: {
+        Row: {
+          id: string;
+          user_id: string | null;
+          company_name: string;
+          contact_name: string;
+          contact_email: string;
+          contact_phone: string | null;
+          fmc_oti_license_number: string;
+          service_countries: string[];
+          status: ShipperStatus;
+          payment_status: ShipperPaymentStatus;
+          terms_accepted_at: string | null;
+          stripe_customer_id: string | null;
+          stripe_payment_method_id: string | null;
+          card_on_file: boolean;
+          reviewed_by: string | null;
+          rejection_reason: string | null;
+          reinstated_at: string | null;
+          created_at: string;
+        };
+        Insert: {
+          company_name: string;
+          contact_name: string;
+          contact_email: string;
+          fmc_oti_license_number: string;
+          id?: string;
+          user_id?: string | null;
+          contact_phone?: string | null;
+          service_countries?: string[];
+          status?: ShipperStatus;
+          payment_status?: ShipperPaymentStatus;
+          terms_accepted_at?: string | null;
+          stripe_customer_id?: string | null;
+          stripe_payment_method_id?: string | null;
+          card_on_file?: boolean;
+          reviewed_by?: string | null;
+          rejection_reason?: string | null;
+          reinstated_at?: string | null;
+          created_at?: string;
+        };
+        Update: Partial<{
+          id: string;
+          user_id: string | null;
+          company_name: string;
+          contact_name: string;
+          contact_email: string;
+          contact_phone: string | null;
+          fmc_oti_license_number: string;
+          service_countries: string[];
+          status: ShipperStatus;
+          payment_status: ShipperPaymentStatus;
+          terms_accepted_at: string | null;
+          stripe_customer_id: string | null;
+          stripe_payment_method_id: string | null;
+          card_on_file: boolean;
+          reviewed_by: string | null;
+          rejection_reason: string | null;
+          reinstated_at: string | null;
+          created_at: string;
+        }>;
+        Relationships: [];
+      };
+      shipping_rates: {
+        Row: {
+          id: string;
+          shipper_id: string;
+          origin_region: string;
+          origin_port: string | null;
+          destination_country: string;
+          vehicle_size_type: string | null;
+          price: number;
+          currency: string;
+          active: boolean;
+          created_at: string;
+        };
+        Insert: {
+          shipper_id: string;
+          origin_region: string;
+          destination_country: string;
+          price: number;
+          id?: string;
+          origin_port?: string | null;
+          vehicle_size_type?: string | null;
+          currency?: string;
+          active?: boolean;
+          created_at?: string;
+        };
+        Update: Partial<{
+          id: string;
+          shipper_id: string;
+          origin_region: string;
+          origin_port: string | null;
+          destination_country: string;
+          vehicle_size_type: string | null;
+          price: number;
+          currency: string;
+          active: boolean;
+          created_at: string;
+        }>;
+        Relationships: [];
+      };
+      shipment_requests: {
+        Row: {
+          id: string;
+          shipper_id: string;
+          shipping_rate_id: string | null;
+          buyer_id: string;
+          agreed_rate: number;
+          currency: string;
+          commission_pct: number;
+          commission_owed: number;
+          commission_charge_status: CommissionChargeStatus;
+          stripe_charge_id: string | null;
+          status: ShipmentRequestStatus;
+          shipper_details_revealed_at: string | null;
+          shipper_company_name: string | null;
+          shipper_contact_name: string | null;
+          shipper_contact_email: string | null;
+          shipper_contact_phone: string | null;
+          created_at: string;
+        };
+        Insert: {
+          shipper_id: string;
+          buyer_id: string;
+          agreed_rate: number;
+          id?: string;
+          shipping_rate_id?: string | null;
+          currency?: string;
+          commission_pct?: number;
+          commission_owed?: number;
+          commission_charge_status?: CommissionChargeStatus;
+          stripe_charge_id?: string | null;
+          status?: ShipmentRequestStatus;
+          shipper_details_revealed_at?: string | null;
+          shipper_company_name?: string | null;
+          shipper_contact_name?: string | null;
+          shipper_contact_email?: string | null;
+          shipper_contact_phone?: string | null;
+          created_at?: string;
+        };
+        Update: Partial<{
+          id: string;
+          shipper_id: string;
+          shipping_rate_id: string | null;
+          buyer_id: string;
+          agreed_rate: number;
+          currency: string;
+          commission_pct: number;
+          commission_owed: number;
+          commission_charge_status: CommissionChargeStatus;
+          stripe_charge_id: string | null;
+          status: ShipmentRequestStatus;
+          shipper_details_revealed_at: string | null;
+          shipper_company_name: string | null;
+          shipper_contact_name: string | null;
+          shipper_contact_email: string | null;
+          shipper_contact_phone: string | null;
+          created_at: string;
+        }>;
+        Relationships: [];
+      };
     };
-    Views: Record<string, never>;
+    Views: {
+      shipper_rates_public: {
+        Row: {
+          rate_id: string | null;
+          shipper_id: string | null;
+          company_name: string | null;
+          origin_region: string | null;
+          origin_port: string | null;
+          destination_country: string | null;
+          vehicle_size_type: string | null;
+          price: number | null;
+          currency: string | null;
+          payment_status: ShipperPaymentStatus | null;
+        };
+        Relationships: [];
+      };
+    };
     Functions: Record<string, never>;
     Enums: Record<string, never>;
     CompositeTypes: Record<string, never>;

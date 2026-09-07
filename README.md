@@ -52,8 +52,14 @@ Copy `.env.example` to `.env.local` and set:
 | `NEXT_PUBLIC_SUPABASE_URL`      | yes      | Supabase dashboard → Project Settings → API → Project URL |
 | `NEXT_PUBLIC_SUPABASE_ANON_KEY` | yes      | Supabase dashboard → Project Settings → API → `anon` public key |
 
-`STRIPE_*` and `RESEND_API_KEY` are commented out in `.env.example`; they are
-not needed until later phases.
+`STRIPE_*` and `RESEND_API_KEY` are only needed for the flows that use them
+(identity verification, buyer fee payments, shipper commission). Each Stripe
+webhook has its **own** signing secret — `STRIPE_WEBHOOK_SECRET` (identity),
+`STRIPE_PAYMENTS_WEBHOOK_SECRET` (buyer fees), and
+`STRIPE_SHIPPER_COMMISSION_WEBHOOK_SECRET` (shipper commission +
+`/shipper/signup` card setup). `SUPABASE_SERVICE_ROLE_KEY` is required for the
+webhooks and for the admin "mark shipment completed" action (it charges the
+shipper's saved card off-session).
 
 `.env.local` is git-ignored — never commit real credentials.
 

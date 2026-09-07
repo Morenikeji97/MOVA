@@ -7,7 +7,13 @@ import { buttonClasses } from "@/components/ui/button";
 import { VerifiedBadge } from "@/components/ui/verified-badge";
 import { PriceBreakdown } from "@/components/ui/price-breakdown";
 import { feeBreakdown } from "@/lib/fees";
+import { compareRatesForBuyer, countryName } from "@/lib/shipping";
 import { ReserveVehicle, type ReserveState } from "./reserve-vehicle";
+import {
+  ShippingRates,
+  type PublicRate,
+  type SelectedShipper,
+} from "./shipping-rates";
 
 function BrowseHeader() {
   return (
@@ -90,6 +96,54 @@ export default async function VehicleDetailPage({
         reserveState = "available";
       }
     }
+  }
+
+  // Buyer-facing shipping marketplace: approved shippers' rates to the buyer's
+  // country, good-standing first then cheapest, plus any already-selected
+  // shippers (contact unlocked). Only for signed-in buyers.
+  const isBuyer =
+    reserveState === "available" || reserveState === "requested";
+  let shippingRates: PublicRate[] = [];
+  let selectedShippers: SelectedShipper[] = [];
+  let destinationCode = "NG";
+
+  if (user && isBuyer) {
+    const { data: buyerProfile } = await supabase
+      .from("buyer_profiles")
+      .select("country")
+      .eq("user_id", user.id)
+      .maybeSingle();
+    destinationCode = buyerProfile?.country || "NG";
+
+    const [{ data: rateRows }, { data: shipmentRows }] = await Promise.all([
+      supabase
+        .from("shipper_rates_public")
+        .select("*")
+        .eq("destination_country", destinationCode),
+      supabase
+        .from("shipment_requests")
+        .select(
+          "shipper_id, shipper_company_name, shipper_contact_name, shipper_contact_email, shipper_contact_phone, agreed_rate, currency",
+        )
+        .eq("buyer_id", user.id),
+    ]);
+
+    shippingRates = (rateRows ?? [])
+      .filter((r) => r.rate_id != null && r.shipper_id != null)
+      .map((r) => ({
+        rate_id: r.rate_id as string,
+        shipper_id: r.shipper_id as string,
+        company_name: r.company_name ?? "Shipper",
+        origin_region: r.origin_region ?? "",
+        origin_port: r.origin_port,
+        destination_country: r.destination_country ?? destinationCode,
+        vehicle_size_type: r.vehicle_size_type,
+        price: Number(r.price ?? 0),
+        currency: r.currency ?? "USD",
+        payment_status: r.payment_status ?? "good_standing",
+      }))
+      .sort(compareRatesForBuyer);
+    selectedShippers = (shipmentRows ?? []) as SelectedShipper[];
   }
 
   const { data: photos } = await supabase
@@ -189,6 +243,15 @@ export default async function VehicleDetailPage({
           requestStatus={requestStatus}
           buyerFeeUsd={feeBreakdown(Number(v.price_usd), v.fee_responsibility).buyerFee}
         />
+
+        {user && isBuyer ? (
+          <ShippingRates
+            vehicleId={id}
+            destinationLabel={countryName(destinationCode)}
+            rates={shippingRates}
+            selected={selectedShippers}
+          />
+        ) : null}
       </main>
     </div>
   );
