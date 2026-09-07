@@ -61,7 +61,7 @@ export default async function BuyerDashboard({
     supabase
       .from("purchase_requests")
       .select(
-        "id, vehicle_id, status, created_at, vehicle_price_usd, mova_fee_usd, mova_fee_payment_status, mova_fee_checkout_url, seller_name, seller_email, seller_phone, seller_whatsapp",
+        "id, vehicle_id, status, created_at, vehicle_price_usd, mova_fee_usd, mova_fee_payment_status, mova_fee_checkout_url, seller_details_revealed_at, seller_name, seller_email, seller_phone, seller_whatsapp",
       )
       .eq("buyer_id", user!.id)
       .order("created_at", { ascending: false }),
@@ -69,6 +69,17 @@ export default async function BuyerDashboard({
 
   const profile = profileData;
   const reservations = reservationRows ?? [];
+
+  // The "fee is being confirmed" banner is only meaningful while a payment the
+  // buyer has made is still waiting on the webhook to reveal seller details.
+  // Once seller_details_revealed_at is set there is nothing left to confirm.
+  const awaitingSellerReveal = reservations.some(
+    (r) =>
+      r.mova_fee_checkout_url != null &&
+      r.seller_details_revealed_at == null &&
+      r.status !== "cancelled" &&
+      r.status !== "rejected",
+  );
 
   const vehicleIds = [...new Set(reservations.map((r) => r.vehicle_id))];
   const { data: vehicleRows } = vehicleIds.length
@@ -87,7 +98,7 @@ export default async function BuyerDashboard({
         NIN verification: {profile?.nin_verification_status ?? "unverified"}
       </p>
 
-      {feeNotice === "paid" ? (
+      {feeNotice === "paid" && awaitingSellerReveal ? (
         <p className="mt-6 rounded border border-verified-100 bg-verified-50 p-3 text-sm text-verified-600">
           Thanks — your MOVA service fee is being confirmed. The seller&rsquo;s
           contact and payment details appear below as soon as Stripe confirms,
