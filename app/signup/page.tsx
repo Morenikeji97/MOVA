@@ -68,6 +68,14 @@ export default function SignupPage() {
               I&apos;m a {r}
             </button>
           ))}
+          {/* Shippers apply through a different form (company info, FMC OTI
+              license, Stripe card capture), so this jumps straight there. */}
+          <Link
+            href="/shipper/signup"
+            className="flex h-11 flex-1 items-center justify-center rounded border border-paper-200 text-sm font-medium text-slate-500"
+          >
+            I&apos;m a shipper
+          </Link>
         </fieldset>
         <label className="flex flex-col gap-1">
           <span className="text-sm text-slate-500">Email</span>
@@ -95,12 +103,6 @@ export default function SignupPage() {
           {loading ? "Creating account…" : "Create account"}
         </Button>
       </form>
-      <p className="mt-6 text-center text-sm text-slate-500">
-        Shipping company?{" "}
-        <Link href="/shipper" className="text-marine-700 hover:underline">
-          Shipper portal
-        </Link>
-      </p>
     </main>
   );
 }
