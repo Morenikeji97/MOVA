@@ -1,10 +1,9 @@
 "use client";
 
-import { type ComponentProps, type ReactNode } from "react";
+import { type ReactNode, useActionState } from "react";
 import Link from "next/link";
-import { useFormStatus } from "react-dom";
 import { Button, buttonClasses } from "@/components/ui/button";
-import { reserveVehicle } from "./actions";
+import { reserveVehicle, type ReserveResult } from "./actions";
 
 export type ReserveState = "anonymous" | "not-buyer" | "available" | "requested";
 
@@ -20,19 +19,6 @@ const REQUEST_STATUS_COPY: Record<string, string> = {
   verified: "Verified — MOVA will be in touch with next steps.",
   completed: "Completed.",
 };
-
-function PendingButton({
-  children,
-  pendingLabel,
-  ...props
-}: ComponentProps<typeof Button> & { pendingLabel: string }) {
-  const { pending } = useFormStatus();
-  return (
-    <Button type="submit" disabled={pending} {...props}>
-      {pending ? pendingLabel : children}
-    </Button>
-  );
-}
 
 function Card({ children }: { children: ReactNode }) {
   return (
@@ -53,6 +39,11 @@ export function ReserveVehicle({
   requestStatus: string | null;
   buyerFeeUsd: number;
 }) {
+  const [result, formAction, pending] = useActionState<
+    ReserveResult | null,
+    FormData
+  >(reserveVehicle, null);
+
   if (state === "requested") {
     return (
       <Card>
@@ -121,12 +112,20 @@ export function ReserveVehicle({
         {usdCents.format(buyerFeeUsd)} MOVA service fee to unlock the seller&rsquo;s
         contact and payment details. The rest is wired to the seller directly.
       </p>
-      <form action={reserveVehicle} className="mt-4">
+      <form action={formAction} className="mt-4">
         <input type="hidden" name="vehicleId" value={vehicleId} />
-        <PendingButton pendingLabel="Sending request…">
-          Reserve this vehicle
-        </PendingButton>
+        <Button type="submit" disabled={pending}>
+          {pending ? "Sending request…" : "Reserve this vehicle"}
+        </Button>
       </form>
+      {result && !result.ok ? (
+        <p className="mt-3 text-sm text-copper-700">{result.error}</p>
+      ) : null}
+      {result?.ok && result.created ? (
+        <p className="mt-3 text-sm text-verified-600">
+          Request sent — MOVA will review it shortly.
+        </p>
+      ) : null}
     </Card>
   );
 }
