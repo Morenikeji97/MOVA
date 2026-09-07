@@ -53,6 +53,32 @@ export async function approveShipper(formData: FormData): Promise<void> {
     .eq("id", id)
     .eq("status", "pending");
 
+  // Best-effort: if a MOVA account already exists for the contact email and the
+  // shipper isn't linked yet, link it so the /shipper portal works right away.
+  // Otherwise the shipper links it themselves via claimShipper. A failure here
+  // (e.g. that account already owns another shipper) must not undo the approval.
+  const { data: shipper } = await ctx.supabase
+    .from("shippers")
+    .select("contact_email, user_id, status")
+    .eq("id", id)
+    .maybeSingle();
+
+  if (shipper?.status === "approved" && !shipper.user_id) {
+    const { data: account } = await ctx.supabase
+      .from("users")
+      .select("id")
+      .ilike("email", shipper.contact_email.replace(/([\\%_])/g, "\\$1"))
+      .maybeSingle();
+    if (account?.id) {
+      const { error } = await ctx.supabase
+        .from("shippers")
+        .update({ user_id: account.id })
+        .eq("id", id)
+        .is("user_id", null);
+      if (error) console.error("approveShipper auto-link skipped:", error.message);
+    }
+  }
+
   revalidateShipperViews();
 }
 

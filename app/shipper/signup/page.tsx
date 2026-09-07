@@ -135,10 +135,10 @@ function ShipperSignupForm() {
         <div className="flex items-center gap-4">
           <SubmitButton disabled={!termsAccepted} />
           <Link
-            href="/login"
+            href="/shipper"
             className="text-sm text-slate-500 hover:text-ink-900"
           >
-            Already work with MOVA? Sign in
+            Already approved? Go to the shipper portal
           </Link>
         </div>
       </form>
