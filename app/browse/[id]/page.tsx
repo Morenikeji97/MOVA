@@ -9,6 +9,7 @@ import { PriceBreakdown } from "@/components/ui/price-breakdown";
 import { feeBreakdown } from "@/lib/fees";
 import { compareRatesForBuyer, countryName } from "@/lib/shipping";
 import { ReserveVehicle, type ReserveState } from "./reserve-vehicle";
+import { MessageSeller } from "./message-seller";
 import {
   ShippingRates,
   type PublicRate,
@@ -106,6 +107,20 @@ export default async function VehicleDetailPage({
   // shippers (contact unlocked). Only for signed-in buyers.
   const isBuyer =
     reserveState === "available" || reserveState === "requested";
+
+  // Existing buyer <-> seller conversation for this vehicle, if any, so the
+  // thread shows immediately for a returning buyer.
+  let existingConversationId: string | null = null;
+  if (user && isBuyer) {
+    const { data: convo } = await supabase
+      .from("conversations")
+      .select("id")
+      .eq("vehicle_id", id)
+      .eq("buyer_id", user.id)
+      .maybeSingle();
+    existingConversationId = convo?.id ?? null;
+  }
+
   let shippingRates: PublicRate[] = [];
   let selectedShippers: SelectedShipper[] = [];
   let destinationCode = "NG";
@@ -246,6 +261,14 @@ export default async function VehicleDetailPage({
           requestStatus={requestStatus}
           buyerFeeUsd={feeBreakdown(Number(v.price_usd), v.fee_responsibility).buyerFee}
         />
+
+        {user && isBuyer ? (
+          <MessageSeller
+            vehicleId={id}
+            buyerId={user.id}
+            existingConversationId={existingConversationId}
+          />
+        ) : null}
 
         {user && isBuyer ? (
           <ShippingRates

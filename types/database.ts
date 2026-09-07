@@ -476,6 +476,63 @@ export interface Database {
         }>;
         Relationships: [];
       };
+      conversations: {
+        Row: {
+          id: string;
+          vehicle_id: string;
+          buyer_id: string;
+          seller_id: string;
+          buyer_last_read_at: string | null;
+          seller_last_read_at: string | null;
+          created_at: string;
+        };
+        Insert: {
+          vehicle_id: string;
+          buyer_id: string;
+          seller_id: string;
+          id?: string;
+          buyer_last_read_at?: string | null;
+          seller_last_read_at?: string | null;
+          created_at?: string;
+        };
+        Update: Partial<{
+          id: string;
+          vehicle_id: string;
+          buyer_id: string;
+          seller_id: string;
+          buyer_last_read_at: string | null;
+          seller_last_read_at: string | null;
+          created_at: string;
+        }>;
+        Relationships: [];
+      };
+      messages: {
+        Row: {
+          id: string;
+          conversation_id: string;
+          sender_id: string;
+          content: string;
+          blocked_attempt: boolean;
+          created_at: string;
+        };
+        Insert: {
+          conversation_id: string;
+          sender_id: string;
+          content: string;
+          id?: string;
+          blocked_attempt?: boolean;
+          created_at?: string;
+        };
+        Update: Partial<{
+          id: string;
+          conversation_id: string;
+          sender_id: string;
+          content: string;
+          blocked_attempt: boolean;
+          created_at: string;
+        }>;
+        Relationships: [];
+      };
     };
     Views: {
       shipper_rates_public: {

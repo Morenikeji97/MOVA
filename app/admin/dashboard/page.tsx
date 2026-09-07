@@ -10,6 +10,7 @@ export default async function AdminDashboard() {
     { count: openReservations },
     { count: pendingShippers },
     { count: shipmentRequests },
+    { count: blockedMessages },
   ] = await Promise.all([
     supabase.from("users").select("*", { count: "exact", head: true }),
     supabase
@@ -27,6 +28,10 @@ export default async function AdminDashboard() {
     supabase
       .from("shipment_requests")
       .select("*", { count: "exact", head: true }),
+    supabase
+      .from("messages")
+      .select("*", { count: "exact", head: true })
+      .eq("blocked_attempt", true),
   ]);
 
   return (
@@ -90,6 +95,18 @@ export default async function AdminDashboard() {
           <p className="mt-1 text-sm text-marine-700">
             Shipments &amp; commission &rarr;
           </p>
+        </Link>
+        <Link
+          href="/admin/messages"
+          className="rounded-lg border border-paper-200 bg-paper-100 p-5 transition-colors hover:border-marine"
+        >
+          <p className="font-mono text-xs uppercase tracking-wider text-ink-400">
+            Blocked contact-info attempts
+          </p>
+          <p className="mt-1 text-3xl font-semibold text-ink-900">
+            {blockedMessages ?? 0}
+          </p>
+          <p className="mt-1 text-sm text-marine-700">Review flagged chat &rarr;</p>
         </Link>
       </div>
     </main>
