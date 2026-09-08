@@ -2,13 +2,20 @@ import { createServerClient } from "@supabase/ssr";
 import { NextResponse, type NextRequest } from "next/server";
 import type { Database } from "@/types/database";
 import type { CookieOptions } from "@supabase/ssr";
+import { assertSupabaseKey } from "@/lib/supabase/keys";
 
 export async function updateSession(request: NextRequest) {
   let supabaseResponse = NextResponse.next({ request });
 
+  // NEXT_PUBLIC_SUPABASE_ANON_KEY holds a new-format publishable key
+  // (`sb_publishable_…`) — see lib/supabase/client.ts.
   const supabase = createServerClient<Database>(
     process.env.NEXT_PUBLIC_SUPABASE_URL!,
-    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
+    assertSupabaseKey(
+      process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY,
+      "publishable",
+      "NEXT_PUBLIC_SUPABASE_ANON_KEY",
+    ),
     {
       cookies: {
         getAll() {

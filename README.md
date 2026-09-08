@@ -50,7 +50,8 @@ Copy `.env.example` to `.env.local` and set:
 | Variable                        | Required | Where to find it                                          |
 | ------------------------------- | -------- | -------------------------------------------------------- |
 | `NEXT_PUBLIC_SUPABASE_URL`      | yes      | Supabase dashboard → Project Settings → API → Project URL |
-| `NEXT_PUBLIC_SUPABASE_ANON_KEY` | yes      | Supabase dashboard → Project Settings → API → `anon` public key |
+| `NEXT_PUBLIC_SUPABASE_ANON_KEY` | yes      | Supabase dashboard → Settings → API Keys → "Publishable and secret API keys" → publishable key (`sb_publishable_…`) |
+| `SUPABASE_SERVICE_ROLE_KEY`     | for webhooks / admin actions | same tab → secret key (`sb_secret_…`); server-only, bypasses RLS |
 
 `STRIPE_*` and `RESEND_API_KEY` are only needed for the flows that use them
 (identity verification, buyer fee payments, shipper commission). Each Stripe
@@ -140,6 +141,8 @@ tailwind.config.ts         Design tokens (colors, spacing, fonts)
 ## Deployment
 
 Deploy to any platform that supports Next.js 15 (Vercel is the smoothest).
-Set `NEXT_PUBLIC_SUPABASE_URL` and `NEXT_PUBLIC_SUPABASE_ANON_KEY` in the host's
+Set `NEXT_PUBLIC_SUPABASE_URL`, `NEXT_PUBLIC_SUPABASE_ANON_KEY` (the
+`sb_publishable_…` key), and `SUPABASE_SERVICE_ROLE_KEY` (the `sb_secret_…`
+key, needed for the Stripe webhooks and admin actions) in the host's
 environment, and add the deployed origin to Supabase → Authentication → URL
 Configuration so email-verification redirects resolve correctly.
