@@ -11,6 +11,7 @@ export default async function AdminDashboard() {
     { count: pendingShippers },
     { count: shipmentRequests },
     { count: blockedMessages },
+    { count: reviewQueue },
   ] = await Promise.all([
     supabase.from("users").select("*", { count: "exact", head: true }),
     supabase
@@ -32,6 +33,10 @@ export default async function AdminDashboard() {
       .from("messages")
       .select("*", { count: "exact", head: true })
       .eq("blocked_attempt", true),
+    supabase
+      .from("reviews")
+      .select("*", { count: "exact", head: true })
+      .in("status", ["pending", "flagged"]),
   ]);
 
   return (
@@ -107,6 +112,18 @@ export default async function AdminDashboard() {
             {blockedMessages ?? 0}
           </p>
           <p className="mt-1 text-sm text-marine-700">Review flagged chat &rarr;</p>
+        </Link>
+        <Link
+          href="/admin/reviews"
+          className="rounded-lg border border-paper-200 bg-paper-100 p-5 transition-colors hover:border-marine"
+        >
+          <p className="font-mono text-xs uppercase tracking-wider text-ink-400">
+            Reviews to moderate
+          </p>
+          <p className="mt-1 text-3xl font-semibold text-ink-900">
+            {reviewQueue ?? 0}
+          </p>
+          <p className="mt-1 text-sm text-marine-700">Open the moderation queue &rarr;</p>
         </Link>
       </div>
     </main>

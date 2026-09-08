@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { createClient } from "@/lib/supabase/server";
 import { buttonClasses } from "@/components/ui/button";
+import { SellerReviewHub } from "@/components/reviews/seller-review-hub";
 import { VerificationPanel } from "../verification/verification-panel";
 
 export default async function SellerDashboard({
@@ -91,6 +92,8 @@ export default async function SellerDashboard({
         verifiedAt={profile?.id_verified_at ?? null}
         notice={notice}
       />
+
+      <SellerReviewHub userId={user!.id} />
     </main>
   );
 }

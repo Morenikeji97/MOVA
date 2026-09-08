@@ -8,6 +8,10 @@ import { VerifiedBadge } from "@/components/ui/verified-badge";
 import { PriceBreakdown } from "@/components/ui/price-breakdown";
 import { feeBreakdown } from "@/lib/fees";
 import { compareRatesForBuyer, countryName } from "@/lib/shipping";
+import { RatingSummary } from "@/components/ui/rating-summary";
+import { ReviewList, type PublicReview } from "@/components/ui/review-list";
+import { ReviewForm } from "@/components/ui/review-form";
+import { toAggregate } from "@/lib/reviews";
 import { ReserveVehicle, type ReserveState } from "./reserve-vehicle";
 import { MessageSeller } from "./message-seller";
 import {
@@ -164,6 +168,50 @@ export default async function VehicleDetailPage({
     selectedShippers = (shipmentRows ?? []) as SelectedShipper[];
   }
 
+  // Seller reputation: aggregate + published buyer->seller reviews, and whether
+  // the current viewer is eligible to leave one (a fee-paid reservation with
+  // this seller that they haven't reviewed yet).
+  const [{ data: sellerRatingRow }, { data: sellerReviewRows }] =
+    await Promise.all([
+      supabase
+        .from("seller_ratings")
+        .select("avg_rating, review_count")
+        .eq("seller_id", v.seller_id)
+        .maybeSingle(),
+      supabase
+        .from("reviews")
+        .select("id, review_type, rating, comment, created_at")
+        .eq("reviewee_id", v.seller_id)
+        .eq("review_type", "buyer_to_seller")
+        .eq("status", "published")
+        .order("created_at", { ascending: false })
+        .limit(50),
+    ]);
+  const sellerAggregate = toAggregate(sellerRatingRow);
+
+  let sellerReviewPrId: string | null = null;
+  if (user && isBuyer) {
+    const { data: paidPr } = await supabase
+      .from("purchase_requests")
+      .select("id")
+      .eq("vehicle_id", id)
+      .eq("buyer_id", user.id)
+      .eq("mova_fee_payment_status", "paid")
+      .not("seller_details_revealed_at", "is", null)
+      .limit(1)
+      .maybeSingle();
+    if (paidPr) {
+      const { data: mine } = await supabase
+        .from("reviews")
+        .select("id")
+        .eq("reviewer_id", user.id)
+        .eq("review_type", "buyer_to_seller")
+        .eq("purchase_request_id", paidPr.id)
+        .maybeSingle();
+      if (!mine) sellerReviewPrId = paidPr.id;
+    }
+  }
+
   const { data: photos } = await supabase
     .from("vehicle_photos")
     .select("url, is_primary, sort_order")
@@ -202,6 +250,10 @@ export default async function VehicleDetailPage({
         <p className="mt-2 font-mono text-sm text-ink-400">
           {v.mileage.toLocaleString("en-US")} mi · {v.location_city}, {v.location_state}
         </p>
+        <div className="mt-2">
+          <RatingSummary aggregate={sellerAggregate} />
+          <span className="ml-1 font-mono text-xs text-ink-400">seller rating</span>
+        </div>
 
         {gallery.length > 0 ? (
           <div className="mt-6 grid grid-cols-1 gap-3 sm:grid-cols-2">
@@ -278,6 +330,36 @@ export default async function VehicleDetailPage({
             selected={selectedShippers}
           />
         ) : null}
+
+        <section className="mt-12">
+          <h2 className="font-mono text-xs uppercase tracking-wider text-ink-400">
+            Seller reviews
+          </h2>
+          <div className="mt-2">
+            <RatingSummary aggregate={sellerAggregate} size="md" />
+          </div>
+
+          {sellerReviewPrId ? (
+            <div className="mt-4">
+              <ReviewForm
+                target={{
+                  reviewType: "buyer_to_seller",
+                  revieweeId: v.seller_id,
+                  purchaseRequestId: sellerReviewPrId,
+                }}
+                counterpartyLabel="the seller"
+              />
+            </div>
+          ) : null}
+
+          <div className="mt-4">
+            <ReviewList
+              reviews={(sellerReviewRows ?? []) as PublicReview[]}
+              canReport={Boolean(user)}
+              emptyLabel="No reviews of this seller yet."
+            />
+          </div>
+        </section>
       </main>
     </div>
   );

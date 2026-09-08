@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { createClient } from "@/lib/supabase/server";
 import { feeBreakdown } from "@/lib/fees";
+import { BuyerReviewHub } from "@/components/reviews/buyer-review-hub";
 import type { FeeResponsibility } from "@/types/database";
 
 const usd = new Intl.NumberFormat("en-US", {
@@ -270,6 +271,8 @@ export default async function BuyerDashboard({
           </ul>
         )}
       </section>
+
+      <BuyerReviewHub userId={user!.id} />
     </main>
   );
 }

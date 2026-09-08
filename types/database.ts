@@ -16,6 +16,9 @@ export type ShipperStatus = "pending" | "approved" | "rejected";
 export type ShipperPaymentStatus = "good_standing" | "past_due" | "suspended";
 export type CommissionChargeStatus = "pending" | "charged" | "failed";
 export type ShipmentRequestStatus = "pending" | "completed";
+export type ReviewType = "buyer_to_seller" | "seller_to_buyer" | "buyer_to_shipper";
+export type ReviewStatus = "pending" | "published" | "flagged" | "removed";
+export type ReviewReportStatus = "open" | "reviewed" | "dismissed";
 
 export interface Database {
   public: {
@@ -533,8 +536,113 @@ export interface Database {
         }>;
         Relationships: [];
       };
+      reviews: {
+        Row: {
+          id: string;
+          review_type: ReviewType;
+          reviewer_id: string;
+          reviewee_id: string | null;
+          reviewee_shipper_id: string | null;
+          purchase_request_id: string | null;
+          shipment_request_id: string | null;
+          rating: number;
+          comment: string | null;
+          status: ReviewStatus;
+          moderated_by: string | null;
+          moderated_at: string | null;
+          moderation_note: string | null;
+          created_at: string;
+          updated_at: string;
+        };
+        Insert: {
+          review_type: ReviewType;
+          reviewer_id: string;
+          rating: number;
+          id?: string;
+          reviewee_id?: string | null;
+          reviewee_shipper_id?: string | null;
+          purchase_request_id?: string | null;
+          shipment_request_id?: string | null;
+          comment?: string | null;
+          status?: ReviewStatus;
+          moderated_by?: string | null;
+          moderated_at?: string | null;
+          moderation_note?: string | null;
+          created_at?: string;
+          updated_at?: string;
+        };
+        Update: Partial<{
+          review_type: ReviewType;
+          reviewer_id: string;
+          reviewee_id: string | null;
+          reviewee_shipper_id: string | null;
+          purchase_request_id: string | null;
+          shipment_request_id: string | null;
+          rating: number;
+          comment: string | null;
+          status: ReviewStatus;
+          moderated_by: string | null;
+          moderated_at: string | null;
+          moderation_note: string | null;
+          updated_at: string;
+        }>;
+        Relationships: [];
+      };
+      review_reports: {
+        Row: {
+          id: string;
+          review_id: string;
+          reporter_id: string;
+          reason: string | null;
+          status: ReviewReportStatus;
+          resolved_by: string | null;
+          resolved_at: string | null;
+          created_at: string;
+        };
+        Insert: {
+          review_id: string;
+          reporter_id: string;
+          reason?: string | null;
+          id?: string;
+          status?: ReviewReportStatus;
+          resolved_by?: string | null;
+          resolved_at?: string | null;
+          created_at?: string;
+        };
+        Update: Partial<{
+          reason: string | null;
+          status: ReviewReportStatus;
+          resolved_by: string | null;
+          resolved_at: string | null;
+        }>;
+        Relationships: [];
+      };
     };
     Views: {
+      seller_ratings: {
+        Row: {
+          seller_id: string | null;
+          avg_rating: number | null;
+          review_count: number | null;
+        };
+        Relationships: [];
+      };
+      buyer_ratings: {
+        Row: {
+          buyer_id: string | null;
+          avg_rating: number | null;
+          review_count: number | null;
+        };
+        Relationships: [];
+      };
+      shipper_ratings: {
+        Row: {
+          shipper_id: string | null;
+          avg_rating: number | null;
+          review_count: number | null;
+        };
+        Relationships: [];
+      };
       shipper_rates_public: {
         Row: {
           rate_id: string | null;

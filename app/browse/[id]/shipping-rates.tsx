@@ -136,7 +136,12 @@ export function ShippingRates({
             >
               <div>
                 <p className="font-semibold text-ink-900">
-                  {r.company_name}
+                  <a
+                    href={`/shipper/${r.shipper_id}`}
+                    className="hover:underline"
+                  >
+                    {r.company_name}
+                  </a>
                   {r.payment_status !== "good_standing" ? (
                     <span className="ml-2 align-middle text-xs font-normal text-ink-400">
                       limited availability
