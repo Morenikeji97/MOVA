@@ -1,5 +1,29 @@
 import Link from "next/link";
 import { createClient } from "@/lib/supabase/server";
+import {
+  scanForContactInfo,
+  type ContactInfoCategory,
+} from "@/lib/chat-filter";
+
+const CATEGORY_LABEL: Record<ContactInfoCategory, string> = {
+  email: "email",
+  phone: "phone",
+  url: "link / domain",
+  social_handle: "social handle",
+  circumvention_phrase: "contact exchange",
+  circumvention_intent: "off-platform intent",
+  address: "meetup / address",
+  evasion: "evasion attempt",
+};
+
+const STRUCTURAL_CATEGORIES: ContactInfoCategory[] = [
+  "email",
+  "phone",
+  "url",
+  "social_handle",
+  "address",
+  "circumvention_phrase",
+];
 
 const stamp = new Intl.DateTimeFormat("en-US", {
   month: "short",
@@ -140,6 +164,13 @@ export default async function AdminBlockedMessagesPage() {
                   ? "seller"
                   : "unknown";
 
+            // Re-run the shared filter so admins see WHY each attempt was
+            // blocked (the row itself only stores a boolean).
+            const scan = scanForContactInfo(m.content);
+            const intentOnly =
+              scan.categories.length > 0 &&
+              !scan.categories.some((c) => STRUCTURAL_CATEGORIES.includes(c));
+
             return (
               <li
                 key={m.id}
@@ -164,6 +195,27 @@ export default async function AdminBlockedMessagesPage() {
                     {stamp.format(new Date(m.created_at))}
                   </span>
                 </div>
+                {scan.categories.length > 0 ? (
+                  <div className="mt-2 flex flex-wrap items-center gap-1.5">
+                    <span
+                      className={`inline-flex items-center rounded-full px-2 py-0.5 text-[11px] font-semibold ${
+                        intentOnly
+                          ? "bg-marine-50 text-marine-700"
+                          : "bg-copper-50 text-copper-700"
+                      }`}
+                    >
+                      {intentOnly ? "Off-platform intent" : "Contact info"}
+                    </span>
+                    {scan.categories.map((c) => (
+                      <span
+                        key={c}
+                        className="inline-flex items-center rounded-full bg-paper-200 px-2 py-0.5 font-mono text-[11px] text-ink-400"
+                      >
+                        {CATEGORY_LABEL[c]}
+                      </span>
+                    ))}
+                  </div>
+                ) : null}
                 <p className="mt-3 whitespace-pre-wrap break-words rounded border border-paper-200 bg-paper p-3 text-sm text-slate-500">
                   {m.content}
                 </p>

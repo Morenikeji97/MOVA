@@ -3,10 +3,7 @@
 import { revalidatePath } from "next/cache";
 import { createClient } from "@/lib/supabase/server";
 import { createAdminClient } from "@/lib/supabase/admin";
-import {
-  scanForContactInfo,
-  CONTACT_INFO_BLOCK_MESSAGE,
-} from "@/lib/chat-filter";
+import { scanForContactInfo, CONTACT_INFO_BLOCK_MESSAGE } from "@/lib/chat-filter";
 
 /** Longest a single chat message may be. */
 const MAX_MESSAGE_LENGTH = 4000;
@@ -161,7 +158,11 @@ export async function sendChatMessage(
     });
     if (error) console.error("sendChatMessage: blocked-attempt log failed", error);
     revalidatePath("/admin/messages");
-    return { ok: false, blocked: true, reason: CONTACT_INFO_BLOCK_MESSAGE };
+    return {
+      ok: false,
+      blocked: true,
+      reason: scan.message ?? CONTACT_INFO_BLOCK_MESSAGE,
+    };
   }
 
   const { error } = await admin.from("messages").insert({
