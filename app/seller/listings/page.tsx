@@ -1,5 +1,6 @@
 import Link from "next/link";
 import { createClient } from "@/lib/supabase/server";
+import { VEHICLE_DETAIL_COLUMNS } from "@/lib/listings";
 import { buttonClasses } from "@/components/ui/button";
 import { VerifiedBadge } from "@/components/ui/verified-badge";
 import { cn } from "@/lib/utils";
@@ -52,7 +53,7 @@ export default async function SellerListingsPage() {
 
   const { data: listings } = await supabase
     .from("vehicles")
-    .select("*")
+    .select(VEHICLE_DETAIL_COLUMNS)
     .eq("seller_id", user!.id)
     .order("created_at", { ascending: false });
 
@@ -117,15 +118,26 @@ export default async function SellerListingsPage() {
                     {v.location_city}, {v.location_state}
                   </p>
                   <p className="mt-1 font-mono text-xs uppercase tracking-wider text-ink-400">
-                    VIN {v.vin}
+                    VIN {v.vehicle_vin_display}
                     {v.vin_decode_status === "mismatch" ? " · VIN mismatch flagged" : ""}
                   </p>
                   <p className="mt-1 text-xs text-ink-400">
                     {FEE_LABEL[v.fee_responsibility]}
                   </p>
                 </div>
-                <StatusBadge status={v.status} />
+                <div className="flex shrink-0 flex-col items-end gap-2">
+                  <StatusBadge status={v.status} />
+                  {v.vin_verification_status === "verified" ? (
+                    <VerifiedBadge label="VIN Verified" />
+                  ) : null}
+                </div>
               </div>
+              {v.vin_verification_status === "flagged" ? (
+                <p className="mt-3 text-sm text-copper-700">
+                  This listing&rsquo;s VIN was flagged during admin review and can&rsquo;t
+                  be approved until that&rsquo;s resolved. Contact support.
+                </p>
+              ) : null}
               {v.status === "rejected" && v.rejection_reason ? (
                 <p className="mt-3 text-sm text-copper-700">
                   Reason: {v.rejection_reason}

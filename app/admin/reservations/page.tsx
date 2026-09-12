@@ -60,7 +60,7 @@ export default async function AdminReservationsPage() {
     vehicleIds.length
       ? supabase
           .from("vehicles")
-          .select("id, year, make, model, trim, vin, price_usd, status")
+          .select("id, year, make, model, trim, vehicle_vin_display, price_usd, status")
           .in("id", vehicleIds)
       : null,
   ]);
@@ -122,7 +122,8 @@ export default async function AdminReservationsPage() {
                     </h2>
                     {vehicle ? (
                       <p className="mt-1 font-mono text-sm text-ink-400">
-                        {usd.format(Number(vehicle.price_usd))} · VIN {vehicle.vin}
+                        {usd.format(Number(vehicle.price_usd))} · VIN{" "}
+                        {vehicle.vehicle_vin_display}
                         {vehicle.status !== "approved"
                           ? ` · listing now ${vehicle.status}`
                           : ""}

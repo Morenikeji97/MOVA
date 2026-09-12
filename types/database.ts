@@ -2,6 +2,7 @@ export type UserRole = "seller" | "buyer" | "admin";
 export type UserStatus = "active" | "suspended";
 export type VerificationStatus = "unverified" | "pending" | "verified" | "failed";
 export type VehicleStatus = "draft" | "pending_review" | "approved" | "rejected" | "sold" | "archived";
+export type VinVerificationStatus = "unverified" | "verified" | "flagged";
 export type ShippingMethod = "roro" | "container";
 export type PurchaseRequestStatus =
   | "submitted"
@@ -137,6 +138,17 @@ export interface Database {
           seller_id: string;
           vin: string;
           vin_decode_status: "pending" | "matched" | "mismatch";
+          vin_verification_status: VinVerificationStatus;
+          /**
+           * Computed column, not a physical one — backed by the
+           * `vehicle_vin_display(vehicles)` SECURITY DEFINER function (see
+           * migration 0007). Select it instead of `vin`; direct column
+           * access to `vin` is revoked for anon/authenticated. Returns the
+           * full VIN for admins, the listing's own seller, and a buyer past
+           * the fee-paid reveal point, and a masked (last-6) form otherwise.
+           * Not present on Insert/Update — it can't be written.
+           */
+          vehicle_vin_display: string;
           year: number;
           make: string;
           model: string;
@@ -174,6 +186,7 @@ export interface Database {
           id?: string;
           fee_responsibility?: FeeResponsibility;
           vin_decode_status?: "pending" | "matched" | "mismatch";
+          vin_verification_status?: VinVerificationStatus;
           trim?: string | null;
           exterior_color?: string | null;
           interior_color?: string | null;
@@ -195,6 +208,7 @@ export interface Database {
           seller_id: string;
           vin: string;
           vin_decode_status: "pending" | "matched" | "mismatch";
+          vin_verification_status: VinVerificationStatus;
           year: number;
           make: string;
           model: string;

@@ -1,7 +1,8 @@
 import Link from "next/link";
 import { VinData } from "@/components/ui/vin-data";
+import { VerifiedBadge } from "@/components/ui/verified-badge";
 import { PriceBreakdown } from "@/components/ui/price-breakdown";
-import type { FeeResponsibility } from "@/types/database";
+import type { FeeResponsibility, VinVerificationStatus } from "@/types/database";
 
 /** The fields a vehicle card needs. Both /browse and the homepage select these. */
 export interface VehicleCardData {
@@ -15,6 +16,9 @@ export interface VehicleCardData {
   mileage: number;
   location_city: string;
   location_state: string;
+  /** Masked (or, once entitled, full) VIN — see `vehicle_vin_display` in lib/listings.ts. */
+  vehicle_vin_display: string;
+  vin_verification_status: VinVerificationStatus;
 }
 
 /**
@@ -48,10 +52,15 @@ export function VehicleCard({
         )}
       </div>
       <div className="flex flex-1 flex-col gap-3 p-5">
-        <h2 className="text-lg font-semibold text-ink-900">
-          {v.year} {v.make} {v.model}
-          {v.trim ? ` ${v.trim}` : ""}
-        </h2>
+        <div className="flex items-start justify-between gap-2">
+          <h2 className="text-lg font-semibold text-ink-900">
+            {v.year} {v.make} {v.model}
+            {v.trim ? ` ${v.trim}` : ""}
+          </h2>
+          {v.vin_verification_status === "verified" ? (
+            <VerifiedBadge label="VIN Verified" className="shrink-0" />
+          ) : null}
+        </div>
         <PriceBreakdown
           price={Number(v.price_usd)}
           feeResponsibility={v.fee_responsibility}
@@ -65,6 +74,7 @@ export function VehicleCard({
             label="Location"
             value={`${v.location_city}, ${v.location_state}`}
           />
+          <VinData label="VIN" value={v.vehicle_vin_display} className="col-span-2" />
         </div>
       </div>
     </Link>

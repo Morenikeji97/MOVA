@@ -2,6 +2,13 @@
 
 import { revalidatePath } from "next/cache";
 import { createClient } from "@/lib/supabase/server";
+import type { VinVerificationStatus } from "@/types/database";
+
+const VIN_VERIFICATION_STATUSES: VinVerificationStatus[] = [
+  "unverified",
+  "verified",
+  "flagged",
+];
 
 /**
  * Admin review actions for the pending-review queue. Each is bound to a
@@ -40,11 +47,15 @@ export async function approveListing(formData: FormData): Promise<void> {
   if (!supabase) return;
 
   // The status filter keeps this idempotent: a double-submit updates no rows.
+  // The vin_verification_status filter is a second backstop alongside the DB
+  // CHECK constraint (vehicles_flagged_not_approved) — a flagged VIN can't be
+  // approved, so this matches zero rows rather than erroring.
   await supabase
     .from("vehicles")
     .update({ status: "approved", rejection_reason: null })
     .eq("id", id)
-    .eq("status", "pending_review");
+    .eq("status", "pending_review")
+    .neq("vin_verification_status", "flagged");
 
   revalidatePath("/admin/listings");
 }
@@ -66,6 +77,29 @@ export async function rejectListing(formData: FormData): Promise<void> {
     .update({ status: "rejected", rejection_reason: reason })
     .eq("id", id)
     .eq("status", "pending_review");
+
+  revalidatePath("/admin/listings");
+}
+
+/**
+ * Record the outcome of the admin's own manual NICB VINCheck / NMVTIS lookup
+ * (run outside the app — there's no live API integration yet). A DB trigger
+ * (vehicles_guard_admin_only_fields) additionally keeps this column
+ * admin-only regardless of who calls the update.
+ */
+export async function setVinVerificationStatus(formData: FormData): Promise<void> {
+  const id = formData.get("id");
+  const statusRaw = formData.get("vin_verification_status");
+  if (typeof id !== "string" || id.length === 0) return;
+  if (typeof statusRaw !== "string") return;
+
+  const status = statusRaw as VinVerificationStatus;
+  if (!VIN_VERIFICATION_STATUSES.includes(status)) return;
+
+  const supabase = await requireAdmin();
+  if (!supabase) return;
+
+  await supabase.from("vehicles").update({ vin_verification_status: status }).eq("id", id);
 
   revalidatePath("/admin/listings");
 }

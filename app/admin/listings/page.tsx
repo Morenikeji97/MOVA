@@ -1,6 +1,7 @@
 import { type ReactNode } from "react";
 import Link from "next/link";
 import { createClient } from "@/lib/supabase/server";
+import { VEHICLE_DETAIL_COLUMNS } from "@/lib/listings";
 import { cn } from "@/lib/utils";
 import { ReviewActions } from "./review-actions";
 
@@ -31,7 +32,7 @@ export default async function AdminListingReviewPage() {
   // Oldest first — the seller who has waited longest is at the top.
   const { data: vehicles } = await supabase
     .from("vehicles")
-    .select("*")
+    .select(VEHICLE_DETAIL_COLUMNS)
     .eq("status", "pending_review")
     .order("updated_at", { ascending: true });
 
@@ -107,7 +108,7 @@ export default async function AdminListingReviewPage() {
                       {v.location_state}
                     </p>
                     <p className="mt-1 font-mono text-xs uppercase tracking-wider text-ink-400">
-                      VIN {v.vin}
+                      VIN {v.vehicle_vin_display}
                       {v.vin_decode_status === "mismatch"
                         ? " · VIN mismatch flagged"
                         : ""}
@@ -169,7 +170,10 @@ export default async function AdminListingReviewPage() {
                   <p className="mt-4 text-sm text-copper-700">No photos uploaded.</p>
                 )}
 
-                <ReviewActions vehicleId={v.id} />
+                <ReviewActions
+                  vehicleId={v.id}
+                  vinVerificationStatus={v.vin_verification_status}
+                />
               </li>
             );
           })}

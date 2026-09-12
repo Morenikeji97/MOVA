@@ -5,10 +5,27 @@ type ServerSupabase = Awaited<ReturnType<typeof createClient>>;
 
 /**
  * Columns a vehicle card needs. Shared so /browse and the homepage grid select
- * exactly the same shape and stay aligned with <VehicleCard>.
+ * exactly the same shape and stay aligned with <VehicleCard>. Selects
+ * `vehicle_vin_display` (a computed column, see migration 0007) rather than
+ * the raw `vin` column — direct column access to `vin` is revoked for
+ * anon/authenticated, so this is masked-by-default for anyone browsing and
+ * only resolves to the full VIN for the listing's own seller, an admin, or a
+ * buyer past the fee-paid reveal point.
  */
 export const LISTING_CARD_COLUMNS =
-  "id, year, make, model, trim, price_usd, fee_responsibility, mileage, location_city, location_state" as const;
+  "id, year, make, model, trim, price_usd, fee_responsibility, mileage, location_city, location_state, vehicle_vin_display, vin_verification_status" as const;
+
+/**
+ * Full vehicle detail, for surfaces that render (almost) every column:
+ * /browse/[id], the seller's own listings, and the admin review queues.
+ * Excludes the raw `vin` column (its SELECT privilege is revoked for
+ * anon/authenticated — see migration 0007) in favor of the computed
+ * `vehicle_vin_display`, which resolves to the full VIN for an admin, the
+ * listing's own seller, or a buyer past the fee-paid reveal point, and a
+ * masked form otherwise.
+ */
+export const VEHICLE_DETAIL_COLUMNS =
+  "id, seller_id, vin_decode_status, vin_verification_status, vehicle_vin_display, year, make, model, trim, mileage, exterior_color, interior_color, transmission, fuel_type, condition, accident_history, title_status, title_history_check_status, location_city, location_state, price_usd, fee_responsibility, description, status, verification_status, rejection_reason, created_at, updated_at" as const;
 
 /**
  * Primary photo per vehicle: the first by sort_order, unless one is explicitly

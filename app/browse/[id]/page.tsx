@@ -2,6 +2,7 @@ import { type ReactNode } from "react";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
+import { VEHICLE_DETAIL_COLUMNS } from "@/lib/listings";
 import { cn } from "@/lib/utils";
 import { buttonClasses } from "@/components/ui/button";
 import { VerifiedBadge } from "@/components/ui/verified-badge";
@@ -62,7 +63,7 @@ export default async function VehicleDetailPage({
 
   const { data: v } = await supabase
     .from("vehicles")
-    .select("*")
+    .select(VEHICLE_DETAIL_COLUMNS)
     .eq("id", id)
     .eq("status", "approved")
     .maybeSingle();
@@ -239,7 +240,12 @@ export default async function VehicleDetailPage({
 
         <div className="mt-4 flex flex-wrap items-start justify-between gap-3">
           <h1 className="text-2xl font-semibold text-ink-900">{title}</h1>
-          <VerifiedBadge />
+          <div className="flex flex-wrap items-center gap-2">
+            <VerifiedBadge />
+            {v.vin_verification_status === "verified" ? (
+              <VerifiedBadge label="VIN Verified" />
+            ) : null}
+          </div>
         </div>
         <PriceBreakdown
           price={Number(v.price_usd)}
@@ -278,7 +284,7 @@ export default async function VehicleDetailPage({
 
         <dl className="mt-8 grid grid-cols-2 gap-x-6 gap-y-4 sm:grid-cols-3">
           <Spec label="VIN">
-            <span className="font-mono">{v.vin}</span>
+            <span className="font-mono">{v.vehicle_vin_display}</span>
           </Spec>
           <Spec label="Year">{v.year}</Spec>
           <Spec label="Mileage">{v.mileage.toLocaleString("en-US")} mi</Spec>
