@@ -2,6 +2,7 @@ import Link from "next/link";
 import { createClient } from "@/lib/supabase/server";
 import { feeBreakdown } from "@/lib/fees";
 import { BuyerReviewHub } from "@/components/reviews/buyer-review-hub";
+import { AcceptPricePrompt } from "@/components/ui/accept-price-prompt";
 import type { FeeResponsibility } from "@/types/database";
 
 const usd = new Intl.NumberFormat("en-US", {
@@ -62,7 +63,7 @@ export default async function BuyerDashboard({
     supabase
       .from("purchase_requests")
       .select(
-        "id, vehicle_id, status, created_at, vehicle_price_usd, mova_fee_usd, mova_fee_payment_status, mova_fee_checkout_url, seller_details_revealed_at, seller_name, seller_email, seller_phone, seller_whatsapp",
+        "id, vehicle_id, status, created_at, vehicle_price_usd, mova_fee_usd, mova_fee_payment_status, mova_fee_checkout_url, seller_details_revealed_at, seller_name, seller_email, seller_phone, seller_whatsapp, negotiated_price_usd, negotiated_price_status",
       )
       .eq("buyer_id", user!.id)
       .order("created_at", { ascending: false }),
@@ -200,6 +201,25 @@ export default async function BuyerDashboard({
                   <p className="mt-2 text-sm text-slate-500">
                     {RESERVATION_STATUS_COPY[r.status] ?? r.status}
                   </p>
+
+                  {r.negotiated_price_status === "proposed" &&
+                  r.negotiated_price_usd != null &&
+                  OPEN_STATUSES.includes(r.status) ? (
+                    <AcceptPricePrompt
+                      purchaseRequestId={r.id}
+                      listingPriceUsd={snapshotPrice ?? Number(vehicle?.price_usd ?? 0)}
+                      negotiatedPriceUsd={Number(r.negotiated_price_usd)}
+                    />
+                  ) : null}
+
+                  {r.negotiated_price_status === "accepted" &&
+                  r.negotiated_price_usd != null &&
+                  !feePaid ? (
+                    <p className="mt-3 rounded border border-verified-100 bg-verified-50 p-3 text-sm text-verified-600">
+                      You accepted {usdCents.format(Number(r.negotiated_price_usd))} —
+                      MOVA&rsquo;s service fee will be based on this price.
+                    </p>
+                  ) : null}
 
                   {showFeePending ? (
                     <p className="mt-3 rounded border border-paper-200 bg-paper p-3 text-sm text-slate-500">

@@ -2,6 +2,7 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
 import { ChatThread, type ChatMessage } from "@/components/ui/chat-thread";
+import { NegotiatePricePanel } from "@/components/ui/negotiate-price-panel";
 
 export default async function SellerConversationPage({
   params,
@@ -23,11 +24,11 @@ export default async function SellerConversationPage({
 
   if (!conversation || conversation.seller_id !== user!.id) notFound();
 
-  const [{ data: vehicle }, { data: buyer }, { data: messageRows }] =
+  const [{ data: vehicle }, { data: buyer }, { data: messageRows }, { data: pr }] =
     await Promise.all([
       supabase
         .from("vehicles")
-        .select("id, year, make, model, trim")
+        .select("id, year, make, model, trim, price_usd")
         .eq("id", conversation.vehicle_id)
         .maybeSingle(),
       supabase
@@ -41,6 +42,17 @@ export default async function SellerConversationPage({
         .eq("conversation_id", id)
         .eq("blocked_attempt", false)
         .order("created_at", { ascending: true }),
+      // The buyer's current open reservation on this vehicle, if any — drives
+      // the "propose a price" panel below.
+      supabase
+        .from("purchase_requests")
+        .select("id, vehicle_price_usd, negotiated_price_usd, negotiated_price_status")
+        .eq("vehicle_id", conversation.vehicle_id)
+        .eq("buyer_id", conversation.buyer_id)
+        .not("status", "in", "(cancelled,rejected,completed)")
+        .order("created_at", { ascending: false })
+        .limit(1)
+        .maybeSingle(),
     ]);
 
   const title = vehicle
@@ -73,6 +85,17 @@ export default async function SellerConversationPage({
       <p className="mt-1 font-mono text-sm text-ink-400">
         Conversation with {buyerLabel}
       </p>
+
+      {pr && vehicle ? (
+        <NegotiatePricePanel
+          conversationId={conversation.id}
+          listingPriceUsd={Number(vehicle.price_usd)}
+          negotiatedPriceUsd={
+            pr.negotiated_price_usd != null ? Number(pr.negotiated_price_usd) : null
+          }
+          negotiatedPriceStatus={pr.negotiated_price_status}
+        />
+      ) : null}
 
       <div className="mt-6">
         <ChatThread

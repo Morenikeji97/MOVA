@@ -3,6 +3,7 @@
 import { type ReactNode, useActionState } from "react";
 import Link from "next/link";
 import { Button, buttonClasses } from "@/components/ui/button";
+import { AcceptPricePrompt } from "@/components/ui/accept-price-prompt";
 import { reserveVehicle, type ReserveResult } from "./actions";
 
 export type ReserveState = "anonymous" | "not-buyer" | "available" | "requested";
@@ -33,11 +34,19 @@ export function ReserveVehicle({
   state,
   requestStatus,
   buyerFeeUsd,
+  requestId,
+  listingPriceUsd,
+  negotiatedPriceUsd,
+  negotiatedPriceStatus,
 }: {
   vehicleId: string;
   state: ReserveState;
   requestStatus: string | null;
   buyerFeeUsd: number;
+  requestId?: string | null;
+  listingPriceUsd?: number;
+  negotiatedPriceUsd?: number | null;
+  negotiatedPriceStatus?: "none" | "proposed" | "accepted";
 }) {
   const [result, formAction, pending] = useActionState<
     ReserveResult | null,
@@ -52,6 +61,26 @@ export function ReserveVehicle({
           {(requestStatus && REQUEST_STATUS_COPY[requestStatus]) ??
             "MOVA will be in touch."}
         </p>
+
+        {negotiatedPriceStatus === "proposed" &&
+        negotiatedPriceUsd != null &&
+        requestId &&
+        listingPriceUsd != null ? (
+          <AcceptPricePrompt
+            purchaseRequestId={requestId}
+            listingPriceUsd={listingPriceUsd}
+            negotiatedPriceUsd={negotiatedPriceUsd}
+          />
+        ) : null}
+
+        {negotiatedPriceStatus === "accepted" && negotiatedPriceUsd != null ? (
+          <p className="mt-3 rounded border border-verified-100 bg-verified-50 p-3 text-sm text-verified-600">
+            You accepted{" "}
+            {usdCents.format(negotiatedPriceUsd)} — MOVA&rsquo;s service fee will
+            be based on this price.
+          </p>
+        ) : null}
+
         <Link
           href="/buyer/dashboard"
           className="mt-3 inline-block text-sm text-marine-700 hover:underline"

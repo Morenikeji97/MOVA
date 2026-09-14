@@ -13,6 +13,7 @@ export type PurchaseRequestStatus =
   | "cancelled";
 export type FeeResponsibility = "buyer_pays_full" | "split";
 export type MovaFeePaymentStatus = "pending" | "paid";
+export type NegotiatedPriceStatus = "none" | "proposed" | "accepted";
 export type ShipperStatus = "pending" | "approved" | "rejected";
 export type ShipperPaymentStatus = "good_standing" | "past_due" | "suspended";
 export type CommissionChargeStatus = "pending" | "charged" | "failed";
@@ -280,6 +281,10 @@ export interface Database {
           payment_reference: string | null;
           notes: string | null;
           assigned_admin_id: string | null;
+          negotiated_price_usd: number | null;
+          negotiated_price_status: NegotiatedPriceStatus;
+          negotiated_price_proposed_at: string | null;
+          negotiated_price_accepted_at: string | null;
           created_at: string;
           updated_at: string;
         };
@@ -303,6 +308,10 @@ export interface Database {
           payment_reference?: string | null;
           notes?: string | null;
           assigned_admin_id?: string | null;
+          negotiated_price_usd?: number | null;
+          negotiated_price_status?: NegotiatedPriceStatus;
+          negotiated_price_proposed_at?: string | null;
+          negotiated_price_accepted_at?: string | null;
           created_at?: string;
           updated_at?: string;
         };
@@ -326,6 +335,10 @@ export interface Database {
           payment_reference: string | null;
           notes: string | null;
           assigned_admin_id: string | null;
+          negotiated_price_usd: number | null;
+          negotiated_price_status: NegotiatedPriceStatus;
+          negotiated_price_proposed_at: string | null;
+          negotiated_price_accepted_at: string | null;
           created_at: string;
           updated_at: string;
         }>;

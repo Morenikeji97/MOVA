@@ -77,6 +77,9 @@ export default async function VehicleDetailPage({
 
   let reserveState: ReserveState = "anonymous";
   let requestStatus: string | null = null;
+  let requestId: string | null = null;
+  let negotiatedPriceUsd: number | null = null;
+  let negotiatedPriceStatus: "none" | "proposed" | "accepted" = "none";
 
   if (user) {
     const { data: profile } = await supabase
@@ -90,7 +93,7 @@ export default async function VehicleDetailPage({
     } else {
       const { data: existing } = await supabase
         .from("purchase_requests")
-        .select("status")
+        .select("id, status, negotiated_price_usd, negotiated_price_status")
         .eq("vehicle_id", id)
         .eq("buyer_id", user.id)
         .not("status", "in", "(cancelled,rejected)")
@@ -101,6 +104,10 @@ export default async function VehicleDetailPage({
       if (existing) {
         reserveState = "requested";
         requestStatus = existing.status;
+        requestId = existing.id;
+        negotiatedPriceUsd =
+          existing.negotiated_price_usd != null ? Number(existing.negotiated_price_usd) : null;
+        negotiatedPriceStatus = existing.negotiated_price_status;
       } else {
         reserveState = "available";
       }
@@ -318,6 +325,10 @@ export default async function VehicleDetailPage({
           state={reserveState}
           requestStatus={requestStatus}
           buyerFeeUsd={feeBreakdown(Number(v.price_usd), v.fee_responsibility).buyerFee}
+          requestId={requestId}
+          listingPriceUsd={Number(v.price_usd)}
+          negotiatedPriceUsd={negotiatedPriceUsd}
+          negotiatedPriceStatus={negotiatedPriceStatus}
         />
 
         {user && isBuyer ? (

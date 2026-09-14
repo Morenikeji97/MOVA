@@ -214,3 +214,136 @@ export async function markConversationRead(
 
   revalidatePath("/seller/messages");
 }
+
+export type NegotiatePriceResult = { ok: true } | { ok: false; error: string };
+
+/**
+ * Seller proposes (or revises) a negotiated price on the buyer's open
+ * reservation for this conversation's vehicle. Lower-only against the
+ * reservation's price snapshot — this is just the fast, friendly error path;
+ * the actual enforcement is the purchase_requests_guard_negotiation() trigger
+ * (migration 0011), which reverts anything this check might miss or that a
+ * caller bypassing the app tries directly.
+ */
+export async function proposeNegotiatedPrice(
+  conversationId: string,
+  priceUsd: number,
+): Promise<NegotiatePriceResult> {
+  if (!Number.isFinite(priceUsd) || priceUsd <= 0) {
+    return { ok: false, error: "Enter a valid price." };
+  }
+
+  const supabase = await createClient();
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+  if (!user) return { ok: false, error: "Please sign in." };
+
+  const { data: conversation } = await supabase
+    .from("conversations")
+    .select("id, vehicle_id, buyer_id, seller_id")
+    .eq("id", conversationId)
+    .maybeSingle();
+  if (!conversation || conversation.seller_id !== user.id) {
+    return { ok: false, error: "This conversation isn't available." };
+  }
+
+  // The buyer's current open reservation on this vehicle — negotiation only
+  // makes sense against a live reservation, not a cancelled/rejected/past one.
+  const { data: pr } = await supabase
+    .from("purchase_requests")
+    .select("id, vehicle_price_usd, negotiated_price_status")
+    .eq("vehicle_id", conversation.vehicle_id)
+    .eq("buyer_id", conversation.buyer_id)
+    .not("status", "in", "(cancelled,rejected,completed)")
+    .order("created_at", { ascending: false })
+    .limit(1)
+    .maybeSingle();
+  if (!pr) {
+    return {
+      ok: false,
+      error: "This buyer doesn't have an open reservation on this vehicle.",
+    };
+  }
+  if (pr.negotiated_price_status === "accepted") {
+    return {
+      ok: false,
+      error: "The buyer already accepted a price on this reservation.",
+    };
+  }
+
+  let ceiling = pr.vehicle_price_usd != null ? Number(pr.vehicle_price_usd) : null;
+  if (ceiling == null) {
+    const { data: vehicle } = await supabase
+      .from("vehicles")
+      .select("price_usd")
+      .eq("id", conversation.vehicle_id)
+      .maybeSingle();
+    ceiling = vehicle ? Number(vehicle.price_usd) : null;
+  }
+  if (ceiling != null && priceUsd >= ceiling) {
+    return {
+      ok: false,
+      error: `Must be lower than the listing price ($${ceiling.toLocaleString()}).`,
+    };
+  }
+
+  const { error } = await supabase
+    .from("purchase_requests")
+    .update({
+      negotiated_price_usd: priceUsd,
+      negotiated_price_status: "proposed",
+    })
+    .eq("id", pr.id);
+  if (error) {
+    console.error("proposeNegotiatedPrice: update failed", error);
+    return { ok: false, error: "Couldn't send that price. Please try again." };
+  }
+
+  revalidatePath(`/seller/messages/${conversationId}`);
+  revalidatePath("/buyer/dashboard");
+  revalidatePath(`/browse/${conversation.vehicle_id}`);
+  return { ok: true };
+}
+
+/**
+ * Buyer accepts the seller's currently-proposed price on one of their own
+ * reservations. RLS ("purchase requests buyer accept price") plus the guard
+ * trigger are what actually stop an accept without a prior proposal or on
+ * someone else's reservation — this mirrors those checks for a clean error.
+ */
+export async function acceptNegotiatedPrice(
+  purchaseRequestId: string,
+): Promise<NegotiatePriceResult> {
+  const supabase = await createClient();
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+  if (!user) return { ok: false, error: "Please sign in." };
+
+  const { data: pr } = await supabase
+    .from("purchase_requests")
+    .select("id, vehicle_id, buyer_id, negotiated_price_status")
+    .eq("id", purchaseRequestId)
+    .maybeSingle();
+  if (!pr || pr.buyer_id !== user.id) {
+    return { ok: false, error: "This reservation isn't available." };
+  }
+  if (pr.negotiated_price_status !== "proposed") {
+    return { ok: false, error: "There's no price offer to accept right now." };
+  }
+
+  const { error } = await supabase
+    .from("purchase_requests")
+    .update({ negotiated_price_status: "accepted" })
+    .eq("id", pr.id);
+  if (error) {
+    console.error("acceptNegotiatedPrice: update failed", error);
+    return { ok: false, error: "Couldn't accept that price. Please try again." };
+  }
+
+  revalidatePath("/buyer/dashboard");
+  revalidatePath(`/browse/${pr.vehicle_id}`);
+  revalidatePath("/admin/reservations");
+  return { ok: true };
+}

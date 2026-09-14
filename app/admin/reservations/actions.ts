@@ -89,7 +89,7 @@ export async function requestFeePayment(formData: FormData): Promise<void> {
   const { data: pr } = await supabase
     .from("purchase_requests")
     .select(
-      "id, vehicle_id, buyer_id, status, mova_fee_payment_status, vehicle_price_usd, mova_fee_usd",
+      "id, vehicle_id, buyer_id, status, mova_fee_payment_status, vehicle_price_usd, mova_fee_usd, negotiated_price_usd, negotiated_price_status",
     )
     .eq("id", id)
     .maybeSingle();
@@ -110,12 +110,18 @@ export async function requestFeePayment(formData: FormData): Promise<void> {
     .eq("id", pr.buyer_id)
     .maybeSingle();
 
-  // Price the fee from the reservation-time snapshot when we have one, else
-  // from the live listing (older reservations predate the snapshot columns).
+  // Price the fee off the buyer-accepted negotiated price when there is one —
+  // that's the actual final price for this reservation, and the whole point
+  // of the negotiation feature is that Invoice 1 (this fee) is charged
+  // against it, not the original listing price. Otherwise fall back to the
+  // reservation-time snapshot, then the live listing (older reservations
+  // predate the snapshot columns).
   const price =
-    pr.vehicle_price_usd != null
-      ? Number(pr.vehicle_price_usd)
-      : Number(vehicle.price_usd);
+    pr.negotiated_price_status === "accepted" && pr.negotiated_price_usd != null
+      ? Number(pr.negotiated_price_usd)
+      : pr.vehicle_price_usd != null
+        ? Number(pr.vehicle_price_usd)
+        : Number(vehicle.price_usd);
   const { fullFee, buyerFee } = feeBreakdown(price, vehicle.fee_responsibility);
 
   const amountCents = Math.round(buyerFee * 100);
