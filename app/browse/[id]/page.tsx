@@ -220,11 +220,14 @@ export default async function VehicleDetailPage({
     }
   }
 
-  const { data: photos } = await supabase
-    .from("vehicle_photos")
-    .select("url, is_primary, sort_order")
-    .eq("vehicle_id", id)
-    .order("sort_order", { ascending: true });
+  const [{ data: photos }, { data: video }] = await Promise.all([
+    supabase
+      .from("vehicle_photos")
+      .select("url, is_primary, sort_order")
+      .eq("vehicle_id", id)
+      .order("sort_order", { ascending: true }),
+    supabase.from("vehicle_videos").select("url").eq("vehicle_id", id).maybeSingle(),
+  ]);
 
   // Primary photo leads the gallery; the rest keep their sort order.
   const gallery = (photos ?? [])
@@ -288,6 +291,17 @@ export default async function VehicleDetailPage({
             No photos provided
           </div>
         )}
+
+        {video ? (
+          <div className="mt-3">
+            {/* eslint-disable-next-line jsx-a11y/media-has-caption */}
+            <video
+              src={video.url}
+              controls
+              className="aspect-video w-full rounded-lg border border-paper-200 bg-black object-contain"
+            />
+          </div>
+        ) : null}
 
         <dl className="mt-8 grid grid-cols-2 gap-x-6 gap-y-4 sm:grid-cols-3">
           <Spec label="VIN">

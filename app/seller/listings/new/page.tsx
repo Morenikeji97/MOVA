@@ -11,6 +11,7 @@ import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
 import { VinData } from "@/components/ui/vin-data";
 import { PhotoUploader, type PhotoDraft } from "@/components/ui/photo-uploader";
+import { VideoUploader, type VideoDraft } from "@/components/ui/video-uploader";
 
 const MAX_PHOTOS = 20;
 
@@ -129,6 +130,13 @@ const schema = z.object({
         });
       }
     }),
+  video: z
+    .object({
+      path: z.string().min(1),
+      url: z.string().url(),
+      durationSeconds: z.number().nullable(),
+    })
+    .nullable(),
 });
 
 type FormValues = z.infer<typeof schema>;
@@ -153,6 +161,7 @@ const EMPTY: FormValues = {
   description: "",
   fee_responsibility: "buyer_pays_full",
   photos: [],
+  video: null,
 };
 
 const inputClass = "h-11 rounded border border-paper-200 bg-paper-100 px-3 text-ink-900";
@@ -229,6 +238,7 @@ export default function NewListingPage() {
   const enteredMake = watch("make");
   const enteredModel = watch("model");
   const photos = watch("photos");
+  const video = watch("video");
 
   // A decoded result only describes the VIN it was fetched for; drop it as
   // soon as the seller edits the VIN field again.
@@ -402,6 +412,20 @@ export default function NewListingPage() {
         // RLS policy allows this.
         await supabase.from("vehicles").delete().eq("id", created.id);
         fail(`Could not attach photos: ${photoError.message}. Please try again.`);
+        return;
+      }
+    }
+
+    if (values.video) {
+      const { error: videoError } = await supabase.from("vehicle_videos").insert({
+        vehicle_id: created.id,
+        url: values.video.url,
+        duration_seconds: values.video.durationSeconds,
+      });
+
+      if (videoError) {
+        await supabase.from("vehicles").delete().eq("id", created.id);
+        fail(`Could not attach the video: ${videoError.message}. Please try again.`);
         return;
       }
     }
@@ -684,6 +708,21 @@ export default function NewListingPage() {
             disabled={isSubmitting || saving}
             maxPhotos={MAX_PHOTOS}
             error={errors.photos?.message}
+          />
+        </section>
+
+        <section className="flex flex-col gap-3">
+          <SectionLabel>Video (optional)</SectionLabel>
+          <p className="text-sm text-slate-500">
+            Add one walk-around video alongside your photos, up to 90 seconds.
+          </p>
+          <VideoUploader
+            value={video}
+            onChange={(next: VideoDraft | null) =>
+              setValue("video", next, { shouldValidate: true, shouldDirty: true })
+            }
+            disabled={isSubmitting || saving}
+            error={errors.video?.message}
           />
         </section>
 

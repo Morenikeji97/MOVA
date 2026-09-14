@@ -260,6 +260,30 @@ export interface Database {
         }>;
         Relationships: [];
       };
+      vehicle_videos: {
+        Row: {
+          id: string;
+          vehicle_id: string;
+          url: string;
+          duration_seconds: number | null;
+          created_at: string;
+        };
+        Insert: {
+          vehicle_id: string;
+          url: string;
+          id?: string;
+          duration_seconds?: number | null;
+          created_at?: string;
+        };
+        Update: Partial<{
+          id: string;
+          vehicle_id: string;
+          url: string;
+          duration_seconds: number | null;
+          created_at: string;
+        }>;
+        Relationships: [];
+      };
       purchase_requests: {
         Row: {
           id: string;
