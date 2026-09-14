@@ -3,6 +3,7 @@ import { createClient } from "@/lib/supabase/server";
 import { feeBreakdown } from "@/lib/fees";
 import { BuyerReviewHub } from "@/components/reviews/buyer-review-hub";
 import { AcceptPricePrompt } from "@/components/ui/accept-price-prompt";
+import { FeePaymentConsent } from "@/components/ui/fee-payment-consent";
 import type { FeeResponsibility } from "@/types/database";
 
 const usd = new Intl.NumberFormat("en-US", {
@@ -239,12 +240,10 @@ export default async function BuyerDashboard({
                         details. You then wire the vehicle price to the seller
                         directly.
                       </p>
-                      <a
-                        href={r.mova_fee_checkout_url!}
-                        className="mt-3 inline-flex h-9 items-center justify-center rounded bg-copper px-3 text-sm font-medium text-white transition-colors hover:bg-copper-700"
-                      >
-                        Pay with Stripe
-                      </a>
+                      <FeePaymentConsent
+                        purchaseRequestId={r.id}
+                        checkoutUrl={r.mova_fee_checkout_url!}
+                      />
                     </div>
                   ) : null}
 

@@ -4,18 +4,21 @@ import { useState } from "react";
 import Link from "next/link";
 import { createClient } from "@/lib/supabase/client";
 import { Button } from "@/components/ui/button";
+import { CURRENT_POLICY_VERSION, BUYER_PROTECTION_POLICY_PATH } from "@/lib/policy";
 import type { UserRole } from "@/types/database";
 
 export default function SignupPage() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [role, setRole] = useState<UserRole>("buyer");
+  const [policyAccepted, setPolicyAccepted] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [submitted, setSubmitted] = useState(false);
   const [loading, setLoading] = useState(false);
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
+    if (!policyAccepted) return;
     setLoading(true);
     setError(null);
 
@@ -24,7 +27,11 @@ export default function SignupPage() {
       email,
       password,
       options: {
-        data: { role },
+        // handle_new_user() reads policy_version the same way it already
+        // reads role, and creates the buyer_profiles/seller_profiles row +
+        // the signup policy_acceptances audit row atomically at account
+        // creation — see migration 0013.
+        data: { role, policy_version: CURRENT_POLICY_VERSION },
         emailRedirectTo: `${window.location.origin}/auth/callback`,
       },
     });
@@ -98,8 +105,29 @@ export default function SignupPage() {
             className="h-11 rounded border border-paper-200 px-3"
           />
         </label>
+        <label className="flex items-start gap-2 text-sm text-slate-500">
+          <input
+            type="checkbox"
+            checked={policyAccepted}
+            onChange={(e) => setPolicyAccepted(e.target.checked)}
+            required
+            className="mt-0.5"
+          />
+          <span>
+            I have read and agree to MOVA&rsquo;s{" "}
+            <Link
+              href={BUYER_PROTECTION_POLICY_PATH}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="text-marine-700 underline underline-offset-2"
+            >
+              Buyer Protection &amp; Refund Policy
+            </Link>
+            .
+          </span>
+        </label>
         {error && <p className="text-sm text-copper-700">{error}</p>}
-        <Button type="submit" disabled={loading}>
+        <Button type="submit" disabled={loading || !policyAccepted}>
           {loading ? "Creating account…" : "Create account"}
         </Button>
       </form>

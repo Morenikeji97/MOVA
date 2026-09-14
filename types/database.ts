@@ -14,6 +14,7 @@ export type PurchaseRequestStatus =
 export type FeeResponsibility = "buyer_pays_full" | "split";
 export type MovaFeePaymentStatus = "pending" | "paid";
 export type NegotiatedPriceStatus = "none" | "proposed" | "accepted";
+export type PolicyAcceptanceContext = "signup" | "fee_payment";
 export type ShipperStatus = "pending" | "approved" | "rejected";
 export type ShipperPaymentStatus = "good_standing" | "past_due" | "suspended";
 export type CommissionChargeStatus = "pending" | "charged" | "failed";
@@ -68,6 +69,8 @@ export interface Database {
           id_verification_status: VerificationStatus;
           id_verified_at: string | null;
           verification_status: VerificationStatus;
+          policy_accepted_at: string | null;
+          policy_version: string | null;
           created_at: string;
         };
         Insert: {
@@ -79,6 +82,8 @@ export interface Database {
           id_verification_status?: VerificationStatus;
           id_verified_at?: string | null;
           verification_status?: VerificationStatus;
+          policy_accepted_at?: string | null;
+          policy_version?: string | null;
           created_at?: string;
         };
         Update: Partial<{
@@ -90,6 +95,8 @@ export interface Database {
           id_verification_status: VerificationStatus;
           id_verified_at: string | null;
           verification_status: VerificationStatus;
+          policy_accepted_at: string | null;
+          policy_version: string | null;
           created_at: string;
         }>;
         Relationships: [];
@@ -105,6 +112,8 @@ export interface Database {
           bvn_verification_status: VerificationStatus;
           bvn_verification_ref: string | null;
           verification_status: VerificationStatus;
+          policy_accepted_at: string | null;
+          policy_version: string | null;
           created_at: string;
         };
         Insert: {
@@ -117,6 +126,8 @@ export interface Database {
           bvn_verification_status?: VerificationStatus;
           bvn_verification_ref?: string | null;
           verification_status?: VerificationStatus;
+          policy_accepted_at?: string | null;
+          policy_version?: string | null;
           created_at?: string;
         };
         Update: Partial<{
@@ -129,6 +140,8 @@ export interface Database {
           bvn_verification_status: VerificationStatus;
           bvn_verification_ref: string | null;
           verification_status: VerificationStatus;
+          policy_accepted_at: string | null;
+          policy_version: string | null;
           created_at: string;
         }>;
         Relationships: [];
@@ -257,6 +270,45 @@ export interface Database {
           url: string;
           sort_order: number;
           is_primary: boolean;
+        }>;
+        Relationships: [];
+      };
+      policy_acceptances: {
+        Row: {
+          id: string;
+          user_id: string;
+          role: UserRole;
+          context: PolicyAcceptanceContext;
+          policy_version: string;
+          purchase_request_id: string | null;
+          ip_address: string | null;
+          user_agent: string | null;
+          accepted_at: string;
+        };
+        Insert: {
+          user_id: string;
+          context: PolicyAcceptanceContext;
+          policy_version: string;
+          id?: string;
+          // role is derived server-side by the guard trigger — accepted here
+          // only because the DB column is NOT NULL; whatever is sent is
+          // overwritten.
+          role?: UserRole;
+          purchase_request_id?: string | null;
+          ip_address?: string | null;
+          user_agent?: string | null;
+          accepted_at?: string;
+        };
+        Update: Partial<{
+          id: string;
+          user_id: string;
+          role: UserRole;
+          context: PolicyAcceptanceContext;
+          policy_version: string;
+          purchase_request_id: string | null;
+          ip_address: string | null;
+          user_agent: string | null;
+          accepted_at: string;
         }>;
         Relationships: [];
       };

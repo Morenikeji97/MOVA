@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import { Inter, JetBrains_Mono } from "next/font/google";
 import { AccountMenu } from "@/components/ui/account-menu";
 import { WhatsAppButton } from "@/components/ui/whatsapp-button";
+import { Footer } from "@/components/ui/footer";
 import "./globals.css";
 
 const inter = Inter({
@@ -27,6 +28,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
     <html lang="en" className={`${inter.variable} ${jetbrainsMono.variable}`}>
       <body>
         {children}
+        <Footer />
         <AccountMenu />
         <WhatsAppButton />
       </body>
