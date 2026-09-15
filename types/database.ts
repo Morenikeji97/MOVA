@@ -22,6 +22,16 @@ export type ShipmentRequestStatus = "pending" | "completed";
 export type ReviewType = "buyer_to_seller" | "seller_to_buyer" | "buyer_to_shipper";
 export type ReviewStatus = "pending" | "published" | "flagged" | "removed";
 export type ReviewReportStatus = "open" | "reviewed" | "dismissed";
+export type DisputeCategory =
+  | "seller_unresponsive"
+  | "vehicle_misrepresented"
+  | "shipping_issue"
+  | "other";
+export type DisputeStatus =
+  | "open"
+  | "approved_pending_refund"
+  | "denied"
+  | "refund_completed";
 
 export interface Database {
   public: {
@@ -717,6 +727,47 @@ export interface Database {
           status: ReviewReportStatus;
           resolved_by: string | null;
           resolved_at: string | null;
+        }>;
+        Relationships: [];
+      };
+      disputes: {
+        Row: {
+          id: string;
+          purchase_request_id: string;
+          reporter_id: string;
+          category: DisputeCategory;
+          description: string;
+          evidence_paths: string[];
+          status: DisputeStatus;
+          decided_by: string | null;
+          decision_reason: string | null;
+          decision_amount_usd: number | null;
+          decided_at: string | null;
+          refund_completed_at: string | null;
+          created_at: string;
+        };
+        Insert: {
+          purchase_request_id: string;
+          reporter_id: string;
+          category: DisputeCategory;
+          description: string;
+          id?: string;
+          evidence_paths?: string[];
+          status?: DisputeStatus;
+          decided_by?: string | null;
+          decision_reason?: string | null;
+          decision_amount_usd?: number | null;
+          decided_at?: string | null;
+          refund_completed_at?: string | null;
+          created_at?: string;
+        };
+        Update: Partial<{
+          status: DisputeStatus;
+          decided_by: string | null;
+          decision_reason: string | null;
+          decision_amount_usd: number | null;
+          decided_at: string | null;
+          refund_completed_at: string | null;
         }>;
         Relationships: [];
       };

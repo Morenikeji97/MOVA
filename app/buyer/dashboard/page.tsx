@@ -4,6 +4,8 @@ import { feeBreakdown } from "@/lib/fees";
 import { BuyerReviewHub } from "@/components/reviews/buyer-review-hub";
 import { AcceptPricePrompt } from "@/components/ui/accept-price-prompt";
 import { FeePaymentConsent } from "@/components/ui/fee-payment-consent";
+import { ReportIssuePanel } from "@/components/ui/report-issue-panel";
+import { DisputeStatusList, type DisputeSummary } from "@/components/ui/dispute-status";
 import type { FeeResponsibility } from "@/types/database";
 
 const usd = new Intl.NumberFormat("en-US", {
@@ -85,13 +87,30 @@ export default async function BuyerDashboard({
   );
 
   const vehicleIds = [...new Set(reservations.map((r) => r.vehicle_id))];
-  const { data: vehicleRows } = vehicleIds.length
-    ? await supabase
-        .from("vehicles")
-        .select("id, year, make, model, trim, price_usd, fee_responsibility")
-        .in("id", vehicleIds)
-    : { data: [] };
+  const reservationIds = reservations.map((r) => r.id);
+  const [{ data: vehicleRows }, { data: disputeRows }] = await Promise.all([
+    vehicleIds.length
+      ? supabase
+          .from("vehicles")
+          .select("id, year, make, model, trim, price_usd, fee_responsibility")
+          .in("id", vehicleIds)
+      : Promise.resolve({ data: [] }),
+    reservationIds.length
+      ? supabase
+          .from("disputes")
+          .select(
+            "id, purchase_request_id, category, status, description, decision_reason, decision_amount_usd, reporter_id, created_at",
+          )
+          .in("purchase_request_id", reservationIds)
+      : Promise.resolve({ data: [] }),
+  ]);
   const vehicleById = new Map((vehicleRows ?? []).map((v) => [v.id, v]));
+  const disputesByReservation = new Map<string, DisputeSummary[]>();
+  for (const d of disputeRows ?? []) {
+    const list = disputesByReservation.get(d.purchase_request_id) ?? [];
+    list.push(d);
+    disputesByReservation.set(d.purchase_request_id, list);
+  }
 
   return (
     <main className="mx-auto max-w-4xl px-6 py-16">
@@ -170,6 +189,11 @@ export default async function BuyerDashboard({
                 !feePaid &&
                 OPEN_STATUSES.includes(r.status) &&
                 !r.mova_fee_checkout_url;
+
+              const disputes = disputesByReservation.get(r.id) ?? [];
+              const hasOwnOpenDispute = disputes.some(
+                (d) => d.reporter_id === user!.id && d.status === "open",
+              );
 
               return (
                 <li
@@ -283,6 +307,11 @@ export default async function BuyerDashboard({
                         </p>
                       ) : null}
                     </div>
+                  ) : null}
+
+                  <DisputeStatusList disputes={disputes} currentUserId={user!.id} />
+                  {!hasOwnOpenDispute ? (
+                    <ReportIssuePanel purchaseRequestId={r.id} />
                   ) : null}
                 </li>
               );

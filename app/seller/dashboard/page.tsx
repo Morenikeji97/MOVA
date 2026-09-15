@@ -72,6 +72,12 @@ export default async function SellerDashboard({
           My listings
         </Link>
         <Link
+          href="/seller/reservations"
+          className={buttonClasses({ size: "sm", variant: "secondary" })}
+        >
+          Reservations
+        </Link>
+        <Link
           href="/seller/messages"
           className={buttonClasses({ size: "sm", variant: "secondary" })}
         >
