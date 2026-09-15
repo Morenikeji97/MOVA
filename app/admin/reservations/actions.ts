@@ -175,3 +175,120 @@ export async function requestFeePayment(formData: FormData): Promise<void> {
   revalidatePath("/admin/reservations");
   revalidatePath("/buyer/dashboard");
 }
+
+/**
+ * Confirm a buyer's bank-transfer proof: the manual equivalent of the Stripe
+ * payments webhook (/api/stripe/payments/webhook) — marks the fee paid and
+ * snapshots the seller's contact + name onto the row, same fields, same
+ * reasoning (RLS blocks the buyer from the seller's own users/seller_profiles
+ * rows, so they're copied here instead of joined).
+ *
+ * Only reachable from 'pending_manual_verification' — the status a buyer's
+ * proof upload puts the row into (app/buyer/dashboard/actions.ts,
+ * enforced by purchase_requests_guard_negotiation, migration 0014). Buyers
+ * themselves can never reach 'paid'; this admin action is the only path.
+ */
+export async function confirmBankTransferPayment(formData: FormData): Promise<void> {
+  const id = formData.get("id");
+  if (typeof id !== "string" || id.length === 0) return;
+
+  const supabase = await requireAdmin();
+  if (!supabase) return;
+
+  const {
+    data: { user: admin },
+  } = await supabase.auth.getUser();
+  if (!admin) return;
+
+  const { data: pr } = await supabase
+    .from("purchase_requests")
+    .select("id, vehicle_id, mova_fee_payment_status")
+    .eq("id", id)
+    .maybeSingle();
+  if (!pr || pr.mova_fee_payment_status !== "pending_manual_verification") return;
+
+  const { data: vehicle } = await supabase
+    .from("vehicles")
+    .select("seller_id")
+    .eq("id", pr.vehicle_id)
+    .maybeSingle();
+
+  let sellerName: string | null = null;
+  let sellerEmail: string | null = null;
+  let sellerPhone: string | null = null;
+  let sellerWhatsapp: string | null = null;
+
+  if (vehicle) {
+    const [{ data: sellerUser }, { data: sellerProfile }] = await Promise.all([
+      supabase
+        .from("users")
+        .select("email, phone, whatsapp_number")
+        .eq("id", vehicle.seller_id)
+        .maybeSingle(),
+      supabase
+        .from("seller_profiles")
+        .select("full_name")
+        .eq("user_id", vehicle.seller_id)
+        .maybeSingle(),
+    ]);
+    sellerEmail = sellerUser?.email ?? null;
+    sellerPhone = sellerUser?.phone ?? null;
+    sellerWhatsapp = sellerUser?.whatsapp_number ?? null;
+    sellerName = sellerProfile?.full_name ?? null;
+  }
+
+  await supabase
+    .from("purchase_requests")
+    .update({
+      mova_fee_payment_status: "paid",
+      seller_details_revealed_at: new Date().toISOString(),
+      seller_name: sellerName,
+      seller_email: sellerEmail,
+      seller_phone: sellerPhone,
+      seller_whatsapp: sellerWhatsapp,
+      bank_transfer_reviewed_by: admin.id,
+      bank_transfer_reviewed_at: new Date().toISOString(),
+    })
+    .eq("id", id)
+    .eq("mova_fee_payment_status", "pending_manual_verification");
+
+  revalidatePath("/admin/reservations");
+  revalidatePath("/buyer/dashboard");
+}
+
+/**
+ * Reject a buyer's bank-transfer proof — not received / doesn't match. Sets
+ * the reservation back to 'bank_transfer_rejected' with a reason the buyer
+ * dashboard surfaces, and lets the buyer retry (either bank transfer again
+ * or switch to card) rather than dead-ending the reservation.
+ */
+export async function rejectBankTransferPayment(formData: FormData): Promise<void> {
+  const id = formData.get("id");
+  const reasonRaw = formData.get("rejection_reason");
+  if (typeof id !== "string" || id.length === 0) return;
+
+  const reason = typeof reasonRaw === "string" ? reasonRaw.trim() : "";
+  if (reason.length === 0) return;
+
+  const supabase = await requireAdmin();
+  if (!supabase) return;
+
+  const {
+    data: { user: admin },
+  } = await supabase.auth.getUser();
+  if (!admin) return;
+
+  await supabase
+    .from("purchase_requests")
+    .update({
+      mova_fee_payment_status: "bank_transfer_rejected",
+      bank_transfer_rejection_reason: reason,
+      bank_transfer_reviewed_by: admin.id,
+      bank_transfer_reviewed_at: new Date().toISOString(),
+    })
+    .eq("id", id)
+    .eq("mova_fee_payment_status", "pending_manual_verification");
+
+  revalidatePath("/admin/reservations");
+  revalidatePath("/buyer/dashboard");
+}
