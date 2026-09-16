@@ -1,6 +1,6 @@
 "use client";
 
-import { type ComponentProps, useMemo, useState } from "react";
+import { type ComponentProps, useState } from "react";
 import { useFormStatus } from "react-dom";
 import { Button } from "@/components/ui/button";
 import { SERVICE_COUNTRIES, countryName, shippingMethodLabel } from "@/lib/shipping";
@@ -65,13 +65,7 @@ export function ShippingRates({
   selectedRateId: string | null;
   locked: boolean;
 }) {
-  const destinations = useMemo(
-    () => [...new Set(rates.map((r) => r.destination_country))],
-    [rates],
-  );
-  const [destination, setDestination] = useState(
-    destinations.includes(defaultDestination) ? defaultDestination : (destinations[0] ?? defaultDestination),
-  );
+  const [destination, setDestination] = useState(defaultDestination);
 
   const selectedRate = selectedRateId ? rates.find((r) => r.rate_id === selectedRateId) : undefined;
   const visibleRates = rates.filter((r) => r.destination_country === destination);
@@ -113,7 +107,7 @@ export function ShippingRates({
               onChange={(e) => setDestination(e.target.value)}
               className="h-11 w-full max-w-xs rounded border border-paper-200 bg-paper-100 px-3 text-sm text-ink-900 sm:w-auto"
             >
-              {SERVICE_COUNTRIES.filter((c) => destinations.includes(c.code)).map((c) => (
+              {SERVICE_COUNTRIES.map((c) => (
                 <option key={c.code} value={c.code}>
                   {c.name}
                 </option>
@@ -122,9 +116,10 @@ export function ShippingRates({
           </label>
 
           {visibleRates.length === 0 ? (
-            <p className="mt-4 text-sm text-slate-500">
+            <p className="mt-4 rounded border border-dashed border-paper-200 bg-paper p-3 text-sm text-slate-500">
               No shippers are listing rates to {countryName(destination)} for
-              this vehicle&rsquo;s size class yet.
+              this vehicle&rsquo;s size class yet. Try another destination, or
+              check back soon.
             </p>
           ) : (
             <ul className="mt-4 flex flex-col gap-3">
