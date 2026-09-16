@@ -89,6 +89,12 @@ export async function selectShippingRate(formData: FormData): Promise<void> {
     .eq("user_id", user.id)
     .maybeSingle();
 
+  const { data: vehicle } = await supabase
+    .from("vehicles")
+    .select("year, make, model, trim, location_city, location_state")
+    .eq("id", vehicleId)
+    .maybeSingle();
+
   const agreedRate = Number(rate.price) || 0;
   const owed = commissionOwed(agreedRate, SHIPPER_COMMISSION_PCT);
   const now = new Date().toISOString();
@@ -114,6 +120,12 @@ export async function selectShippingRate(formData: FormData): Promise<void> {
     buyer_email: profile?.email ?? user.email ?? null,
     buyer_phone: profile?.phone ?? null,
     buyer_whatsapp: profile?.whatsapp_number ?? null,
+    vehicle_year: vehicle?.year ?? null,
+    vehicle_make: vehicle?.make ?? null,
+    vehicle_model: vehicle?.model ?? null,
+    vehicle_trim: vehicle?.trim ?? null,
+    pickup_city: vehicle?.location_city ?? null,
+    pickup_state: vehicle?.location_state ?? null,
   });
   if (error) {
     console.error("selectShippingRate insert failed:", error);

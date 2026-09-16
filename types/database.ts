@@ -567,6 +567,12 @@ export interface Database {
           buyer_email: string | null;
           buyer_phone: string | null;
           buyer_whatsapp: string | null;
+          vehicle_year: number | null;
+          vehicle_make: string | null;
+          vehicle_model: string | null;
+          vehicle_trim: string | null;
+          pickup_city: string | null;
+          pickup_state: string | null;
           created_at: string;
         };
         Insert: {
@@ -594,6 +600,12 @@ export interface Database {
           buyer_email?: string | null;
           buyer_phone?: string | null;
           buyer_whatsapp?: string | null;
+          vehicle_year?: number | null;
+          vehicle_make?: string | null;
+          vehicle_model?: string | null;
+          vehicle_trim?: string | null;
+          pickup_city?: string | null;
+          pickup_state?: string | null;
           created_at?: string;
         };
         Update: Partial<{
@@ -621,6 +633,12 @@ export interface Database {
           buyer_email: string | null;
           buyer_phone: string | null;
           buyer_whatsapp: string | null;
+          vehicle_year: number | null;
+          vehicle_make: string | null;
+          vehicle_model: string | null;
+          vehicle_trim: string | null;
+          pickup_city: string | null;
+          pickup_state: string | null;
           created_at: string;
         }>;
         Relationships: [];
