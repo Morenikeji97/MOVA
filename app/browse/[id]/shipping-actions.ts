@@ -10,7 +10,18 @@ function str(v: FormDataEntryValue | null): string {
 
 /**
  * Buyer picks a shipper's rate once they've requested a vehicle
- * (/browse/[id]).
+ * (/browse/[id]). This is a one-time pick, not a freely-editable one: once a
+ * shipment_requests row exists for this purchase_request (any shipper), the
+ * action no-ops on any further "Select" click. Letting a buyer switch
+ * shippers after the fact would leave the first shipper's shipment_requests
+ * row dangling — visible on their dashboard with nothing to clear it,
+ * since there's no buyer-facing delete path for that table (RLS defines no
+ * DELETE policy on shipment_requests at all). The DB trigger backing
+ * purchase_requests.shipping_rate_id (0018) technically allows reselection
+ * pre-invoice, but this action is the only thing that ever calls it, so that
+ * flexibility currently goes unused — a future "change shipper" flow would
+ * need to also handle retiring the old shipment_requests row before this
+ * limitation could lift.
  *
  * Creates a shipment_requests row and snapshots both sides' contact details
  * onto it — shipper contact revealed to the buyer, buyer contact revealed to
@@ -49,24 +60,23 @@ export async function selectShippingRate(formData: FormData): Promise<void> {
     .maybeSingle();
   if (!purchaseRequest) return;
 
+  // Already picked (any shipper) — see the doc comment above.
+  const { data: alreadySelected } = await supabase
+    .from("shipment_requests")
+    .select("id")
+    .eq("purchase_request_id", purchaseRequestId)
+    .maybeSingle();
+  if (alreadySelected) {
+    if (vehicleId) revalidatePath(`/browse/${vehicleId}`);
+    return;
+  }
+
   const { data: rate } = await supabase
     .from("shipper_rates_public")
     .select("rate_id, shipper_id, price, currency")
     .eq("rate_id", rateId)
     .maybeSingle();
   if (!rate || !rate.shipper_id) return;
-
-  // One shipment request per purchase_request + shipper (DB-enforced too).
-  const { data: existing } = await supabase
-    .from("shipment_requests")
-    .select("id")
-    .eq("purchase_request_id", purchaseRequestId)
-    .eq("shipper_id", rate.shipper_id)
-    .maybeSingle();
-  if (existing) {
-    if (vehicleId) revalidatePath(`/browse/${vehicleId}`);
-    return;
-  }
 
   const { data: shipper } = await supabase
     .from("shippers")
@@ -131,6 +141,17 @@ export async function selectShippingRate(formData: FormData): Promise<void> {
     console.error("selectShippingRate insert failed:", error);
     return;
   }
+
+  // Locks in the buyer's choice on the reservation itself — this is what
+  // requestFeePayment (admin) requires before it will generate Invoice 1,
+  // and what the itemized all-in total reads. Guarded by the
+  // purchase_requests_guard_negotiation trigger (0018): only settable
+  // pre-invoice, and only to a rate matching this vehicle's size class —
+  // both already true here, but the trigger is the actual enforcement.
+  await supabase
+    .from("purchase_requests")
+    .update({ shipping_rate_id: rate.rate_id })
+    .eq("id", purchaseRequestId);
 
   if (vehicleId) revalidatePath(`/browse/${vehicleId}`);
   revalidatePath("/buyer/dashboard");

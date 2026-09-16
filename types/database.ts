@@ -4,6 +4,7 @@ export type VerificationStatus = "unverified" | "pending" | "verified" | "failed
 export type VehicleStatus = "draft" | "pending_review" | "approved" | "rejected" | "sold" | "archived";
 export type VinVerificationStatus = "unverified" | "verified" | "flagged";
 export type ShippingMethod = "roro" | "container";
+export type VehicleSizeType = "sedan" | "suv_truck";
 export type PurchaseRequestStatus =
   | "submitted"
   | "under_review"
@@ -179,6 +180,7 @@ export interface Database {
            * Not present on Insert/Update — it can't be written.
            */
           vehicle_vin_display: string;
+          vehicle_size_type: VehicleSizeType;
           year: number;
           make: string;
           model: string;
@@ -206,6 +208,7 @@ export interface Database {
         Insert: {
           seller_id: string;
           vin: string;
+          vehicle_size_type: VehicleSizeType;
           year: number;
           make: string;
           model: string;
@@ -239,6 +242,7 @@ export interface Database {
           vin: string;
           vin_decode_status: "pending" | "matched" | "mismatch";
           vin_verification_status: VinVerificationStatus;
+          vehicle_size_type: VehicleSizeType;
           year: number;
           make: string;
           model: string;
@@ -509,7 +513,8 @@ export interface Database {
           origin_region: string;
           origin_port: string | null;
           destination_country: string;
-          vehicle_size_type: string | null;
+          vehicle_size_type: VehicleSizeType;
+          shipping_method: ShippingMethod;
           price: number;
           currency: string;
           active: boolean;
@@ -519,10 +524,11 @@ export interface Database {
           shipper_id: string;
           origin_region: string;
           destination_country: string;
+          vehicle_size_type: VehicleSizeType;
+          shipping_method: ShippingMethod;
           price: number;
           id?: string;
           origin_port?: string | null;
-          vehicle_size_type?: string | null;
           currency?: string;
           active?: boolean;
           created_at?: string;
@@ -533,7 +539,8 @@ export interface Database {
           origin_region: string;
           origin_port: string | null;
           destination_country: string;
-          vehicle_size_type: string | null;
+          vehicle_size_type: VehicleSizeType;
+          shipping_method: ShippingMethod;
           price: number;
           currency: string;
           active: boolean;
@@ -905,7 +912,8 @@ export interface Database {
           origin_region: string | null;
           origin_port: string | null;
           destination_country: string | null;
-          vehicle_size_type: string | null;
+          vehicle_size_type: VehicleSizeType | null;
+          shipping_method: ShippingMethod | null;
           price: number | null;
           currency: string | null;
           payment_status: ShipperPaymentStatus | null;

@@ -25,7 +25,7 @@ export const LISTING_CARD_COLUMNS =
  * masked form otherwise.
  */
 export const VEHICLE_DETAIL_COLUMNS =
-  "id, seller_id, vin_decode_status, vin_verification_status, vehicle_vin_display, year, make, model, trim, mileage, exterior_color, interior_color, transmission, fuel_type, condition, accident_history, title_status, title_history_check_status, location_city, location_state, price_usd, fee_responsibility, description, status, verification_status, rejection_reason, created_at, updated_at" as const;
+  "id, seller_id, vin_decode_status, vin_verification_status, vehicle_vin_display, vehicle_size_type, year, make, model, trim, mileage, exterior_color, interior_color, transmission, fuel_type, condition, accident_history, title_status, title_history_check_status, location_city, location_state, price_usd, fee_responsibility, description, status, verification_status, rejection_reason, created_at, updated_at" as const;
 
 /**
  * Primary photo per vehicle: the first by sort_order, unless one is explicitly

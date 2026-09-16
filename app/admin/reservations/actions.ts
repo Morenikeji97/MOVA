@@ -89,13 +89,18 @@ export async function requestFeePayment(formData: FormData): Promise<void> {
   const { data: pr } = await supabase
     .from("purchase_requests")
     .select(
-      "id, vehicle_id, buyer_id, status, mova_fee_payment_status, vehicle_price_usd, mova_fee_usd, negotiated_price_usd, negotiated_price_status",
+      "id, vehicle_id, buyer_id, status, mova_fee_payment_status, vehicle_price_usd, mova_fee_usd, negotiated_price_usd, negotiated_price_status, shipping_rate_id",
     )
     .eq("id", id)
     .maybeSingle();
   if (!pr) return;
   if (pr.mova_fee_payment_status === "paid") return;
   if (pr.status !== "under_review" && pr.status !== "verified") return;
+  // The buyer must have locked in a shipper/method before MOVA sends an
+  // invoice — see 0018. The reservations page hides this button and shows
+  // why when shipping_rate_id is still null, so reaching here with it unset
+  // shouldn't happen via the UI; bail rather than trust that alone.
+  if (!pr.shipping_rate_id) return;
 
   const { data: vehicle } = await supabase
     .from("vehicles")

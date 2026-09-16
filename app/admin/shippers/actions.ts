@@ -2,7 +2,7 @@
 
 import { revalidatePath } from "next/cache";
 import { createClient } from "@/lib/supabase/server";
-import { isServiceCountry } from "@/lib/shipping";
+import { isServiceCountry, isVehicleSizeType, isShippingMethod } from "@/lib/shipping";
 
 /**
  * Admin actions for the shipper review queue. Bound to <form action={…}> with
@@ -130,11 +130,14 @@ export async function addShippingRate(formData: FormData): Promise<void> {
   const originPort = str(formData.get("origin_port"));
   const destinationCountry = str(formData.get("destination_country"));
   const vehicleSizeType = str(formData.get("vehicle_size_type"));
+  const shippingMethod = str(formData.get("shipping_method"));
   const currency = str(formData.get("currency")).toUpperCase() || "USD";
   const price = Number(str(formData.get("price")));
 
   if (!shipperId || !originRegion || !destinationCountry) return;
   if (!isServiceCountry(destinationCountry)) return;
+  if (!isVehicleSizeType(vehicleSizeType)) return;
+  if (!isShippingMethod(shippingMethod)) return;
   if (!Number.isFinite(price) || price < 0) return;
 
   const ctx = await requireAdmin();
@@ -152,7 +155,8 @@ export async function addShippingRate(formData: FormData): Promise<void> {
     origin_region: originRegion,
     origin_port: originPort || null,
     destination_country: destinationCountry,
-    vehicle_size_type: vehicleSizeType || null,
+    vehicle_size_type: vehicleSizeType,
+    shipping_method: shippingMethod,
     price,
     currency,
   });

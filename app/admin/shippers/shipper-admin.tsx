@@ -3,7 +3,7 @@
 import { type ComponentProps, useState } from "react";
 import { useFormStatus } from "react-dom";
 import { Button } from "@/components/ui/button";
-import { SERVICE_COUNTRIES } from "@/lib/shipping";
+import { SERVICE_COUNTRIES, VEHICLE_SIZE_TYPES, SHIPPING_METHODS } from "@/lib/shipping";
 import {
   addShippingRate,
   approveShipper,
@@ -133,11 +133,26 @@ export function AddRateForm({ shipperId }: { shipperId: string }) {
           </option>
         ))}
       </select>
-      <input
-        name="vehicle_size_type"
-        placeholder="Vehicle size / type (optional)"
-        className={inputClass}
-      />
+      <select name="vehicle_size_type" required defaultValue="" className={inputClass}>
+        <option value="" disabled>
+          Vehicle size class…
+        </option>
+        {VEHICLE_SIZE_TYPES.map((t) => (
+          <option key={t.value} value={t.value}>
+            {t.label}
+          </option>
+        ))}
+      </select>
+      <select name="shipping_method" required defaultValue="" className={inputClass}>
+        <option value="" disabled>
+          Shipping method…
+        </option>
+        {SHIPPING_METHODS.map((m) => (
+          <option key={m.value} value={m.value}>
+            {m.label}
+          </option>
+        ))}
+      </select>
       <input
         name="price"
         type="number"

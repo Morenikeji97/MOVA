@@ -1,5 +1,5 @@
 import { round2 } from "@/lib/fees";
-import type { ShipperPaymentStatus } from "@/types/database";
+import type { ShipperPaymentStatus, ShippingMethod, VehicleSizeType } from "@/types/database";
 
 /**
  * MOVA's commission on a completed shipment, as a whole-number percent. Stored
@@ -38,6 +38,43 @@ export function countryName(code: string | null | undefined): string {
 
 export function isServiceCountry(code: string): code is ServiceCountryCode {
   return SERVICE_COUNTRIES.some((c) => c.code === code);
+}
+
+/** The two size classes a shipper prices against — matches vehicles.vehicle_size_type. */
+export const VEHICLE_SIZE_TYPES: { value: VehicleSizeType; label: string }[] = [
+  { value: "sedan", label: "Sedan" },
+  { value: "suv_truck", label: "SUV / Truck" },
+];
+
+export function isVehicleSizeType(v: string): v is VehicleSizeType {
+  return VEHICLE_SIZE_TYPES.some((t) => t.value === v);
+}
+
+export const SHIPPING_METHODS: { value: ShippingMethod; label: string }[] = [
+  { value: "roro", label: "RoRo" },
+  { value: "container", label: "Container" },
+];
+
+export function isShippingMethod(v: string): v is ShippingMethod {
+  return SHIPPING_METHODS.some((m) => m.value === v);
+}
+
+const VEHICLE_SIZE_LABEL: Record<VehicleSizeType, string> = {
+  sedan: "Sedan",
+  suv_truck: "SUV / Truck",
+};
+
+const SHIPPING_METHOD_LABEL: Record<ShippingMethod, string> = {
+  roro: "RoRo",
+  container: "Container",
+};
+
+export function vehicleSizeLabel(v: VehicleSizeType): string {
+  return VEHICLE_SIZE_LABEL[v];
+}
+
+export function shippingMethodLabel(m: ShippingMethod): string {
+  return SHIPPING_METHOD_LABEL[m];
 }
 
 /** MOVA's commission owed on an agreed shipping rate. */

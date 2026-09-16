@@ -1,8 +1,8 @@
 import { type ReactNode } from "react";
 import Link from "next/link";
 import { createClient } from "@/lib/supabase/server";
-import { countryName } from "@/lib/shipping";
-import type { ShipperPaymentStatus } from "@/types/database";
+import { countryName, vehicleSizeLabel, shippingMethodLabel } from "@/lib/shipping";
+import type { ShipperPaymentStatus, ShippingMethod, VehicleSizeType } from "@/types/database";
 import {
   AddRateForm,
   DeleteRateButton,
@@ -62,7 +62,8 @@ type RateRow = {
   origin_region: string;
   origin_port: string | null;
   destination_country: string;
-  vehicle_size_type: string | null;
+  vehicle_size_type: VehicleSizeType;
+  shipping_method: ShippingMethod;
   price: number;
   currency: string;
   active: boolean;
@@ -111,7 +112,7 @@ export default async function AdminShippersPage() {
     ? await supabase
         .from("shipping_rates")
         .select(
-          "id, shipper_id, origin_region, origin_port, destination_country, vehicle_size_type, price, currency, active",
+          "id, shipper_id, origin_region, origin_port, destination_country, vehicle_size_type, shipping_method, price, currency, active",
         )
         .in("shipper_id", approvedIds)
         .order("created_at", { ascending: true })
@@ -250,9 +251,10 @@ export default async function AdminShippersPage() {
                               {r.origin_region}
                               {r.origin_port ? ` (${r.origin_port})` : ""} &rarr;{" "}
                               {countryName(r.destination_country)}
-                              {r.vehicle_size_type
-                                ? ` · ${r.vehicle_size_type}`
-                                : ""}{" "}
+                              {" · "}
+                              {vehicleSizeLabel(r.vehicle_size_type)}
+                              {" · "}
+                              {shippingMethodLabel(r.shipping_method)}{" "}
                               · <strong>{money(Number(r.price), r.currency)}</strong>
                             </span>
                             <DeleteRateButton rateId={r.id} />

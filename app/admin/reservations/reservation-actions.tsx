@@ -26,15 +26,21 @@ export function ReservationActions({
   requestId,
   canReview,
   canRequestFee,
+  shippingSelected,
   feeLinkSent,
   feePaid,
 }: {
   requestId: string;
   canReview: boolean;
   canRequestFee: boolean;
+  shippingSelected: boolean;
   feeLinkSent: boolean;
   feePaid: boolean;
 }) {
+  // canRequestFee already requires status + shipping, so this only fires for
+  // "otherwise eligible, but the buyer hasn't picked a shipper yet."
+  const blockedOnShipping = !canRequestFee && !feePaid && !shippingSelected;
+
   return (
     <div className="mt-4 flex flex-wrap items-center gap-3 border-t border-paper-200 pt-4">
       {canReview ? (
@@ -52,6 +58,11 @@ export function ReservationActions({
             {feeLinkSent ? "Regenerate fee link" : "Request fee payment"}
           </PendingButton>
         </form>
+      ) : null}
+      {blockedOnShipping ? (
+        <span className="text-sm text-copper-700">
+          Waiting on the buyer to select a shipper before an invoice can be sent.
+        </span>
       ) : null}
       {feePaid ? (
         <span className="text-sm font-medium text-verified-600">

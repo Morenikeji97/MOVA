@@ -6,7 +6,8 @@ import { createClient } from "@/lib/supabase/server";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { getStripe } from "@/lib/stripe";
 import { appUrl } from "@/lib/app-url";
-import { isServiceCountry } from "@/lib/shipping";
+import { isServiceCountry, isVehicleSizeType, isShippingMethod } from "@/lib/shipping";
+import type { ShippingMethod, VehicleSizeType } from "@/types/database";
 
 function str(v: FormDataEntryValue | null): string {
   return typeof v === "string" ? v.trim() : "";
@@ -96,7 +97,8 @@ interface RateFields {
   origin_region: string;
   origin_port: string | null;
   destination_country: string;
-  vehicle_size_type: string | null;
+  vehicle_size_type: VehicleSizeType;
+  shipping_method: ShippingMethod;
   price: number;
   currency: string;
 }
@@ -105,18 +107,23 @@ interface RateFields {
 function readRateFields(formData: FormData): RateFields | null {
   const originRegion = str(formData.get("origin_region"));
   const destinationCountry = str(formData.get("destination_country"));
+  const vehicleSizeType = str(formData.get("vehicle_size_type"));
+  const shippingMethod = str(formData.get("shipping_method"));
   const price = Number(str(formData.get("price")));
   const currency = str(formData.get("currency")).toUpperCase() || "USD";
 
   if (!originRegion || !destinationCountry) return null;
   if (!isServiceCountry(destinationCountry)) return null;
+  if (!isVehicleSizeType(vehicleSizeType)) return null;
+  if (!isShippingMethod(shippingMethod)) return null;
   if (!Number.isFinite(price) || price < 0) return null;
 
   return {
     origin_region: originRegion,
     origin_port: str(formData.get("origin_port")) || null,
     destination_country: destinationCountry,
-    vehicle_size_type: str(formData.get("vehicle_size_type")) || null,
+    vehicle_size_type: vehicleSizeType,
+    shipping_method: shippingMethod,
     price,
     currency,
   };

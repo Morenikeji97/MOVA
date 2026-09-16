@@ -3,7 +3,15 @@
 import { type ComponentProps, useState } from "react";
 import { useFormStatus } from "react-dom";
 import { Button } from "@/components/ui/button";
-import { SERVICE_COUNTRIES, countryName } from "@/lib/shipping";
+import {
+  SERVICE_COUNTRIES,
+  VEHICLE_SIZE_TYPES,
+  SHIPPING_METHODS,
+  countryName,
+  vehicleSizeLabel,
+  shippingMethodLabel,
+} from "@/lib/shipping";
+import type { ShippingMethod, VehicleSizeType } from "@/types/database";
 import {
   addShipperRate,
   deleteShipperRate,
@@ -19,7 +27,8 @@ export interface ShipperRate {
   origin_region: string;
   origin_port: string | null;
   destination_country: string;
-  vehicle_size_type: string | null;
+  vehicle_size_type: VehicleSizeType;
+  shipping_method: ShippingMethod;
   price: number;
   currency: string;
   active: boolean;
@@ -78,12 +87,36 @@ function RateFields({ rate }: { rate?: ShipperRate }) {
           </option>
         ))}
       </select>
-      <input
+      <select
         name="vehicle_size_type"
+        required
         defaultValue={rate?.vehicle_size_type ?? ""}
-        placeholder="Vehicle size / type (optional)"
         className={inputClass}
-      />
+      >
+        <option value="" disabled>
+          Vehicle size class…
+        </option>
+        {VEHICLE_SIZE_TYPES.map((t) => (
+          <option key={t.value} value={t.value}>
+            {t.label}
+          </option>
+        ))}
+      </select>
+      <select
+        name="shipping_method"
+        required
+        defaultValue={rate?.shipping_method ?? ""}
+        className={inputClass}
+      >
+        <option value="" disabled>
+          Shipping method…
+        </option>
+        {SHIPPING_METHODS.map((m) => (
+          <option key={m.value} value={m.value}>
+            {m.label}
+          </option>
+        ))}
+      </select>
       <input
         name="price"
         type="number"
@@ -159,7 +192,10 @@ function RateRow({ rate }: { rate: ShipperRate }) {
           {rate.origin_region}
           {rate.origin_port ? ` (${rate.origin_port})` : ""} &rarr;{" "}
           {countryName(rate.destination_country)}
-          {rate.vehicle_size_type ? ` · ${rate.vehicle_size_type}` : ""} ·{" "}
+          {" · "}
+          {vehicleSizeLabel(rate.vehicle_size_type)}
+          {" · "}
+          {shippingMethodLabel(rate.shipping_method)} ·{" "}
           <strong>{money(Number(rate.price), rate.currency)}</strong>
           {!rate.active ? (
             <span className="ml-2 text-xs font-normal text-copper-700">
