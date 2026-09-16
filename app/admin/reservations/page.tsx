@@ -44,7 +44,7 @@ export default async function AdminReservationsPage() {
   const { data: requests } = await supabase
     .from("purchase_requests")
     .select(
-      "id, vehicle_id, buyer_id, status, created_at, vehicle_price_usd, mova_fee_usd, mova_fee_payment_status, mova_fee_checkout_url",
+      "id, vehicle_id, buyer_id, status, created_at, vehicle_price_usd, mova_fee_usd, mova_fee_payment_status, mova_fee_checkout_url, shipping_rate_id",
     )
     .in("status", OPEN_STATUSES)
     .order("created_at", { ascending: true });
@@ -148,6 +148,9 @@ export default async function AdminReservationsPage() {
                         ? "Link sent — awaiting payment"
                         : "Not requested"}
                   </Detail>
+                  <Detail label="Shipping">
+                    {r.shipping_rate_id ? "Selected" : "Not selected yet"}
+                  </Detail>
                 </dl>
 
                 <ReservationActions
@@ -155,8 +158,10 @@ export default async function AdminReservationsPage() {
                   canReview={r.status === "submitted"}
                   canRequestFee={
                     (r.status === "under_review" || r.status === "verified") &&
-                    r.mova_fee_payment_status !== "paid"
+                    r.mova_fee_payment_status !== "paid" &&
+                    r.shipping_rate_id != null
                   }
+                  shippingSelected={r.shipping_rate_id != null}
                   feeLinkSent={Boolean(r.mova_fee_checkout_url)}
                   feePaid={r.mova_fee_payment_status === "paid"}
                 />

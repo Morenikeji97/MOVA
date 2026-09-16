@@ -6,13 +6,9 @@ import { AcceptPricePrompt } from "@/components/ui/accept-price-prompt";
 import { FeePaymentConsent } from "@/components/ui/fee-payment-consent";
 import { ReportIssuePanel } from "@/components/ui/report-issue-panel";
 import { DisputeStatusList, type DisputeSummary } from "@/components/ui/dispute-status";
+import { PriceBreakdown } from "@/components/ui/price-breakdown";
+import { countryName, shippingMethodLabel } from "@/lib/shipping";
 import type { FeeResponsibility } from "@/types/database";
-
-const usd = new Intl.NumberFormat("en-US", {
-  style: "currency",
-  currency: "USD",
-  maximumFractionDigits: 0,
-});
 
 const usdCents = new Intl.NumberFormat("en-US", {
   style: "currency",
@@ -66,7 +62,7 @@ export default async function BuyerDashboard({
     supabase
       .from("purchase_requests")
       .select(
-        "id, vehicle_id, status, created_at, vehicle_price_usd, mova_fee_usd, mova_fee_payment_status, mova_fee_checkout_url, seller_details_revealed_at, seller_name, seller_email, seller_phone, seller_whatsapp, negotiated_price_usd, negotiated_price_status",
+        "id, vehicle_id, status, created_at, vehicle_price_usd, mova_fee_usd, mova_fee_payment_status, mova_fee_checkout_url, seller_details_revealed_at, seller_name, seller_email, seller_phone, seller_whatsapp, negotiated_price_usd, negotiated_price_status, shipping_rate_id",
       )
       .eq("buyer_id", user!.id)
       .order("created_at", { ascending: false }),
@@ -88,23 +84,36 @@ export default async function BuyerDashboard({
 
   const vehicleIds = [...new Set(reservations.map((r) => r.vehicle_id))];
   const reservationIds = reservations.map((r) => r.id);
-  const [{ data: vehicleRows }, { data: disputeRows }] = await Promise.all([
-    vehicleIds.length
-      ? supabase
-          .from("vehicles")
-          .select("id, year, make, model, trim, price_usd, fee_responsibility")
-          .in("id", vehicleIds)
-      : Promise.resolve({ data: [] }),
-    reservationIds.length
-      ? supabase
-          .from("disputes")
-          .select(
-            "id, purchase_request_id, category, status, description, decision_reason, decision_amount_usd, reporter_id, created_at",
-          )
-          .in("purchase_request_id", reservationIds)
-      : Promise.resolve({ data: [] }),
-  ]);
+  const shippingRateIds = [
+    ...new Set(reservations.map((r) => r.shipping_rate_id).filter((v): v is string => v != null)),
+  ];
+  const [{ data: vehicleRows }, { data: disputeRows }, { data: shippingRateRows }] =
+    await Promise.all([
+      vehicleIds.length
+        ? supabase
+            .from("vehicles")
+            .select("id, year, make, model, trim, price_usd, fee_responsibility")
+            .in("id", vehicleIds)
+        : Promise.resolve({ data: [] }),
+      reservationIds.length
+        ? supabase
+            .from("disputes")
+            .select(
+              "id, purchase_request_id, category, status, description, decision_reason, decision_amount_usd, reporter_id, created_at",
+            )
+            .in("purchase_request_id", reservationIds)
+        : Promise.resolve({ data: [] }),
+      shippingRateIds.length
+        ? supabase
+            .from("shipper_rates_public")
+            .select("rate_id, company_name, destination_country, shipping_method, price, currency")
+            .in("rate_id", shippingRateIds)
+        : Promise.resolve({ data: [] }),
+    ]);
   const vehicleById = new Map((vehicleRows ?? []).map((v) => [v.id, v]));
+  const shippingRateById = new Map(
+    (shippingRateRows ?? []).map((r) => [r.rate_id as string, r]),
+  );
   const disputesByReservation = new Map<string, DisputeSummary[]>();
   for (const d of disputeRows ?? []) {
     const list = disputesByReservation.get(d.purchase_request_id) ?? [];
@@ -181,14 +190,27 @@ export default async function BuyerDashboard({
                       : fullFee
                     : null;
 
+              const shippingRate = r.shipping_rate_id
+                ? shippingRateById.get(r.shipping_rate_id)
+                : undefined;
+
               const showPayLink =
                 !feePaid &&
                 OPEN_STATUSES.includes(r.status) &&
                 Boolean(r.mova_fee_checkout_url);
+              // Two distinct reasons the fee link isn't here yet — worth
+              // telling apart, since one needs the buyer to act and the
+              // other just needs MOVA to.
+              const showNeedsShipping =
+                !feePaid &&
+                OPEN_STATUSES.includes(r.status) &&
+                !r.mova_fee_checkout_url &&
+                !r.shipping_rate_id;
               const showFeePending =
                 !feePaid &&
                 OPEN_STATUSES.includes(r.status) &&
-                !r.mova_fee_checkout_url;
+                !r.mova_fee_checkout_url &&
+                Boolean(r.shipping_rate_id);
 
               const disputes = disputesByReservation.get(r.id) ?? [];
               const hasOwnOpenDispute = disputes.some(
@@ -215,11 +237,19 @@ export default async function BuyerDashboard({
                         )}
                       </h3>
                       {snapshotPrice != null || vehicle ? (
-                        <p className="mt-1 font-mono text-sm text-ink-400">
-                          {usd.format(
-                            snapshotPrice ?? Number(vehicle!.price_usd),
-                          )}
-                        </p>
+                        <PriceBreakdown
+                          price={snapshotPrice ?? Number(vehicle!.price_usd)}
+                          feeResponsibility={feeResponsibility}
+                          shipping={
+                            shippingRate
+                              ? {
+                                  cost: Number(shippingRate.price),
+                                  label: `${countryName(shippingRate.destination_country)}, ${shippingMethodLabel(shippingRate.shipping_method as "roro" | "container")}`,
+                                }
+                              : null
+                          }
+                          className="mt-1 max-w-xs"
+                        />
                       ) : null}
                     </div>
                   </div>
@@ -246,10 +276,22 @@ export default async function BuyerDashboard({
                     </p>
                   ) : null}
 
+                  {showNeedsShipping ? (
+                    <p className="mt-3 rounded border border-copper-100 bg-copper-50 p-3 text-sm text-copper-700">
+                      Choose a destination and shipper on the listing page —
+                      MOVA can&rsquo;t send your invoice until shipping is
+                      selected.{" "}
+                      <Link href={`/browse/${r.vehicle_id}`} className="underline">
+                        Select shipping
+                      </Link>
+                    </p>
+                  ) : null}
+
                   {showFeePending ? (
                     <p className="mt-3 rounded border border-paper-200 bg-paper p-3 text-sm text-slate-500">
-                      MOVA will send your service-fee payment link here once your
-                      reservation has been reviewed.
+                      Shipping selected. MOVA will send your service-fee
+                      payment link here once your reservation has been
+                      reviewed.
                     </p>
                   ) : null}
 

@@ -12,6 +12,7 @@ import { Button } from "@/components/ui/button";
 import { VinData } from "@/components/ui/vin-data";
 import { PhotoUploader, type PhotoDraft } from "@/components/ui/photo-uploader";
 import { VideoUploader, type VideoDraft } from "@/components/ui/video-uploader";
+import { VEHICLE_SIZE_TYPES } from "@/lib/shipping";
 
 const MAX_PHOTOS = 20;
 
@@ -85,6 +86,12 @@ const schema = z.object({
   make: z.string().trim().min(1, "Make is required.").max(60),
   model: z.string().trim().min(1, "Model is required.").max(60),
   trim: z.string().trim().max(60),
+  vehicle_size_type: z
+    .string()
+    .refine(
+      (v) => v === "sedan" || v === "suv_truck",
+      "Select a size class — buyers need it for shipping quotes.",
+    ),
   mileage: z
     .string()
     .trim()
@@ -147,6 +154,10 @@ const EMPTY: FormValues = {
   make: "",
   model: "",
   trim: "",
+  // Cast needed because zod infers the narrowed literal union from the
+  // refine() predicate below — "" is the HTML <select>'s valid "nothing
+  // chosen yet" placeholder state, not a real VehicleSizeType.
+  vehicle_size_type: "" as FormValues["vehicle_size_type"],
   mileage: "",
   exterior_color: "",
   interior_color: "",
@@ -372,6 +383,7 @@ export default function NewListingPage() {
         make: values.make.trim(),
         model: values.model.trim(),
         trim: orNull(values.trim),
+        vehicle_size_type: values.vehicle_size_type,
         mileage: Number(values.mileage),
         exterior_color: orNull(values.exterior_color),
         interior_color: orNull(values.interior_color),
@@ -555,6 +567,18 @@ export default function NewListingPage() {
           </Field>
           <Field label="Trim" error={errors.trim?.message} optional>
             <input {...register("trim")} className={inputClass} autoComplete="off" />
+          </Field>
+          <Field label="Size class" error={errors.vehicle_size_type?.message}>
+            <select {...register("vehicle_size_type")} className={inputClass}>
+              <option value="" disabled>
+                Select size class…
+              </option>
+              {VEHICLE_SIZE_TYPES.map((t) => (
+                <option key={t.value} value={t.value}>
+                  {t.label}
+                </option>
+              ))}
+            </select>
           </Field>
           <Field label="Exterior color" error={errors.exterior_color?.message} optional>
             <input {...register("exterior_color")} className={inputClass} autoComplete="off" />

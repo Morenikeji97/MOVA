@@ -154,7 +154,7 @@ export default async function ShipperPortalPage({
     supabase
       .from("shipping_rates")
       .select(
-        "id, origin_region, origin_port, destination_country, vehicle_size_type, price, currency, active",
+        "id, origin_region, origin_port, destination_country, vehicle_size_type, shipping_method, price, currency, active",
       )
       .eq("shipper_id", linked.id)
       .order("created_at", { ascending: true }),

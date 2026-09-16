@@ -8,18 +8,14 @@ import { buttonClasses } from "@/components/ui/button";
 import { VerifiedBadge } from "@/components/ui/verified-badge";
 import { PriceBreakdown } from "@/components/ui/price-breakdown";
 import { feeBreakdown } from "@/lib/fees";
-import { compareRatesForBuyer, countryName } from "@/lib/shipping";
+import { compareRatesForBuyer, countryName, shippingMethodLabel } from "@/lib/shipping";
 import { RatingSummary } from "@/components/ui/rating-summary";
 import { ReviewList, type PublicReview } from "@/components/ui/review-list";
 import { ReviewForm } from "@/components/ui/review-form";
 import { toAggregate } from "@/lib/reviews";
 import { ReserveVehicle, type ReserveState } from "./reserve-vehicle";
 import { MessageSeller } from "./message-seller";
-import {
-  ShippingRates,
-  type PublicRate,
-  type SelectedShipper,
-} from "./shipping-rates";
+import { ShippingRates, type PublicRate } from "./shipping-rates";
 
 function BrowseHeader() {
   return (
@@ -80,6 +76,8 @@ export default async function VehicleDetailPage({
   let requestId: string | null = null;
   let negotiatedPriceUsd: number | null = null;
   let negotiatedPriceStatus: "none" | "proposed" | "accepted" = "none";
+  let selectedShippingRateId: string | null = null;
+  let shippingSelectionLocked = false;
 
   if (user) {
     const { data: profile } = await supabase
@@ -93,7 +91,9 @@ export default async function VehicleDetailPage({
     } else {
       const { data: existing } = await supabase
         .from("purchase_requests")
-        .select("id, status, negotiated_price_usd, negotiated_price_status")
+        .select(
+          "id, status, negotiated_price_usd, negotiated_price_status, shipping_rate_id, mova_fee_checkout_url",
+        )
         .eq("vehicle_id", id)
         .eq("buyer_id", user.id)
         .not("status", "in", "(cancelled,rejected)")
@@ -108,6 +108,8 @@ export default async function VehicleDetailPage({
         negotiatedPriceUsd =
           existing.negotiated_price_usd != null ? Number(existing.negotiated_price_usd) : null;
         negotiatedPriceStatus = existing.negotiated_price_status;
+        selectedShippingRateId = existing.shipping_rate_id;
+        shippingSelectionLocked = existing.mova_fee_checkout_url != null;
       } else {
         reserveState = "available";
       }
@@ -134,7 +136,6 @@ export default async function VehicleDetailPage({
   }
 
   let shippingRates: PublicRate[] = [];
-  let selectedShippers: SelectedShipper[] = [];
   let destinationCode = "NG";
 
   if (user && isBuyer) {
@@ -145,18 +146,15 @@ export default async function VehicleDetailPage({
       .maybeSingle();
     destinationCode = buyerProfile?.country || "NG";
 
-    const [{ data: rateRows }, { data: shipmentRows }] = await Promise.all([
-      supabase
-        .from("shipper_rates_public")
-        .select("*")
-        .eq("destination_country", destinationCode),
-      supabase
-        .from("shipment_requests")
-        .select(
-          "shipper_id, shipper_company_name, shipper_contact_name, shipper_contact_email, shipper_contact_phone, agreed_rate, currency",
-        )
-        .eq("buyer_id", user.id),
-    ]);
+    // Every active rate for this vehicle's size class, across all
+    // destinations — the destination picker below filters client-side so
+    // switching destination doesn't need a round trip. isServiceCountry-only
+    // destinations exist by construction (shipping_rates.destination_country
+    // is only ever written from that fixed list, see app/shipper/actions.ts).
+    const { data: rateRows } = await supabase
+      .from("shipper_rates_public")
+      .select("*")
+      .eq("vehicle_size_type", v.vehicle_size_type);
 
     shippingRates = (rateRows ?? [])
       .filter((r) => r.rate_id != null && r.shipper_id != null)
@@ -167,14 +165,18 @@ export default async function VehicleDetailPage({
         origin_region: r.origin_region ?? "",
         origin_port: r.origin_port,
         destination_country: r.destination_country ?? destinationCode,
-        vehicle_size_type: r.vehicle_size_type,
+        vehicle_size_type: r.vehicle_size_type as PublicRate["vehicle_size_type"],
+        shipping_method: r.shipping_method as PublicRate["shipping_method"],
         price: Number(r.price ?? 0),
         currency: r.currency ?? "USD",
         payment_status: r.payment_status ?? "good_standing",
       }))
       .sort(compareRatesForBuyer);
-    selectedShippers = (shipmentRows ?? []) as SelectedShipper[];
   }
+
+  const selectedRate = selectedShippingRateId
+    ? shippingRates.find((r) => r.rate_id === selectedShippingRateId)
+    : undefined;
 
   // Seller reputation: aggregate + published buyer->seller reviews, and whether
   // the current viewer is eligible to leave one (a fee-paid reservation with
@@ -260,6 +262,14 @@ export default async function VehicleDetailPage({
         <PriceBreakdown
           price={Number(v.price_usd)}
           feeResponsibility={v.fee_responsibility}
+          shipping={
+            selectedRate
+              ? {
+                  cost: selectedRate.price,
+                  label: `${countryName(selectedRate.destination_country)}, ${shippingMethodLabel(selectedRate.shipping_method)}`,
+                }
+              : null
+          }
           variant="detail"
           className="mt-3 max-w-xs"
         />
@@ -360,9 +370,10 @@ export default async function VehicleDetailPage({
           <ShippingRates
             vehicleId={id}
             purchaseRequestId={requestId}
-            destinationLabel={countryName(destinationCode)}
+            defaultDestination={destinationCode}
             rates={shippingRates}
-            selected={selectedShippers}
+            selectedRateId={selectedShippingRateId}
+            locked={shippingSelectionLocked}
           />
         ) : null}
 

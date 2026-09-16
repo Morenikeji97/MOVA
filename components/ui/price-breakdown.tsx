@@ -10,22 +10,29 @@ const usd = new Intl.NumberFormat("en-US", {
 
 /**
  * Itemised buyer-facing price: vehicle price, MOVA's service fee (8%, or 4%
- * when the seller splits it), and the total — which is the number MOVA shows
- * as "the price" everywhere a buyer sees it.
+ * when the seller splits it), optionally the buyer's chosen shipping cost,
+ * and the total — which is the number MOVA shows as "the price" everywhere a
+ * buyer sees it. `shipping` is display-only: this cost is still arranged and
+ * paid directly with the shipper, not collected through MOVA's Stripe
+ * Checkout (see 0018's migration comment) — it's here so the buyer sees a
+ * true all-in total before committing, not a placeholder.
  */
 export function PriceBreakdown({
   price,
   feeResponsibility,
+  shipping = null,
   variant = "card",
   className,
 }: {
   price: number;
   feeResponsibility: FeeResponsibility;
+  shipping?: { cost: number; label: string } | null;
   variant?: "card" | "detail";
   className?: string;
 }) {
   const b = feeBreakdown(price, feeResponsibility);
   const detail = variant === "detail";
+  const total = shipping ? b.total + shipping.cost : b.total;
 
   return (
     <dl
@@ -48,6 +55,12 @@ export function PriceBreakdown({
         </dt>
         <dd className="font-mono">{usd.format(b.buyerFee)}</dd>
       </div>
+      {shipping ? (
+        <div className="flex items-baseline justify-between gap-4 text-slate-500">
+          <dt>Shipping ({shipping.label})</dt>
+          <dd className="font-mono">{usd.format(shipping.cost)}</dd>
+        </div>
+      ) : null}
       <div
         className={cn(
           "mt-1 flex items-baseline justify-between gap-4 border-t border-paper-200 pt-1 font-semibold text-ink-900",
@@ -55,7 +68,7 @@ export function PriceBreakdown({
         )}
       >
         <dt>Total</dt>
-        <dd className="font-mono">{usd.format(b.total)}</dd>
+        <dd className="font-mono">{usd.format(total)}</dd>
       </div>
     </dl>
   );
