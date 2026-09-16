@@ -12,6 +12,7 @@ export default async function AdminDashboard() {
     { count: shipmentRequests },
     { count: blockedMessages },
     { count: reviewQueue },
+    { count: openDisputes },
   ] = await Promise.all([
     supabase.from("users").select("*", { count: "exact", head: true }),
     supabase
@@ -37,6 +38,10 @@ export default async function AdminDashboard() {
       .from("reviews")
       .select("*", { count: "exact", head: true })
       .in("status", ["pending", "flagged"]),
+    supabase
+      .from("disputes")
+      .select("*", { count: "exact", head: true })
+      .in("status", ["open", "approved_pending_refund"]),
   ]);
 
   return (
@@ -124,6 +129,18 @@ export default async function AdminDashboard() {
             {reviewQueue ?? 0}
           </p>
           <p className="mt-1 text-sm text-marine-700">Open the moderation queue &rarr;</p>
+        </Link>
+        <Link
+          href="/admin/disputes"
+          className="rounded-lg border border-paper-200 bg-paper-100 p-5 transition-colors hover:border-marine"
+        >
+          <p className="font-mono text-xs uppercase tracking-wider text-ink-400">
+            Disputes needing attention
+          </p>
+          <p className="mt-1 text-3xl font-semibold text-ink-900">
+            {openDisputes ?? 0}
+          </p>
+          <p className="mt-1 text-sm text-marine-700">Open the dispute queue &rarr;</p>
         </Link>
       </div>
     </main>

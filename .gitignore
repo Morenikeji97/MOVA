@@ -9,3 +9,6 @@ next-env.d.ts
 
 # Netlify CLI local state
 .netlify
+
+# Internal working docs not meant for the repo (e.g. legal review drafts)
+docs/policy-legal-review-brief.md

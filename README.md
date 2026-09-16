@@ -107,6 +107,16 @@ the listing form and records each public URL in `public.vehicle_photos`
 - Email/password signup captures the role (`buyer` or `seller`) as user
   metadata; email verification returns through `/auth/callback`.
 - Admin accounts are created directly in Supabase (no self-serve admin signup).
+- Shippers sign in with a regular buyer/seller-style account and then "claim"
+  their `shippers` record from `/shipper` by matching email — so like every
+  other role, their login lives in the same `auth.users` table.
+- Forgot/reset password (`/forgot-password` → email → `/auth/callback` →
+  `/reset-password`) uses Supabase Auth's built-in `resetPasswordForEmail` /
+  `updateUser`, so it works the same way for every role — there's no
+  per-role password store to keep in sync. MOVA has no separate username;
+  the account email doubles as the login, so there's no "forgot username"
+  flow to build. The reset email's HTML is customized (see below) rather
+  than using Supabase's default template.
 
 ## Scripts
 
@@ -125,7 +135,9 @@ app/
   layout.tsx               Root layout, font wiring
   globals.css              Tailwind layers + base styles
   login/, signup/          Auth forms (client components)
-  auth/callback/route.ts   Email-verification / OAuth code exchange
+  forgot-password/         Request a password reset link
+  reset-password/          Set a new password from a reset link
+  auth/callback/route.ts   Email-verification / password-reset code exchange
   seller/dashboard/        Role-gated dashboards (server components)
   buyer/dashboard/
   admin/dashboard/
@@ -134,6 +146,8 @@ lib/supabase/              Browser, server, and middleware Supabase clients
 lib/utils.ts               `cn()` class-name helper
 types/database.ts          Hand-written types for the tables in use
 supabase/migrations/       SQL schema + RLS
+supabase/email-templates/  Custom auth email templates (see "Password reset
+                            email template" under Deployment)
 middleware.ts              Session refresh + role-based route guards
 tailwind.config.ts         Design tokens (colors, spacing, fonts)
 ```
@@ -145,4 +159,17 @@ Set `NEXT_PUBLIC_SUPABASE_URL`, `NEXT_PUBLIC_SUPABASE_ANON_KEY` (the
 `sb_publishable_…` key), and `SUPABASE_SERVICE_ROLE_KEY` (the `sb_secret_…`
 key, needed for the Stripe webhooks and admin actions) in the host's
 environment, and add the deployed origin to Supabase → Authentication → URL
-Configuration so email-verification redirects resolve correctly.
+Configuration so email-verification and password-reset redirects resolve
+correctly (both return through `/auth/callback`).
+
+### Password reset email template
+
+[`supabase/email-templates/recovery.html`](supabase/email-templates/recovery.html)
+is a MOVA-branded replacement for Supabase's default "Reset Password" email
+(table-based layout, inline styles, design-system colors — see the file's own
+header comment for why table-based). It isn't picked up automatically; a
+hosted Supabase project's email templates live in the platform's own config,
+not this repo's migrations, so apply it by hand — either paste it into
+Supabase dashboard → Authentication → Email Templates → **Reset Password**,
+or push it via the Management API. Exact steps for both are in the file's
+header comment.

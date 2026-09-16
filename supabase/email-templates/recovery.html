@@ -1,0 +1,96 @@
+<!--
+  MOVA — "Reset Password" auth email template (Supabase's `recovery` template).
+
+  This file is NOT read by the app or by Supabase automatically — email
+  templates for a hosted Supabase project live in the platform's own config,
+  not in this repo's Postgres migrations, so there's no MCP/SQL path to apply
+  it. It's kept here as the versioned source of truth; apply it by hand:
+
+  Dashboard (no access token needed):
+    1. Project → Authentication → Email Templates → "Reset Password"
+    2. Subject heading: Reset your MOVA password
+    3. Paste everything below the --> that closes this comment into the
+       message body (HTML) field, and Save.
+
+  Management API (scriptable, needs a personal access token from
+  https://supabase.com/dashboard/account/tokens — do not put that token in
+  this repo):
+    curl -X PATCH "https://api.supabase.com/v1/projects/$PROJECT_REF/config/auth" \
+      -H "Authorization: Bearer $SUPABASE_ACCESS_TOKEN" \
+      -H "Content-Type: application/json" \
+      -d "$(jq -n --arg body "$(cat supabase/email-templates/recovery.html | sed '1,/-->/d')" \
+            '{mailer_subjects_recovery: "Reset your MOVA password", mailer_templates_recovery_content: $body}')"
+
+  Also confirm (Authentication → URL Configuration) that the redirect target
+  this app uses — {origin}/auth/callback, with any query string — is covered
+  by the Redirect URLs allow list. It very likely already is, since the
+  signup email-confirmation link already redirects through the same
+  /auth/callback route; if that entry isn't wildcarded (…/auth/callback**),
+  add the wildcarded form so the `?next=/reset-password` query string this
+  flow appends is always covered too.
+
+  Uses {{ .ConfirmationURL }} and {{ .Email }} — see
+  https://supabase.com/docs/guides/auth/auth-email-templates for the full
+  variable list. Colors match tailwind.config.ts (ink-900, marine-700,
+  copper-600, paper/paper-200, slate-500) since email clients don't load the
+  app's stylesheet — everything below is inlined. Table-based layout (not
+  <div>-based) because that's what renders consistently in Outlook, which
+  uses Word's HTML engine and ignores a lot of modern CSS/div layout.
+-->
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Reset your MOVA password</title>
+  </head>
+  <body style="margin:0; padding:0; background-color:#F3F4F1; font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Helvetica,Arial,sans-serif;">
+    <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="background-color:#F3F4F1; padding:32px 16px;">
+      <tr>
+        <td align="center">
+          <table role="presentation" width="480" cellpadding="0" cellspacing="0" style="max-width:480px; width:100%; background-color:#FFFFFF; border-radius:12px; overflow:hidden; border:1px solid #EBECE8;">
+            <tr>
+              <td style="background-color:#0E1B2C; padding:24px 32px;">
+                <span style="font-family:'SFMono-Regular',ui-monospace,Menlo,monospace; font-size:13px; letter-spacing:0.08em; text-transform:uppercase; color:#FFFFFF;">MOVA</span>
+              </td>
+            </tr>
+            <tr>
+              <td style="padding:32px;">
+                <h1 style="margin:0 0 16px; font-size:20px; line-height:28px; color:#0E1B2C;">Reset your password</h1>
+                <p style="margin:0 0 16px; font-size:15px; line-height:24px; color:#5B6472;">
+                  We received a request to reset the password for your MOVA account
+                  (<strong style="color:#0E1B2C;">{{ .Email }}</strong>). Click below to
+                  choose a new one.
+                </p>
+                <table role="presentation" cellpadding="0" cellspacing="0" style="margin:24px 0;">
+                  <tr>
+                    <td style="border-radius:8px; background-color:#B8622A;">
+                      <a href="{{ .ConfirmationURL }}" style="display:inline-block; padding:12px 28px; font-size:15px; font-weight:600; color:#FFFFFF; text-decoration:none; border-radius:8px;">
+                        Reset password
+                      </a>
+                    </td>
+                  </tr>
+                </table>
+                <p style="margin:0 0 8px; font-size:13px; line-height:20px; color:#5B6472;">
+                  This link expires shortly and can only be used once.
+                </p>
+                <p style="margin:0; font-size:13px; line-height:20px; color:#5B6472;">
+                  If you didn&rsquo;t request this, you can safely ignore this email —
+                  your password won&rsquo;t change.
+                </p>
+              </td>
+            </tr>
+            <tr>
+              <td style="padding:20px 32px; background-color:#F3F4F1; border-top:1px solid #EBECE8;">
+                <p style="margin:0; font-size:12px; line-height:18px; color:#5C7086;">
+                  Trouble with the button? Paste this link into your browser:<br />
+                  <a href="{{ .ConfirmationURL }}" style="color:#1D4E6B; word-break:break-all;">{{ .ConfirmationURL }}</a>
+                </p>
+              </td>
+            </tr>
+          </table>
+        </td>
+      </tr>
+    </table>
+  </body>
+</html>
