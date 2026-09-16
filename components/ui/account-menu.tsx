@@ -55,11 +55,18 @@ export function AccountMenu() {
       if (!active) return;
 
       const list: Destination[] = [];
+      // Shipper first: role is only ever buyer/seller/admin at the DB
+      // level, so a linked shipper's "Dashboard" link below would point at
+      // a technically-real but almost certainly unwanted buyer/seller page.
+      // Straight to /shipper/dashboard, not the /shipper portal — that
+      // page's own "← Shipper portal" link covers rates/profile from there.
+      if (shipper) {
+        list.push({ label: "Shipper dashboard", href: "/shipper/dashboard" });
+      }
       const role = profile?.role ?? null;
       if (role && ROLE_DASHBOARD[role]) {
         list.push({ label: "Dashboard", href: ROLE_DASHBOARD[role] });
       }
-      if (shipper) list.push({ label: "Shipper portal", href: "/shipper" });
       if (list.length === 0) {
         list.push({ label: "Browse vehicles", href: "/browse" });
       }
