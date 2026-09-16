@@ -32,6 +32,12 @@ export type DisputeStatus =
   | "approved_pending_refund"
   | "denied"
   | "refund_completed";
+export type ShipmentShippingStatus =
+  | "awaiting_pickup"
+  | "picked_up"
+  | "in_transit"
+  | "delivered";
+export type ShipmentProofKind = "pickup" | "delivery";
 
 export interface Database {
   public: {
@@ -449,6 +455,7 @@ export interface Database {
           reviewed_by: string | null;
           rejection_reason: string | null;
           reinstated_at: string | null;
+          description: string | null;
           created_at: string;
         };
         Insert: {
@@ -469,6 +476,7 @@ export interface Database {
           reviewed_by?: string | null;
           rejection_reason?: string | null;
           reinstated_at?: string | null;
+          description?: string | null;
           created_at?: string;
         };
         Update: Partial<{
@@ -489,6 +497,7 @@ export interface Database {
           reviewed_by: string | null;
           rejection_reason: string | null;
           reinstated_at: string | null;
+          description: string | null;
           created_at: string;
         }>;
         Relationships: [];
@@ -538,6 +547,7 @@ export interface Database {
           shipper_id: string;
           shipping_rate_id: string | null;
           buyer_id: string;
+          purchase_request_id: string;
           agreed_rate: number;
           currency: string;
           commission_pct: number;
@@ -545,16 +555,30 @@ export interface Database {
           commission_charge_status: CommissionChargeStatus;
           stripe_charge_id: string | null;
           status: ShipmentRequestStatus;
+          shipping_status: ShipmentShippingStatus;
+          shipping_status_updated_at: string | null;
           shipper_details_revealed_at: string | null;
           shipper_company_name: string | null;
           shipper_contact_name: string | null;
           shipper_contact_email: string | null;
           shipper_contact_phone: string | null;
+          buyer_details_revealed_at: string | null;
+          buyer_name: string | null;
+          buyer_email: string | null;
+          buyer_phone: string | null;
+          buyer_whatsapp: string | null;
+          vehicle_year: number | null;
+          vehicle_make: string | null;
+          vehicle_model: string | null;
+          vehicle_trim: string | null;
+          pickup_city: string | null;
+          pickup_state: string | null;
           created_at: string;
         };
         Insert: {
           shipper_id: string;
           buyer_id: string;
+          purchase_request_id: string;
           agreed_rate: number;
           id?: string;
           shipping_rate_id?: string | null;
@@ -564,11 +588,24 @@ export interface Database {
           commission_charge_status?: CommissionChargeStatus;
           stripe_charge_id?: string | null;
           status?: ShipmentRequestStatus;
+          shipping_status?: ShipmentShippingStatus;
+          shipping_status_updated_at?: string | null;
           shipper_details_revealed_at?: string | null;
           shipper_company_name?: string | null;
           shipper_contact_name?: string | null;
           shipper_contact_email?: string | null;
           shipper_contact_phone?: string | null;
+          buyer_details_revealed_at?: string | null;
+          buyer_name?: string | null;
+          buyer_email?: string | null;
+          buyer_phone?: string | null;
+          buyer_whatsapp?: string | null;
+          vehicle_year?: number | null;
+          vehicle_make?: string | null;
+          vehicle_model?: string | null;
+          vehicle_trim?: string | null;
+          pickup_city?: string | null;
+          pickup_state?: string | null;
           created_at?: string;
         };
         Update: Partial<{
@@ -576,6 +613,7 @@ export interface Database {
           shipper_id: string;
           shipping_rate_id: string | null;
           buyer_id: string;
+          purchase_request_id: string;
           agreed_rate: number;
           currency: string;
           commission_pct: number;
@@ -583,11 +621,73 @@ export interface Database {
           commission_charge_status: CommissionChargeStatus;
           stripe_charge_id: string | null;
           status: ShipmentRequestStatus;
+          shipping_status: ShipmentShippingStatus;
+          shipping_status_updated_at: string | null;
           shipper_details_revealed_at: string | null;
           shipper_company_name: string | null;
           shipper_contact_name: string | null;
           shipper_contact_email: string | null;
           shipper_contact_phone: string | null;
+          buyer_details_revealed_at: string | null;
+          buyer_name: string | null;
+          buyer_email: string | null;
+          buyer_phone: string | null;
+          buyer_whatsapp: string | null;
+          vehicle_year: number | null;
+          vehicle_make: string | null;
+          vehicle_model: string | null;
+          vehicle_trim: string | null;
+          pickup_city: string | null;
+          pickup_state: string | null;
+          created_at: string;
+        }>;
+        Relationships: [];
+      };
+      shipment_proof_photos: {
+        Row: {
+          id: string;
+          shipment_request_id: string;
+          kind: ShipmentProofKind;
+          storage_path: string;
+          uploaded_by: string;
+          created_at: string;
+        };
+        Insert: {
+          shipment_request_id: string;
+          kind: ShipmentProofKind;
+          storage_path: string;
+          uploaded_by: string;
+          id?: string;
+          created_at?: string;
+        };
+        Update: Partial<{
+          shipment_request_id: string;
+          kind: ShipmentProofKind;
+          storage_path: string;
+          uploaded_by: string;
+          created_at: string;
+        }>;
+        Relationships: [];
+      };
+      shipment_updates: {
+        Row: {
+          id: string;
+          shipment_request_id: string;
+          author_id: string;
+          note: string;
+          created_at: string;
+        };
+        Insert: {
+          shipment_request_id: string;
+          author_id: string;
+          note: string;
+          id?: string;
+          created_at?: string;
+        };
+        Update: Partial<{
+          shipment_request_id: string;
+          author_id: string;
+          note: string;
           created_at: string;
         }>;
         Relationships: [];

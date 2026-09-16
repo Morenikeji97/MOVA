@@ -353,9 +353,13 @@ export default async function VehicleDetailPage({
           />
         ) : null}
 
-        {user && isBuyer ? (
+        {/* Arranging shipping needs a real purchase_request_id (see
+            shipping-actions.ts) — only once the buyer has actually
+            requested this vehicle, not just while browsing. */}
+        {user && isBuyer && requestId ? (
           <ShippingRates
             vehicleId={id}
+            purchaseRequestId={requestId}
             destinationLabel={countryName(destinationCode)}
             rates={shippingRates}
             selected={selectedShippers}

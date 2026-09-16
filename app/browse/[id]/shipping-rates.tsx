@@ -51,11 +51,13 @@ function PendingButton({
 
 export function ShippingRates({
   vehicleId,
+  purchaseRequestId,
   destinationLabel,
   rates,
   selected,
 }: {
   vehicleId: string;
+  purchaseRequestId: string;
   destinationLabel: string;
   rates: PublicRate[];
   selected: SelectedShipper[];
@@ -160,6 +162,11 @@ export function ShippingRates({
               <form action={selectShippingRate}>
                 <input type="hidden" name="rateId" value={r.rate_id} />
                 <input type="hidden" name="vehicleId" value={vehicleId} />
+                <input
+                  type="hidden"
+                  name="purchaseRequestId"
+                  value={purchaseRequestId}
+                />
                 <PendingButton
                   variant="secondary"
                   size="sm"

@@ -4,25 +4,9 @@ import { redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
 import { buttonClasses } from "@/components/ui/button";
 import { countryName } from "@/lib/shipping";
-import type {
-  CommissionChargeStatus,
-  ShipperPaymentStatus,
-} from "@/types/database";
+import type { ShipperPaymentStatus } from "@/types/database";
 import { AddRateForm, RateList, type ShipperRate } from "./portal-rates";
 import { ClaimButton, UpdateCardButton } from "./portal-actions";
-
-const money = (amount: number, currency: string) =>
-  new Intl.NumberFormat("en-US", {
-    style: "currency",
-    currency: currency || "USD",
-    maximumFractionDigits: 2,
-  }).format(amount);
-
-const fmtDate = new Intl.DateTimeFormat("en-US", {
-  month: "short",
-  day: "numeric",
-  year: "numeric",
-});
 
 const STANDING: Record<
   ShipperPaymentStatus,
@@ -43,12 +27,6 @@ const STANDING: Record<
     cls: "border-copper-100 bg-copper-100 text-copper-700",
     note: "Your rates are hidden from buyers pending MOVA review. Contact MOVA to clear outstanding commission and be reinstated.",
   },
-};
-
-const CHARGE_LABEL: Record<CommissionChargeStatus, string> = {
-  pending: "Commission pending",
-  charged: "Commission charged",
-  failed: "Commission failed",
 };
 
 function Shell({ children }: { children: ReactNode }) {
@@ -172,7 +150,7 @@ export default async function ShipperPortalPage({
   }
 
   // ---- Approved: the portal ----
-  const [{ data: rateRows }, { data: shipmentRows }] = await Promise.all([
+  const [{ data: rateRows }, { count: shipmentCount }] = await Promise.all([
     supabase
       .from("shipping_rates")
       .select(
@@ -182,23 +160,29 @@ export default async function ShipperPortalPage({
       .order("created_at", { ascending: true }),
     supabase
       .from("shipment_requests")
-      .select(
-        "id, agreed_rate, currency, commission_pct, commission_owed, commission_charge_status, status, created_at",
-      )
-      .eq("shipper_id", linked.id)
-      .order("created_at", { ascending: false }),
+      .select("id", { count: "exact", head: true })
+      .eq("shipper_id", linked.id),
   ]);
 
   const rates = (rateRows ?? []) as ShipperRate[];
-  const shipments = shipmentRows ?? [];
   const standing = STANDING[linked.payment_status];
 
   return (
     <Shell>
-      <h1 className="mt-4 text-2xl font-semibold text-ink-900">
-        {linked.company_name}
-      </h1>
-      <p className="mt-1 text-sm text-slate-500">Signed in as {user.email}</p>
+      <div className="mt-4 flex flex-wrap items-start justify-between gap-3">
+        <div>
+          <h1 className="text-2xl font-semibold text-ink-900">
+            {linked.company_name}
+          </h1>
+          <p className="mt-1 text-sm text-slate-500">Signed in as {user.email}</p>
+        </div>
+        <Link
+          href="/shipper/profile"
+          className={buttonClasses({ size: "sm", variant: "secondary" })}
+        >
+          Edit profile
+        </Link>
+      </div>
 
       {claim === "ok" ? (
         <p className="mt-4 rounded border border-verified-100 bg-verified-50 p-3 text-sm text-verified-600">
@@ -241,60 +225,23 @@ export default async function ShipperPortalPage({
         <AddRateForm />
       </section>
 
-      {/* Shipment requests */}
+      {/* Shipments — full list, one-tap status updates, proof photos and
+          buyer contact live on the dedicated dashboard now. */}
       <section className="mt-10">
         <h2 className="font-mono text-xs uppercase tracking-wider text-ink-400">
-          Shipment requests ({shipments.length})
+          Shipments ({shipmentCount ?? 0})
         </h2>
-        {shipments.length === 0 ? (
-          <p className="mt-4 text-sm text-slate-500">
-            None yet. When a buyer selects one of your rates it appears here;
-            MOVA marks it completed and collects the commission.
-          </p>
-        ) : (
-          <ul className="mt-4 flex flex-col gap-2">
-            {shipments.map((s) => (
-              <li
-                key={s.id}
-                className="flex flex-wrap items-center justify-between gap-3 rounded-lg border border-paper-200 bg-paper-100 p-4 text-sm"
-              >
-                <div>
-                  <p className="text-ink-900">
-                    Buyer request · rate{" "}
-                    <strong>{money(Number(s.agreed_rate), s.currency)}</strong> ·
-                    commission {s.commission_pct}% ={" "}
-                    {money(Number(s.commission_owed), s.currency)}
-                  </p>
-                  <p className="mt-0.5 font-mono text-xs text-ink-400">
-                    {fmtDate.format(new Date(s.created_at))}
-                  </p>
-                </div>
-                <div className="flex flex-col items-end gap-1">
-                  <span
-                    className={`inline-flex items-center rounded-full px-2.5 py-1 text-xs font-medium ${
-                      s.status === "completed"
-                        ? "bg-verified-50 text-verified-600"
-                        : "bg-marine-50 text-marine-700"
-                    }`}
-                  >
-                    {s.status === "completed" ? "Completed" : "Pending"}
-                  </span>
-                  <span
-                    className={`text-xs ${
-                      s.commission_charge_status === "charged"
-                        ? "text-verified-600"
-                        : s.commission_charge_status === "failed"
-                          ? "text-copper-700"
-                          : "text-ink-400"
-                    }`}
-                  >
-                    {CHARGE_LABEL[s.commission_charge_status as CommissionChargeStatus]}
-                  </span>
-                </div>
-              </li>
-            ))}
-          </ul>
-        )}
+        <p className="mt-1 text-sm text-slate-500">
+          {shipmentCount
+            ? "Update pickup/delivery status, upload proof photos and message buyers."
+            : "None yet. When a buyer selects one of your rates it appears here."}
+        </p>
+        <Link
+          href="/shipper/dashboard"
+          className={buttonClasses({ size: "sm", className: "mt-3" })}
+        >
+          Manage shipments
+        </Link>
       </section>
     </Shell>
   );
