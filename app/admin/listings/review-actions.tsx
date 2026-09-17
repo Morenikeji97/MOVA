@@ -4,10 +4,16 @@ import { type ComponentProps, useRef, useState } from "react";
 import { useFormStatus } from "react-dom";
 import { Button } from "@/components/ui/button";
 import type { VinVerificationStatus } from "@/types/database";
-import { approveListing, rejectListing, setVinVerificationStatus } from "./actions";
+import {
+  approveListing,
+  rejectListing,
+  setTitleIdentityMatchConfirmed,
+  setVinVerificationStatus,
+} from "./actions";
 
 const VIN_STATUS_LABEL: Record<VinVerificationStatus, string> = {
   unverified: "Unverified",
+  checking: "Checking",
   verified: "Verified",
   flagged: "Flagged",
 };
@@ -34,24 +40,51 @@ function PendingButton({
 export function ReviewActions({
   vehicleId,
   vinVerificationStatus,
+  titlePhotoPath,
+  titleIdentityMatchConfirmed,
 }: {
   vehicleId: string;
   vinVerificationStatus: VinVerificationStatus;
+  titlePhotoPath: string | null;
+  titleIdentityMatchConfirmed: boolean;
 }) {
   const [rejecting, setRejecting] = useState(false);
   const vinFormRef = useRef<HTMLFormElement>(null);
+  const identityFormRef = useRef<HTMLFormElement>(null);
   const flagged = vinVerificationStatus === "flagged";
+  const blockedOnApproval = flagged || !titleIdentityMatchConfirmed;
 
   return (
     <div className="mt-4 border-t border-paper-200 pt-4">
+      <p className="text-sm text-slate-500">
+        Check this VIN at{" "}
+        <a
+          href="https://www.nicb.org/vincheck"
+          target="_blank"
+          rel="noopener noreferrer"
+          className="text-marine-700 underline underline-offset-2"
+        >
+          nicb.org/vincheck
+        </a>{" "}
+        (theft/salvage) and{" "}
+        <a
+          href="https://vehiclehistory.gov"
+          target="_blank"
+          rel="noopener noreferrer"
+          className="text-marine-700 underline underline-offset-2"
+        >
+          vehiclehistory.gov
+        </a>{" "}
+        (NMVTIS title brand) before approving.
+      </p>
       <form
         ref={vinFormRef}
         action={setVinVerificationStatus}
-        className="flex flex-wrap items-center gap-2"
+        className="mt-2 flex flex-wrap items-center gap-2"
       >
         <input type="hidden" name="id" value={vehicleId} />
         <label className="flex items-center gap-2 text-sm text-slate-500">
-          VIN check (NICB / NMVTIS, run outside the app)
+          VIN check result
           <select
             name="vin_verification_status"
             defaultValue={vinVerificationStatus}
@@ -70,6 +103,40 @@ export function ReviewActions({
         <p className="mt-2 text-sm text-copper-700">
           VIN flagged — this listing can&rsquo;t be approved until the status
           changes.
+        </p>
+      ) : null}
+
+      <form
+        ref={identityFormRef}
+        action={setTitleIdentityMatchConfirmed}
+        className="mt-3"
+      >
+        <input type="hidden" name="id" value={vehicleId} />
+        <input
+          type="hidden"
+          name="title_identity_match_confirmed"
+          value={(!titleIdentityMatchConfirmed).toString()}
+        />
+        <label className="flex items-center gap-2 text-sm text-slate-500">
+          <input
+            type="checkbox"
+            defaultChecked={titleIdentityMatchConfirmed}
+            disabled={!titlePhotoPath}
+            onChange={() => identityFormRef.current?.requestSubmit()}
+            className="h-4 w-4 rounded border-paper-200"
+          />
+          Title photo matches seller&rsquo;s verified identity
+        </label>
+      </form>
+      {!titlePhotoPath ? (
+        <p className="mt-1 text-sm text-copper-700">
+          No title photo uploaded yet — can&rsquo;t confirm until the seller
+          adds one.
+        </p>
+      ) : !titleIdentityMatchConfirmed ? (
+        <p className="mt-1 text-sm text-copper-700">
+          Title identity unconfirmed — this listing can&rsquo;t be approved
+          until it&rsquo;s checked.
         </p>
       ) : null}
 
@@ -109,7 +176,7 @@ export function ReviewActions({
               variant="primary"
               size="sm"
               pendingLabel="Approving…"
-              disabled={flagged}
+              disabled={blockedOnApproval}
             >
               Approve
             </PendingButton>
