@@ -3,6 +3,7 @@
 import { revalidatePath } from "next/cache";
 import { createClient } from "@/lib/supabase/server";
 import { feeBreakdown } from "@/lib/fees";
+import { checkRateLimit, RATE_LIMIT_MESSAGE } from "@/lib/rate-limit";
 
 /**
  * Outcome of {@link reserveVehicle}. `ok: true, created: false` means the buyer
@@ -52,6 +53,9 @@ export async function reserveVehicle(
   if (profile?.role !== "buyer") {
     return { ok: false, error: "Reserving is for buyer accounts." };
   }
+
+  const allowed = await checkRateLimit(`reserve:${user.id}`, 10, 60 * 60);
+  if (!allowed) return { ok: false, error: RATE_LIMIT_MESSAGE };
 
   // The vehicle must exist and be live.
   const { data: vehicle } = await supabase

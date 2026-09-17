@@ -4,6 +4,7 @@ import { revalidatePath } from "next/cache";
 import { createClient } from "@/lib/supabase/server";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { scanForContactInfo, CONTACT_INFO_BLOCK_MESSAGE } from "@/lib/chat-filter";
+import { checkRateLimit, RATE_LIMIT_MESSAGE } from "@/lib/rate-limit";
 
 /** Longest a single chat message may be. */
 const MAX_MESSAGE_LENGTH = 4000;
@@ -145,6 +146,10 @@ export async function sendChatMessage(
 
   const { user, conversation } = ctx;
   const admin = createAdminClient();
+
+  const allowed = await checkRateLimit(`chat:${user.id}`, 30, 60);
+  if (!allowed) return { ok: false, error: RATE_LIMIT_MESSAGE };
+
   const scan = scanForContactInfo(text);
 
   if (!scan.ok) {
