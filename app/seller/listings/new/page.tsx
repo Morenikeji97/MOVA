@@ -12,6 +12,7 @@ import { Button } from "@/components/ui/button";
 import { VinData } from "@/components/ui/vin-data";
 import { PhotoUploader, type PhotoDraft } from "@/components/ui/photo-uploader";
 import { VideoUploader, type VideoDraft } from "@/components/ui/video-uploader";
+import { TitlePhotoUploader } from "@/components/ui/title-photo-uploader";
 import { VEHICLE_SIZE_TYPES } from "@/lib/shipping";
 
 const MAX_PHOTOS = 20;
@@ -144,6 +145,7 @@ const schema = z.object({
       durationSeconds: z.number().nullable(),
     })
     .nullable(),
+  title_photo_path: z.string().nullable(),
 });
 
 type FormValues = z.infer<typeof schema>;
@@ -173,6 +175,7 @@ const EMPTY: FormValues = {
   fee_responsibility: "buyer_pays_full",
   photos: [],
   video: null,
+  title_photo_path: null,
 };
 
 const inputClass = "h-11 rounded border border-paper-200 bg-paper-100 px-3 text-ink-900";
@@ -250,6 +253,7 @@ export default function NewListingPage() {
   const enteredModel = watch("model");
   const photos = watch("photos");
   const video = watch("video");
+  const titlePhotoPath = watch("title_photo_path");
 
   // A decoded result only describes the VIN it was fetched for; drop it as
   // soon as the seller edits the VIN field again.
@@ -392,6 +396,7 @@ export default function NewListingPage() {
         condition: orNull(values.condition),
         accident_history: orNull(values.accident_history),
         title_status: orNull(values.title_status),
+        title_photo_path: values.title_photo_path,
         location_city: values.location_city.trim(),
         location_state: values.location_state.trim().toUpperCase(),
         price_usd: Number(values.price_usd),
@@ -639,6 +644,21 @@ export default function NewListingPage() {
                 </option>
               ))}
             </select>
+          </Field>
+          <Field
+            label="Photo of the title"
+            className="sm:col-span-2"
+            optional
+          >
+            <TitlePhotoUploader
+              value={titlePhotoPath}
+              onChange={(path) =>
+                setValue("title_photo_path", path, {
+                  shouldValidate: true,
+                  shouldDirty: true,
+                })
+              }
+            />
           </Field>
         </section>
 

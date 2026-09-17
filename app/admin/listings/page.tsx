@@ -61,6 +61,19 @@ export default async function AdminListingReviewPage() {
     photosByVehicle.set(p.vehicle_id, list);
   }
 
+  // Signed URLs for title photos — the bucket is private (migration 0023),
+  // same signed-URL-on-review pattern as bank-transfer proofs.
+  const titlePhotoRows = rows.filter((v) => v.title_photo_path);
+  const titlePhotoUrlEntries = await Promise.all(
+    titlePhotoRows.map(async (v) => {
+      const { data } = await supabase.storage
+        .from("vehicle-title-photos")
+        .createSignedUrl(v.title_photo_path!, 300);
+      return [v.id, data?.signedUrl ?? null] as const;
+    }),
+  );
+  const titlePhotoUrlByVehicle = new Map(titlePhotoUrlEntries);
+
   return (
     <main className="mx-auto max-w-4xl px-6 py-16">
       <Link
@@ -90,6 +103,7 @@ export default async function AdminListingReviewPage() {
             const photos = (photosByVehicle.get(v.id) ?? [])
               .slice()
               .sort((a, b) => Number(b.is_primary) - Number(a.is_primary));
+            const titlePhotoUrl = titlePhotoUrlByVehicle.get(v.id) ?? null;
 
             return (
               <li
@@ -170,9 +184,42 @@ export default async function AdminListingReviewPage() {
                   <p className="mt-4 text-sm text-copper-700">No photos uploaded.</p>
                 )}
 
+                <div className="mt-4">
+                  <p className="font-mono text-xs uppercase tracking-wider text-ink-400">
+                    Title photo
+                  </p>
+                  {titlePhotoUrl ? (
+                    v.title_photo_path?.toLowerCase().endsWith(".pdf") ? (
+                      <a
+                        href={titlePhotoUrl}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="mt-1 inline-block text-sm text-marine-700 underline underline-offset-2"
+                      >
+                        View title photo (PDF) &rarr;
+                      </a>
+                    ) : (
+                      <a href={titlePhotoUrl} target="_blank" rel="noopener noreferrer">
+                        {/* eslint-disable-next-line @next/next/no-img-element */}
+                        <img
+                          src={titlePhotoUrl}
+                          alt={`Title document for ${v.year} ${v.make} ${v.model}`}
+                          className="mt-1 h-28 w-40 rounded border border-paper-200 object-cover"
+                        />
+                      </a>
+                    )
+                  ) : (
+                    <p className="mt-1 text-sm text-copper-700">
+                      No title photo uploaded yet.
+                    </p>
+                  )}
+                </div>
+
                 <ReviewActions
                   vehicleId={v.id}
                   vinVerificationStatus={v.vin_verification_status}
+                  titlePhotoPath={v.title_photo_path}
+                  titleIdentityMatchConfirmed={v.title_identity_match_confirmed}
                 />
               </li>
             );

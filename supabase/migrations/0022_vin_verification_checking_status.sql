@@ -1,0 +1,11 @@
+-- MOVA — 'checking' VIN verification status
+--
+-- Lets admin mark a listing as "manual NICB/NMVTIS check in progress"
+-- (distinct from the default 'unverified', which just means no one has
+-- looked yet) without needing to jump straight to verified/flagged. Part of
+-- the admin listing-review checklist (see 0023_title_identity_checklist.sql
+-- for the rest of that work).
+--
+-- Own migration because Postgres won't allow a newly added enum value to be
+-- referenced in the same transaction that adds it.
+alter type vin_verification_status add value 'checking';

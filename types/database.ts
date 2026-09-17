@@ -2,7 +2,7 @@ export type UserRole = "seller" | "buyer" | "admin";
 export type UserStatus = "active" | "suspended";
 export type VerificationStatus = "unverified" | "pending" | "verified" | "failed";
 export type VehicleStatus = "draft" | "pending_review" | "approved" | "rejected" | "sold" | "archived";
-export type VinVerificationStatus = "unverified" | "verified" | "flagged";
+export type VinVerificationStatus = "unverified" | "checking" | "verified" | "flagged";
 export type ShippingMethod = "roro" | "container";
 export type VehicleSizeType = "sedan" | "suv_truck";
 export type PurchaseRequestStatus =
@@ -199,6 +199,8 @@ export interface Database {
           accident_history: string | null;
           title_status: string | null;
           title_history_check_status: "not_run" | "pending" | "clean" | "branded";
+          title_photo_path: string | null;
+          title_identity_match_confirmed: boolean;
           location_city: string;
           location_state: string;
           price_usd: number;
@@ -234,6 +236,8 @@ export interface Database {
           accident_history?: string | null;
           title_status?: string | null;
           title_history_check_status?: "not_run" | "pending" | "clean" | "branded";
+          title_photo_path?: string | null;
+          title_identity_match_confirmed?: boolean;
           description?: string | null;
           status?: VehicleStatus;
           verification_status?: VerificationStatus;
@@ -261,6 +265,8 @@ export interface Database {
           accident_history: string | null;
           title_status: string | null;
           title_history_check_status: "not_run" | "pending" | "clean" | "branded";
+          title_photo_path: string | null;
+          title_identity_match_confirmed: boolean;
           location_city: string;
           location_state: string;
           price_usd: number;

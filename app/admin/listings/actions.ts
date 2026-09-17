@@ -6,6 +6,7 @@ import type { VinVerificationStatus } from "@/types/database";
 
 const VIN_VERIFICATION_STATUSES: VinVerificationStatus[] = [
   "unverified",
+  "checking",
   "verified",
   "flagged",
 ];
@@ -47,15 +48,18 @@ export async function approveListing(formData: FormData): Promise<void> {
   if (!supabase) return;
 
   // The status filter keeps this idempotent: a double-submit updates no rows.
-  // The vin_verification_status filter is a second backstop alongside the DB
-  // CHECK constraint (vehicles_flagged_not_approved) — a flagged VIN can't be
+  // The vin_verification_status and title_identity_match_confirmed filters
+  // are a second backstop alongside the DB CHECK constraints
+  // (vehicles_flagged_not_approved, vehicles_title_identity_confirmed_before_approval)
+  // — a flagged VIN or an unconfirmed title-identity match can't be
   // approved, so this matches zero rows rather than erroring.
   await supabase
     .from("vehicles")
     .update({ status: "approved", rejection_reason: null })
     .eq("id", id)
     .eq("status", "pending_review")
-    .neq("vin_verification_status", "flagged");
+    .neq("vin_verification_status", "flagged")
+    .eq("title_identity_match_confirmed", true);
 
   revalidatePath("/admin/listings");
 }
@@ -100,6 +104,30 @@ export async function setVinVerificationStatus(formData: FormData): Promise<void
   if (!supabase) return;
 
   await supabase.from("vehicles").update({ vin_verification_status: status }).eq("id", id);
+
+  revalidatePath("/admin/listings");
+}
+
+/**
+ * Record admin's manual confirmation that the seller's uploaded title photo
+ * matches their Stripe-Identity-verified name. A DB trigger
+ * (vehicles_guard_admin_only_fields) additionally keeps this column
+ * admin-only regardless of who calls the update, and a CHECK constraint
+ * (vehicles_title_identity_confirmed_before_approval) blocks approval while
+ * it's false.
+ */
+export async function setTitleIdentityMatchConfirmed(formData: FormData): Promise<void> {
+  const id = formData.get("id");
+  const confirmed = formData.get("title_identity_match_confirmed") === "true";
+  if (typeof id !== "string" || id.length === 0) return;
+
+  const supabase = await requireAdmin();
+  if (!supabase) return;
+
+  await supabase
+    .from("vehicles")
+    .update({ title_identity_match_confirmed: confirmed })
+    .eq("id", id);
 
   revalidatePath("/admin/listings");
 }
