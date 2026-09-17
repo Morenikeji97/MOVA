@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import type Stripe from "stripe";
 import { getStripe } from "@/lib/stripe";
 import { createAdminClient } from "@/lib/supabase/admin";
+import { notifyFeePaymentConfirmed } from "@/lib/notifications";
 import type { Database } from "@/types/database";
 
 // Stripe SDK needs the Node runtime, and the raw request body must not be cached.
@@ -124,6 +125,8 @@ export async function POST(req: Request) {
         // 500 so Stripe retries.
         return new NextResponse("Database update failed", { status: 500 });
       }
+
+      await notifyFeePaymentConfirmed(purchaseRequestId);
     }
   }
 

@@ -3,6 +3,7 @@
 import { revalidatePath } from "next/cache";
 import { createClient } from "@/lib/supabase/server";
 import { DISPUTE_CATEGORIES } from "@/lib/disputes";
+import { notifyDisputeFiled } from "@/lib/notifications";
 import type { DisputeCategory } from "@/types/database";
 
 export type FileDisputeResult = { ok: true } | { ok: false; error: string };
@@ -85,5 +86,8 @@ export async function fileDispute(
   revalidatePath("/buyer/dashboard");
   revalidatePath("/seller/reservations");
   revalidatePath("/admin/disputes");
+
+  await notifyDisputeFiled(purchaseRequestId, user.id);
+
   return { ok: true };
 }
