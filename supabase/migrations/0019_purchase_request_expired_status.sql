@@ -1,0 +1,12 @@
+-- MOVA — 'expired' reservation status (abandoned-reservation auto-release)
+--
+-- New terminal status for purchase_requests, distinct from 'cancelled'
+-- (an admin explicitly releasing a reservation via the "Release" button).
+-- 'expired' means the auto-release job closed it because the buyer never
+-- completed the MOVA service-fee payment within the 24h window — see
+-- 0020_auto_release_reservations.sql for the column and trigger changes
+-- that support it, and lib/auto-release.ts for the timeout rule itself.
+--
+-- Split into its own migration because Postgres won't allow a newly added
+-- enum value to be referenced in the same transaction that adds it.
+alter type purchase_request_status add value 'expired';

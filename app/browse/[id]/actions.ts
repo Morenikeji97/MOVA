@@ -64,14 +64,15 @@ export async function reserveVehicle(
     return { ok: false, error: "This vehicle is no longer available to reserve." };
   }
 
-  // One open request per buyer + vehicle. A previously cancelled/rejected
-  // request doesn't block a fresh one.
+  // One open request per buyer + vehicle. A previously cancelled/rejected/
+  // expired request doesn't block a fresh one — 'expired' is the
+  // abandoned-reservation auto-release outcome (lib/auto-release.ts).
   const { data: existing } = await supabase
     .from("purchase_requests")
     .select("id")
     .eq("vehicle_id", vehicleId)
     .eq("buyer_id", user.id)
-    .not("status", "in", "(cancelled,rejected)")
+    .not("status", "in", "(cancelled,rejected,expired)")
     .limit(1)
     .maybeSingle();
   if (existing) return { ok: true, created: false };

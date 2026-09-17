@@ -3,6 +3,7 @@ import Link from "next/link";
 import { createClient } from "@/lib/supabase/server";
 import { feeBreakdown } from "@/lib/fees";
 import { bankTransferReference } from "@/lib/bank-transfer";
+import { getAutoReleaseStatus } from "@/lib/auto-release";
 import type { FeeResponsibility, PurchaseRequestStatus } from "@/types/database";
 import { ReservationActions } from "./reservation-actions";
 
@@ -52,7 +53,7 @@ export default async function AdminReservationsPage() {
   const { data: requests } = await supabase
     .from("purchase_requests")
     .select(
-      "id, vehicle_id, buyer_id, status, created_at, vehicle_price_usd, mova_fee_usd, mova_fee_payment_status, mova_fee_checkout_url, shipping_rate_id, bank_transfer_proof_path, bank_transfer_proof_uploaded_at",
+      "id, vehicle_id, buyer_id, status, created_at, vehicle_price_usd, mova_fee_usd, mova_fee_payment_status, mova_fee_checkout_url, shipping_rate_id, bank_transfer_proof_path, bank_transfer_proof_uploaded_at, fee_payment_requested_at, bank_transfer_reviewed_at",
     )
     .in("status", OPEN_STATUSES)
     .order("created_at", { ascending: true });
@@ -93,6 +94,7 @@ export default async function AdminReservationsPage() {
     }),
   );
   const proofUrlByRequestId = new Map(signedUrlEntries);
+  const now = new Date();
 
   return (
     <main className="mx-auto max-w-4xl px-6 py-16">
@@ -146,6 +148,21 @@ export default async function AdminReservationsPage() {
                   ? Number(r.mova_fee_usd)
                   : null;
             const proofUrl = proofUrlByRequestId.get(r.id) ?? null;
+            const autoRelease =
+              r.mova_fee_payment_status === "paid"
+                ? null
+                : getAutoReleaseStatus(
+                    {
+                      feePaymentRequestedAt: r.fee_payment_requested_at,
+                      movaFeePaymentStatus: r.mova_fee_payment_status,
+                      bankTransferReviewedAt: r.bank_transfer_reviewed_at,
+                    },
+                    now,
+                  );
+            const hoursRemainingLabel =
+              autoRelease?.hoursRemaining != null
+                ? Math.max(1, Math.ceil(autoRelease.hoursRemaining))
+                : null;
 
             return (
               <li
@@ -176,9 +193,23 @@ export default async function AdminReservationsPage() {
                       </p>
                     ) : null}
                   </div>
-                  <span className="inline-flex shrink-0 items-center rounded-full bg-marine-50 px-2.5 py-1 text-sm font-medium text-marine-700">
-                    {STATUS_LABEL[r.status] ?? r.status}
-                  </span>
+                  <div className="flex shrink-0 flex-col items-end gap-1.5">
+                    <span className="inline-flex items-center rounded-full bg-marine-50 px-2.5 py-1 text-sm font-medium text-marine-700">
+                      {STATUS_LABEL[r.status] ?? r.status}
+                    </span>
+                    {autoRelease?.state === "paused" ? (
+                      <span className="inline-flex items-center rounded-full bg-marine-50 px-2.5 py-1 text-xs font-medium text-marine-700">
+                        Awaiting your review
+                      </span>
+                    ) : autoRelease?.state === "expiring_soon" ||
+                      autoRelease?.state === "due_for_release" ? (
+                      <span className="inline-flex items-center rounded-full bg-copper-50 px-2.5 py-1 text-xs font-medium text-copper-700">
+                        {autoRelease.state === "due_for_release"
+                          ? "Releasing shortly"
+                          : `Expires in ~${hoursRemainingLabel}h`}
+                      </span>
+                    ) : null}
+                  </div>
                 </div>
 
                 <dl className="mt-3 grid grid-cols-2 gap-x-4 gap-y-2 text-sm sm:grid-cols-3">
@@ -201,12 +232,21 @@ export default async function AdminReservationsPage() {
                   <Detail label="Shipping">
                     {r.shipping_rate_id ? "Selected" : "Not selected yet"}
                   </Detail>
+                  {autoRelease?.state === "active" ? (
+                    <Detail label="Auto-release">
+                      ~{hoursRemainingLabel}h remaining
+                    </Detail>
+                  ) : null}
                 </dl>
 
                 {awaitingBankVerification ? (
                   <div className="mt-4 rounded border border-marine-100 bg-marine-50 p-4">
                     <p className="text-sm font-semibold text-marine-700">
                       Bank transfer — awaiting verification
+                    </p>
+                    <p className="mt-1 text-sm text-marine-700">
+                      The buyer already acted — this won&rsquo;t auto-expire
+                      while it&rsquo;s in your queue.
                     </p>
                     <dl className="mt-2 grid grid-cols-2 gap-x-4 gap-y-2 text-sm sm:grid-cols-3">
                       <Detail label="Reference">{bankTransferReference(r.id)}</Detail>

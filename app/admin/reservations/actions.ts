@@ -89,7 +89,7 @@ export async function requestFeePayment(formData: FormData): Promise<void> {
   const { data: pr } = await supabase
     .from("purchase_requests")
     .select(
-      "id, vehicle_id, buyer_id, status, mova_fee_payment_status, vehicle_price_usd, mova_fee_usd, negotiated_price_usd, negotiated_price_status, shipping_rate_id",
+      "id, vehicle_id, buyer_id, status, mova_fee_payment_status, vehicle_price_usd, mova_fee_usd, negotiated_price_usd, negotiated_price_status, shipping_rate_id, fee_payment_requested_at",
     )
     .eq("id", id)
     .maybeSingle();
@@ -168,6 +168,10 @@ export async function requestFeePayment(formData: FormData): Promise<void> {
       mova_fee_usd: fullFee,
       mova_fee_stripe_session_id: session.id,
       mova_fee_checkout_url: session.url,
+      // Only set the first time — the 24h auto-release clock (lib/auto-release.ts)
+      // starts here, and regenerating a lapsed link shouldn't push the buyer's
+      // deadline out indefinitely.
+      fee_payment_requested_at: pr.fee_payment_requested_at ?? new Date().toISOString(),
     })
     .eq("id", pr.id)
     .eq("mova_fee_payment_status", "pending");

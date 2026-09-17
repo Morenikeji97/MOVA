@@ -24,6 +24,8 @@ const RESERVATION_STATUS_COPY: Record<string, string> = {
   completed: "Completed.",
   rejected: "Not accepted.",
   cancelled: "Released.",
+  expired:
+    "Your reservation expired — payment wasn't completed in time. You can reserve this vehicle again if it's still available.",
 };
 
 const OPEN_STATUSES = ["submitted", "under_review", "verified"];
