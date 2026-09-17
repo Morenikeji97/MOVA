@@ -5,6 +5,7 @@ import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
 import { createClient } from "@/lib/supabase/client";
 import { Button } from "@/components/ui/button";
+import { checkLoginRateLimit } from "./actions";
 
 function LoginForm() {
   const router = useRouter();
@@ -18,6 +19,13 @@ function LoginForm() {
     e.preventDefault();
     setLoading(true);
     setError(null);
+
+    const rateLimit = await checkLoginRateLimit(email);
+    if (!rateLimit.ok) {
+      setError(rateLimit.error ?? "Please try again shortly.");
+      setLoading(false);
+      return;
+    }
 
     const supabase = createClient();
     const { error } = await supabase.auth.signInWithPassword({ email, password });

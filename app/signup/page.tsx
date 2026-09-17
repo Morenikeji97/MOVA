@@ -6,6 +6,7 @@ import { createClient } from "@/lib/supabase/client";
 import { Button } from "@/components/ui/button";
 import { CURRENT_POLICY_VERSION, BUYER_PROTECTION_POLICY_PATH } from "@/lib/policy";
 import type { UserRole } from "@/types/database";
+import { checkSignupRateLimit } from "./actions";
 
 export default function SignupPage() {
   const [email, setEmail] = useState("");
@@ -21,6 +22,13 @@ export default function SignupPage() {
     if (!policyAccepted) return;
     setLoading(true);
     setError(null);
+
+    const rateLimit = await checkSignupRateLimit();
+    if (!rateLimit.ok) {
+      setError(rateLimit.error ?? "Please try again shortly.");
+      setLoading(false);
+      return;
+    }
 
     const supabase = createClient();
     const { error } = await supabase.auth.signUp({
