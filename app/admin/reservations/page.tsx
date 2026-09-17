@@ -1,13 +1,21 @@
 import { type ReactNode } from "react";
 import Link from "next/link";
 import { createClient } from "@/lib/supabase/server";
-import type { PurchaseRequestStatus } from "@/types/database";
+import { feeBreakdown } from "@/lib/fees";
+import { bankTransferReference } from "@/lib/bank-transfer";
+import type { FeeResponsibility, PurchaseRequestStatus } from "@/types/database";
 import { ReservationActions } from "./reservation-actions";
 
 const usd = new Intl.NumberFormat("en-US", {
   style: "currency",
   currency: "USD",
   maximumFractionDigits: 0,
+});
+
+const usdCents = new Intl.NumberFormat("en-US", {
+  style: "currency",
+  currency: "USD",
+  minimumFractionDigits: 2,
 });
 
 const submitted = new Intl.DateTimeFormat("en-US", {
@@ -44,7 +52,7 @@ export default async function AdminReservationsPage() {
   const { data: requests } = await supabase
     .from("purchase_requests")
     .select(
-      "id, vehicle_id, buyer_id, status, created_at, vehicle_price_usd, mova_fee_usd, mova_fee_payment_status, mova_fee_checkout_url, shipping_rate_id",
+      "id, vehicle_id, buyer_id, status, created_at, vehicle_price_usd, mova_fee_usd, mova_fee_payment_status, mova_fee_checkout_url, shipping_rate_id, bank_transfer_proof_path, bank_transfer_proof_uploaded_at",
     )
     .in("status", OPEN_STATUSES)
     .order("created_at", { ascending: true });
@@ -60,13 +68,31 @@ export default async function AdminReservationsPage() {
     vehicleIds.length
       ? supabase
           .from("vehicles")
-          .select("id, year, make, model, trim, vehicle_vin_display, price_usd, status")
+          .select(
+            "id, year, make, model, trim, vehicle_vin_display, price_usd, status, fee_responsibility",
+          )
           .in("id", vehicleIds)
       : null,
   ]);
 
   const buyerById = new Map((buyersRes?.data ?? []).map((b) => [b.id, b]));
   const vehicleById = new Map((vehiclesRes?.data ?? []).map((v) => [v.id, v]));
+
+  // Signed URLs for pending bank-transfer proofs — the bucket is private
+  // (migration 0014), so admin viewing goes through a short-lived signed
+  // URL generated server-side rather than a public one.
+  const proofRows = rows.filter(
+    (r) => r.mova_fee_payment_status === "pending_manual_verification" && r.bank_transfer_proof_path,
+  );
+  const signedUrlEntries = await Promise.all(
+    proofRows.map(async (r) => {
+      const { data } = await supabase.storage
+        .from("bank-transfer-proofs")
+        .createSignedUrl(r.bank_transfer_proof_path!, 300);
+      return [r.id, data?.signedUrl ?? null] as const;
+    }),
+  );
+  const proofUrlByRequestId = new Map(signedUrlEntries);
 
   return (
     <main className="mx-auto max-w-4xl px-6 py-16">
@@ -100,6 +126,26 @@ export default async function AdminReservationsPage() {
                   vehicle.trim ? ` ${vehicle.trim}` : ""
                 }`
               : "Vehicle unavailable";
+
+            const awaitingBankVerification =
+              r.mova_fee_payment_status === "pending_manual_verification";
+            const price =
+              r.vehicle_price_usd != null
+                ? Number(r.vehicle_price_usd)
+                : vehicle
+                  ? Number(vehicle.price_usd)
+                  : null;
+            const buyerFee =
+              price != null
+                ? feeBreakdown(
+                    price,
+                    (vehicle?.fee_responsibility as FeeResponsibility | undefined) ??
+                      "buyer_pays_full",
+                  ).buyerFee
+                : r.mova_fee_usd != null
+                  ? Number(r.mova_fee_usd)
+                  : null;
+            const proofUrl = proofUrlByRequestId.get(r.id) ?? null;
 
             return (
               <li
@@ -144,14 +190,67 @@ export default async function AdminReservationsPage() {
                   <Detail label="MOVA fee">
                     {r.mova_fee_payment_status === "paid"
                       ? "Paid"
-                      : r.mova_fee_checkout_url
-                        ? "Link sent — awaiting payment"
-                        : "Not requested"}
+                      : awaitingBankVerification
+                        ? "Bank transfer — awaiting verification"
+                        : r.mova_fee_payment_status === "bank_transfer_rejected"
+                          ? "Bank transfer rejected"
+                          : r.mova_fee_checkout_url
+                            ? "Link sent — awaiting payment"
+                            : "Not requested"}
                   </Detail>
                   <Detail label="Shipping">
                     {r.shipping_rate_id ? "Selected" : "Not selected yet"}
                   </Detail>
                 </dl>
+
+                {awaitingBankVerification ? (
+                  <div className="mt-4 rounded border border-marine-100 bg-marine-50 p-4">
+                    <p className="text-sm font-semibold text-marine-700">
+                      Bank transfer — awaiting verification
+                    </p>
+                    <dl className="mt-2 grid grid-cols-2 gap-x-4 gap-y-2 text-sm sm:grid-cols-3">
+                      <Detail label="Reference">{bankTransferReference(r.id)}</Detail>
+                      <Detail label="Amount expected">
+                        {buyerFee != null ? usdCents.format(buyerFee) : "—"}
+                      </Detail>
+                      {r.bank_transfer_proof_uploaded_at ? (
+                        <Detail label="Submitted">
+                          {submitted.format(new Date(r.bank_transfer_proof_uploaded_at))}
+                        </Detail>
+                      ) : null}
+                    </dl>
+                    {proofUrl ? (
+                      r.bank_transfer_proof_path?.toLowerCase().endsWith(".pdf") ? (
+                        <a
+                          href={proofUrl}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="mt-3 inline-block text-sm text-marine-700 underline underline-offset-2"
+                        >
+                          View proof (PDF) &rarr;
+                        </a>
+                      ) : (
+                        <a
+                          href={proofUrl}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="mt-3 block"
+                        >
+                          {/* eslint-disable-next-line @next/next/no-img-element */}
+                          <img
+                            src={proofUrl}
+                            alt="Bank transfer proof"
+                            className="max-h-64 rounded border border-paper-200 object-contain"
+                          />
+                        </a>
+                      )
+                    ) : (
+                      <p className="mt-3 text-sm text-copper-700">
+                        Proof file couldn&rsquo;t be loaded.
+                      </p>
+                    )}
+                  </div>
+                ) : null}
 
                 <ReservationActions
                   requestId={r.id}
@@ -164,6 +263,7 @@ export default async function AdminReservationsPage() {
                   shippingSelected={r.shipping_rate_id != null}
                   feeLinkSent={Boolean(r.mova_fee_checkout_url)}
                   feePaid={r.mova_fee_payment_status === "paid"}
+                  awaitingBankVerification={awaitingBankVerification}
                 />
               </li>
             );

@@ -13,7 +13,11 @@ export type PurchaseRequestStatus =
   | "completed"
   | "cancelled";
 export type FeeResponsibility = "buyer_pays_full" | "split";
-export type MovaFeePaymentStatus = "pending" | "paid";
+export type MovaFeePaymentStatus =
+  | "pending"
+  | "paid"
+  | "pending_manual_verification"
+  | "bank_transfer_rejected";
 export type NegotiatedPriceStatus = "none" | "proposed" | "accepted";
 export type PolicyAcceptanceContext = "signup" | "fee_payment";
 export type ShipperStatus = "pending" | "approved" | "rejected";
@@ -381,6 +385,11 @@ export interface Database {
           negotiated_price_status: NegotiatedPriceStatus;
           negotiated_price_proposed_at: string | null;
           negotiated_price_accepted_at: string | null;
+          bank_transfer_proof_path: string | null;
+          bank_transfer_proof_uploaded_at: string | null;
+          bank_transfer_reviewed_by: string | null;
+          bank_transfer_reviewed_at: string | null;
+          bank_transfer_rejection_reason: string | null;
           created_at: string;
           updated_at: string;
         };
@@ -408,6 +417,11 @@ export interface Database {
           negotiated_price_status?: NegotiatedPriceStatus;
           negotiated_price_proposed_at?: string | null;
           negotiated_price_accepted_at?: string | null;
+          bank_transfer_proof_path?: string | null;
+          bank_transfer_proof_uploaded_at?: string | null;
+          bank_transfer_reviewed_by?: string | null;
+          bank_transfer_reviewed_at?: string | null;
+          bank_transfer_rejection_reason?: string | null;
           created_at?: string;
           updated_at?: string;
         };
@@ -435,6 +449,11 @@ export interface Database {
           negotiated_price_status: NegotiatedPriceStatus;
           negotiated_price_proposed_at: string | null;
           negotiated_price_accepted_at: string | null;
+          bank_transfer_proof_path: string | null;
+          bank_transfer_proof_uploaded_at: string | null;
+          bank_transfer_reviewed_by: string | null;
+          bank_transfer_reviewed_at: string | null;
+          bank_transfer_rejection_reason: string | null;
           created_at: string;
           updated_at: string;
         }>;

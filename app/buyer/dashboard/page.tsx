@@ -1,13 +1,14 @@
 import Link from "next/link";
 import { createClient } from "@/lib/supabase/server";
 import { feeBreakdown } from "@/lib/fees";
+import { bankTransferDetails, bankTransferReference } from "@/lib/bank-transfer";
 import { BuyerReviewHub } from "@/components/reviews/buyer-review-hub";
 import { AcceptPricePrompt } from "@/components/ui/accept-price-prompt";
-import { FeePaymentConsent } from "@/components/ui/fee-payment-consent";
 import { ReportIssuePanel } from "@/components/ui/report-issue-panel";
 import { DisputeStatusList, type DisputeSummary } from "@/components/ui/dispute-status";
 import { PriceBreakdown } from "@/components/ui/price-breakdown";
 import { countryName, shippingMethodLabel } from "@/lib/shipping";
+import { FeePaymentOptions } from "@/components/ui/fee-payment-options";
 import type { FeeResponsibility } from "@/types/database";
 
 const usdCents = new Intl.NumberFormat("en-US", {
@@ -62,7 +63,7 @@ export default async function BuyerDashboard({
     supabase
       .from("purchase_requests")
       .select(
-        "id, vehicle_id, status, created_at, vehicle_price_usd, mova_fee_usd, mova_fee_payment_status, mova_fee_checkout_url, seller_details_revealed_at, seller_name, seller_email, seller_phone, seller_whatsapp, negotiated_price_usd, negotiated_price_status, shipping_rate_id",
+        "id, vehicle_id, status, created_at, vehicle_price_usd, mova_fee_usd, mova_fee_payment_status, mova_fee_checkout_url, seller_details_revealed_at, seller_name, seller_email, seller_phone, seller_whatsapp, negotiated_price_usd, negotiated_price_status, shipping_rate_id, bank_transfer_rejection_reason",
       )
       .eq("buyer_id", user!.id)
       .order("created_at", { ascending: false }),
@@ -70,6 +71,7 @@ export default async function BuyerDashboard({
 
   const profile = profileData;
   const reservations = reservationRows ?? [];
+  const bankDetails = bankTransferDetails();
 
   // The "fee is being confirmed" banner is only meaningful while a payment the
   // buyer has made is still waiting on the webhook to reveal seller details.
@@ -194,8 +196,14 @@ export default async function BuyerDashboard({
                 ? shippingRateById.get(r.shipping_rate_id)
                 : undefined;
 
-              const showPayLink =
+              const feeAwaitingBankVerification =
+                r.mova_fee_payment_status === "pending_manual_verification";
+              const feeBankTransferRejected =
+                r.mova_fee_payment_status === "bank_transfer_rejected";
+
+              const showPaymentOptions =
                 !feePaid &&
+                !feeAwaitingBankVerification &&
                 OPEN_STATUSES.includes(r.status) &&
                 Boolean(r.mova_fee_checkout_url);
               // Two distinct reasons the fee link isn't here yet — worth
@@ -208,6 +216,7 @@ export default async function BuyerDashboard({
                 !r.shipping_rate_id;
               const showFeePending =
                 !feePaid &&
+                !feeAwaitingBankVerification &&
                 OPEN_STATUSES.includes(r.status) &&
                 !r.mova_fee_checkout_url &&
                 Boolean(r.shipping_rate_id);
@@ -295,7 +304,7 @@ export default async function BuyerDashboard({
                     </p>
                   ) : null}
 
-                  {showPayLink ? (
+                  {showPaymentOptions ? (
                     <div className="mt-3 rounded border border-marine-100 bg-marine-50 p-4">
                       <p className="text-sm font-medium text-marine-700">
                         Pay MOVA&rsquo;s service fee
@@ -306,11 +315,33 @@ export default async function BuyerDashboard({
                         details. You then wire the vehicle price to the seller
                         directly.
                       </p>
-                      <FeePaymentConsent
+                      {feeBankTransferRejected ? (
+                        <p className="mt-3 rounded border border-copper-100 bg-copper-50 p-3 text-sm text-copper-700">
+                          MOVA couldn&rsquo;t confirm your last bank transfer
+                          {r.bank_transfer_rejection_reason
+                            ? `: ${r.bank_transfer_rejection_reason}`
+                            : "."}{" "}
+                          You can try again below, or pay with card instead.
+                        </p>
+                      ) : null}
+                      <FeePaymentOptions
                         purchaseRequestId={r.id}
                         checkoutUrl={r.mova_fee_checkout_url!}
+                        buyerFeeUsd={buyerFee}
+                        bankDetails={bankDetails}
+                        referenceCode={bankTransferReference(r.id)}
                       />
                     </div>
+                  ) : null}
+
+                  {feeAwaitingBankVerification ? (
+                    <p className="mt-3 rounded border border-marine-100 bg-marine-50 p-3 text-sm text-marine-700">
+                      MOVA is verifying your bank transfer (reference{" "}
+                      {bankTransferReference(r.id)}). This can take a little
+                      longer than an instant card payment — the seller&rsquo;s
+                      contact details will appear here once it&rsquo;s
+                      confirmed.
+                    </p>
                   ) : null}
 
                   {feePaid ? (
