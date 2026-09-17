@@ -11,7 +11,8 @@ export type PurchaseRequestStatus =
   | "verified"
   | "rejected"
   | "completed"
-  | "cancelled";
+  | "cancelled"
+  | "expired";
 export type FeeResponsibility = "buyer_pays_full" | "split";
 export type MovaFeePaymentStatus =
   | "pending"
@@ -372,6 +373,7 @@ export interface Database {
           mova_fee_payment_status: MovaFeePaymentStatus;
           mova_fee_stripe_session_id: string | null;
           mova_fee_checkout_url: string | null;
+          fee_payment_requested_at: string | null;
           seller_details_revealed_at: string | null;
           seller_name: string | null;
           seller_email: string | null;
@@ -404,6 +406,7 @@ export interface Database {
           mova_fee_payment_status?: MovaFeePaymentStatus;
           mova_fee_stripe_session_id?: string | null;
           mova_fee_checkout_url?: string | null;
+          fee_payment_requested_at?: string | null;
           seller_details_revealed_at?: string | null;
           seller_name?: string | null;
           seller_email?: string | null;
@@ -436,6 +439,7 @@ export interface Database {
           mova_fee_payment_status: MovaFeePaymentStatus;
           mova_fee_stripe_session_id: string | null;
           mova_fee_checkout_url: string | null;
+          fee_payment_requested_at: string | null;
           seller_details_revealed_at: string | null;
           seller_name: string | null;
           seller_email: string | null;
