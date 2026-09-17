@@ -9,6 +9,9 @@ export function Footer() {
           MOVA
         </span>
         <nav className="flex flex-wrap items-center gap-4">
+          <Link href="/how-it-works" className="hover:text-ink-900">
+            How It Works
+          </Link>
           <Link href={BUYER_PROTECTION_POLICY_PATH} className="hover:text-ink-900">
             Buyer Protection &amp; Refund Policy
           </Link>
