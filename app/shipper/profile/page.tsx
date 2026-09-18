@@ -12,7 +12,7 @@ function Shell({ children }: { children: ReactNode }) {
     <main className="mx-auto max-w-2xl px-6 py-16">
       <Link
         href="/shipper"
-        className="font-mono text-xs uppercase tracking-wider text-ink-400 hover:text-ink-900"
+        className="font-mono text-xs uppercase tracking-wider text-gray-500 hover:text-black"
       >
         &larr; Shipper portal
       </Link>
@@ -57,13 +57,13 @@ export default async function ShipperProfilePage() {
 
   return (
     <Shell>
-      <h1 className="mt-4 text-2xl font-semibold text-ink-900">Your profile</h1>
-      <p className="mt-1 text-sm text-slate-500">
+      <h1 className="mt-4 text-2xl font-semibold text-black">Your profile</h1>
+      <p className="mt-1 text-sm text-gray-500">
         Company name, description and service countries are shown on your
         public listing page.
       </p>
 
-      <div className="mt-6 rounded-lg border border-paper-200 bg-paper-100 p-5">
+      <div className="mt-6 rounded-lg border border-gray-200 bg-white p-5">
         <ShipperProfileForm
           companyName={shipper.company_name}
           description={shipper.description ?? ""}
@@ -72,7 +72,7 @@ export default async function ShipperProfilePage() {
       </div>
 
       <section className="mt-10">
-        <h2 className="font-mono text-xs uppercase tracking-wider text-ink-400">
+        <h2 className="font-mono text-xs uppercase tracking-wider text-gray-500">
           Your rating
         </h2>
         <div className="mt-3">
@@ -81,7 +81,7 @@ export default async function ShipperProfilePage() {
       </section>
 
       <section className="mt-6">
-        <h2 className="font-mono text-xs uppercase tracking-wider text-ink-400">
+        <h2 className="font-mono text-xs uppercase tracking-wider text-gray-500">
           Published reviews
         </h2>
         <div className="mt-3">

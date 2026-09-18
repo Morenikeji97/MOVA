@@ -9,10 +9,10 @@ interface VinDataProps {
 export function VinData({ label, value, className }: VinDataProps) {
   return (
     <div className={cn("flex flex-col gap-0.5", className)}>
-      <span className="font-mono text-xs uppercase tracking-wider text-ink-400">
+      <span className="font-mono text-xs uppercase tracking-wider text-gray-500">
         {label}
       </span>
-      <span className="font-mono text-base text-ink-900">{value}</span>
+      <span className="font-mono text-base text-black">{value}</span>
     </div>
   );
 }

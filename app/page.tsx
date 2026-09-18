@@ -6,26 +6,7 @@ import { VinData } from "@/components/ui/vin-data";
 import { VehicleCard } from "@/components/ui/vehicle-card";
 import { loadRecentApprovedListings } from "@/lib/listings";
 
-/**
- * Is there a signed-in viewer? "Signed in" means Supabase positively confirmed
- * a user — a concrete `data.user.id` and no error. Everything else (no session
- * cookie, an expired or malformed token, the auth endpoint erroring, an
- * exception) resolves to `false`. We never infer "signed in" from the absence
- * of an error. Role-specific links live in the persistent <AccountMenu />.
- */
-async function isSignedIn(): Promise<boolean> {
-  const supabase = await createClient();
-  try {
-    const { data, error } = await supabase.auth.getUser();
-    return Boolean(!error && data.user?.id);
-  } catch {
-    return false;
-  }
-}
-
 export default async function Home() {
-  const signedIn = await isSignedIn();
-
   // Live inventory for the listings grid — most recent approved listings,
   // newest first, same source as /browse.
   const supabase = await createClient();
@@ -35,73 +16,46 @@ export default async function Home() {
   );
 
   return (
-    <main className="min-h-screen bg-paper">
-      <header className="bg-ink text-white">
-        <nav className="mx-auto flex max-w-6xl items-center justify-between px-6 py-4">
-          <span className="font-mono text-sm font-semibold uppercase tracking-widest">
-            MOVA
-          </span>
-          <div className="flex items-center gap-4 text-sm">
-            <Link href="/shipper" className="text-ink-100 hover:text-white">
-              Shippers
-            </Link>
-            {/* Signed-in users get Dashboard + Log out from the persistent
-                <AccountMenu /> (mounted in app/layout.tsx). */}
-            {signedIn ? null : (
-              <>
-                <Link href="/login" className="text-ink-100 hover:text-white">
-                  Sign in
-                </Link>
-                <Link href="/signup" className={buttonClasses({ size: "sm" })}>
-                  Create account
-                </Link>
-              </>
-            )}
-          </div>
-        </nav>
-
-        <div className="mx-auto max-w-6xl px-6 pb-24 pt-12">
-          <p className="font-mono text-sm uppercase tracking-widest text-marine-400">
+    <main className="min-h-screen bg-white">
+      <section className="bg-black text-white">
+        <div className="mx-auto max-w-6xl px-6 pb-24 pt-16">
+          <p className="font-mono text-sm uppercase tracking-widest text-gray-400">
             Houston, TX → Lagos, NG
           </p>
           <h1 className="mt-4 max-w-2xl text-5xl font-semibold leading-tight">
             American cars. Global buyers.
           </h1>
-          <p className="mt-4 max-w-xl text-ink-100">
+          <p className="mt-4 max-w-xl text-gray-300">
             MOVA connects verified U.S. sellers with international buyers —
             starting in Nigeria.
           </p>
           <div className="mt-8 flex gap-3">
             <Link
               href="/browse"
-              className={buttonClasses({ variant: "primary", size: "lg" })}
+              className="inline-flex h-13 items-center justify-center rounded bg-white px-7 text-lg font-medium text-black hover:bg-gray-200"
             >
               Browse Vehicles
             </Link>
             <Link
               href="/seller/listings/new"
-              className={buttonClasses({
-                variant: "secondary",
-                size: "lg",
-                className: "border-white text-white hover:bg-white/10",
-              })}
+              className="inline-flex h-13 items-center justify-center rounded border border-white px-7 text-lg font-medium text-white hover:bg-white/10"
             >
               List Your Vehicle
             </Link>
           </div>
         </div>
-      </header>
+      </section>
 
       <section className="mx-auto max-w-6xl px-6 py-16">
         {listings.length > 0 ? (
           <>
             <div className="mb-6 flex items-baseline justify-between gap-4">
-              <h2 className="font-mono text-xs uppercase tracking-wider text-ink-400">
+              <h2 className="font-mono text-xs uppercase tracking-wider text-gray-500">
                 Latest verified listings
               </h2>
               <Link
                 href="/browse"
-                className="text-sm text-marine-700 hover:underline"
+                className="text-sm text-black hover:underline"
               >
                 Browse all &rarr;
               </Link>
@@ -119,12 +73,12 @@ export default async function Home() {
           </>
         ) : (
           <>
-            <h2 className="mb-6 font-mono text-xs uppercase tracking-wider text-ink-400">
+            <h2 className="mb-6 font-mono text-xs uppercase tracking-wider text-gray-500">
               Sample vehicle card — design system preview
             </h2>
-            <div className="max-w-sm rounded-lg border border-paper-200 bg-paper-100 p-5 shadow-sm">
+            <div className="max-w-sm rounded-lg border border-gray-200 bg-white p-5 shadow-sm">
               <div className="mb-4 flex items-start justify-between">
-                <h3 className="text-lg font-semibold text-ink-900">
+                <h3 className="text-lg font-semibold text-black">
                   2019 Toyota Camry SE
                 </h3>
                 <VerifiedBadge />

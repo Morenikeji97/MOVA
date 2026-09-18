@@ -41,8 +41,8 @@ const STATUS_LABEL: Record<string, string> = {
 function Detail({ label, children }: { label: string; children: ReactNode }) {
   return (
     <div>
-      <dt className="font-mono text-xs uppercase tracking-wider text-ink-400">{label}</dt>
-      <dd className="text-ink-900">{children}</dd>
+      <dt className="font-mono text-xs uppercase tracking-wider text-gray-500">{label}</dt>
+      <dd className="text-black">{children}</dd>
     </div>
   );
 }
@@ -100,21 +100,21 @@ export default async function AdminReservationsPage() {
     <main className="mx-auto max-w-4xl px-6 py-16">
       <Link
         href="/admin/dashboard"
-        className="font-mono text-xs uppercase tracking-wider text-ink-400 hover:text-ink-900"
+        className="font-mono text-xs uppercase tracking-wider text-gray-500 hover:text-black"
       >
         &larr; Admin dashboard
       </Link>
-      <h1 className="mt-4 text-2xl font-semibold text-ink-900">Reservation requests</h1>
-      <p className="mt-2 text-sm text-slate-500">
+      <h1 className="mt-4 text-2xl font-semibold text-black">Reservation requests</h1>
+      <p className="mt-2 text-sm text-gray-500">
         {rows.length === 0
           ? "No open reservation requests."
           : `${rows.length} open request${rows.length === 1 ? "" : "s"}.`}
       </p>
 
       {rows.length === 0 ? (
-        <div className="mt-10 rounded-lg border border-dashed border-paper-200 bg-paper-100 p-10 text-center">
-          <p className="text-ink-900">Nothing to action.</p>
-          <p className="mt-1 text-sm text-slate-500">
+        <div className="mt-10 rounded-lg border border-dashed border-gray-200 bg-white p-10 text-center">
+          <p className="text-black">Nothing to action.</p>
+          <p className="mt-1 text-sm text-gray-500">
             Buyer reservation requests from vehicle pages will show up here.
           </p>
         </div>
@@ -167,11 +167,11 @@ export default async function AdminReservationsPage() {
             return (
               <li
                 key={r.id}
-                className="rounded-lg border border-paper-200 bg-paper-100 p-5"
+                className="rounded-lg border border-gray-200 bg-white p-5"
               >
                 <div className="flex items-start justify-between gap-4">
                   <div>
-                    <h2 className="text-lg font-semibold text-ink-900">
+                    <h2 className="text-lg font-semibold text-black">
                       {vehicle ? (
                         <Link
                           href={`/browse/${r.vehicle_id}`}
@@ -184,7 +184,7 @@ export default async function AdminReservationsPage() {
                       )}
                     </h2>
                     {vehicle ? (
-                      <p className="mt-1 font-mono text-sm text-ink-400">
+                      <p className="mt-1 font-mono text-sm text-gray-500">
                         {usd.format(Number(vehicle.price_usd))} · VIN{" "}
                         {vehicle.vehicle_vin_display}
                         {vehicle.status !== "approved"
@@ -265,7 +265,7 @@ export default async function AdminReservationsPage() {
                           href={proofUrl}
                           target="_blank"
                           rel="noopener noreferrer"
-                          className="mt-3 inline-block text-sm text-marine-700 underline underline-offset-2"
+                          className="mt-3 inline-block text-sm text-black underline underline-offset-2"
                         >
                           View proof (PDF) &rarr;
                         </a>
@@ -280,7 +280,7 @@ export default async function AdminReservationsPage() {
                           <img
                             src={proofUrl}
                             alt="Bank transfer proof"
-                            className="max-h-64 rounded border border-paper-200 object-contain"
+                            className="max-h-64 rounded border border-gray-200 object-contain"
                           />
                         </a>
                       )

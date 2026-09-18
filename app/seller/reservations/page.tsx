@@ -85,21 +85,21 @@ export default async function SellerReservationsPage() {
     <main className="mx-auto max-w-4xl px-6 py-16">
       <Link
         href="/seller/dashboard"
-        className="font-mono text-xs uppercase tracking-wider text-ink-400 hover:text-ink-900"
+        className="font-mono text-xs uppercase tracking-wider text-gray-500 hover:text-black"
       >
         &larr; Seller dashboard
       </Link>
-      <h1 className="mt-4 text-2xl font-semibold text-ink-900">Reservations</h1>
-      <p className="mt-2 text-sm text-slate-500">
+      <h1 className="mt-4 text-2xl font-semibold text-black">Reservations</h1>
+      <p className="mt-2 text-sm text-gray-500">
         {reservations.length === 0
           ? "No reservations against your listings yet."
           : `${reservations.length} reservation${reservations.length === 1 ? "" : "s"}.`}
       </p>
 
       {reservations.length === 0 ? (
-        <div className="mt-10 rounded-lg border border-dashed border-paper-200 bg-paper-100 p-10 text-center">
-          <p className="text-ink-900">Nothing here yet.</p>
-          <p className="mt-1 text-sm text-slate-500">
+        <div className="mt-10 rounded-lg border border-dashed border-gray-200 bg-white p-10 text-center">
+          <p className="text-black">Nothing here yet.</p>
+          <p className="mt-1 text-sm text-gray-500">
             When a buyer reserves one of your listings, it shows up here.
           </p>
         </div>
@@ -126,11 +126,11 @@ export default async function SellerReservationsPage() {
             return (
               <li
                 key={r.id}
-                className="rounded-lg border border-paper-200 bg-paper-100 p-5"
+                className="rounded-lg border border-gray-200 bg-white p-5"
               >
                 <div className="flex items-start justify-between gap-4">
                   <div>
-                    <h2 className="text-lg font-semibold text-ink-900">
+                    <h2 className="text-lg font-semibold text-black">
                       {vehicle ? (
                         <Link href={`/browse/${r.vehicle_id}`} className="hover:underline">
                           {title}
@@ -140,16 +140,16 @@ export default async function SellerReservationsPage() {
                       )}
                     </h2>
                     {price != null ? (
-                      <p className="mt-1 font-mono text-sm text-ink-400">
+                      <p className="mt-1 font-mono text-sm text-gray-500">
                         {usd.format(price)}
                       </p>
                     ) : null}
                   </div>
-                  <span className="font-mono text-xs uppercase tracking-wider text-ink-400">
+                  <span className="font-mono text-xs uppercase tracking-wider text-gray-500">
                     {submitted.format(new Date(r.created_at))}
                   </span>
                 </div>
-                <p className="mt-2 text-sm text-slate-500">
+                <p className="mt-2 text-sm text-gray-500">
                   {RESERVATION_STATUS_COPY[r.status] ?? r.status}
                 </p>
                 {r.mova_fee_payment_status === "paid" ? (

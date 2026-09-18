@@ -47,7 +47,7 @@ export function ReservationActions({
   const [rejectingBankTransfer, setRejectingBankTransfer] = useState(false);
 
   return (
-    <div className="mt-4 flex flex-wrap items-center gap-3 border-t border-paper-200 pt-4">
+    <div className="mt-4 flex flex-wrap items-center gap-3 border-t border-gray-200 pt-4">
       {canReview ? (
         <form action={markReservationUnderReview}>
           <input type="hidden" name="id" value={requestId} />
@@ -108,7 +108,7 @@ export function ReservationActions({
         >
           <input type="hidden" name="id" value={requestId} />
           <label className="flex flex-col gap-1">
-            <span className="text-sm text-slate-500">
+            <span className="text-sm text-gray-500">
               Reason (shown to the buyer) <span className="text-copper-700">*</span>
             </span>
             <textarea
@@ -116,7 +116,7 @@ export function ReservationActions({
               required
               rows={2}
               placeholder="e.g. amount doesn't match, reference code missing, transfer not received yet"
-              className="rounded border border-paper-200 bg-paper-100 px-3 py-2 text-sm text-ink-900"
+              className="rounded border border-gray-200 bg-white px-3 py-2 text-sm text-black"
             />
           </label>
           <div className="flex items-center gap-3">
@@ -126,7 +126,7 @@ export function ReservationActions({
             <button
               type="button"
               onClick={() => setRejectingBankTransfer(false)}
-              className="text-sm text-slate-500 hover:text-ink-900"
+              className="text-sm text-gray-500 hover:text-black"
             >
               Cancel
             </button>

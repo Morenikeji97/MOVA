@@ -62,9 +62,9 @@ export default async function SellerDashboard({
 
   return (
     <main className="mx-auto max-w-4xl px-6 py-16">
-      <h1 className="text-2xl font-semibold text-ink-900">Seller Dashboard</h1>
-      <p className="mt-2 text-slate-500">Signed in as {user?.email}</p>
-      <p className="mt-1 font-mono text-sm text-ink-400">
+      <h1 className="text-2xl font-semibold text-black">Seller Dashboard</h1>
+      <p className="mt-2 text-gray-500">Signed in as {user?.email}</p>
+      <p className="mt-1 font-mono text-sm text-gray-500">
         Verification status: {profile?.id_verification_status ?? "unverified"}
       </p>
       <div className="mt-8 flex flex-col items-start gap-3">
@@ -88,7 +88,7 @@ export default async function SellerDashboard({
             </span>
           ) : null}
         </Link>
-        <p className="text-sm text-slate-500">
+        <p className="text-sm text-gray-500">
           Photo upload and richer status tracking arrive later in Phase 1.
         </p>
       </div>

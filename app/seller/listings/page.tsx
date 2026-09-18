@@ -9,12 +9,12 @@ import { submitForReview } from "./actions";
 import { SubmitForReviewButton } from "./submit-for-review-button";
 
 const STATUS_META: Record<VehicleStatus, { label: string; pill: string }> = {
-  draft: { label: "Draft", pill: "bg-paper-200 text-ink-400" },
+  draft: { label: "Draft", pill: "bg-gray-100 text-gray-500" },
   pending_review: { label: "Pending review", pill: "bg-marine-50 text-marine-700" },
   approved: { label: "Approved", pill: "" },
   rejected: { label: "Rejected", pill: "bg-copper-50 text-copper-700" },
-  sold: { label: "Sold", pill: "bg-ink-100 text-ink-700" },
-  archived: { label: "Archived", pill: "bg-paper-200 text-ink-400" },
+  sold: { label: "Sold", pill: "bg-gray-100 text-gray-700" },
+  archived: { label: "Archived", pill: "bg-gray-100 text-gray-500" },
 };
 
 const usd = new Intl.NumberFormat("en-US", {
@@ -81,16 +81,16 @@ export default async function SellerListingsPage() {
   return (
     <main className="mx-auto max-w-4xl px-6 py-16">
       <div className="flex items-center justify-between gap-4">
-        <h1 className="text-2xl font-semibold text-ink-900">My listings</h1>
+        <h1 className="text-2xl font-semibold text-black">My listings</h1>
         <Link href="/seller/listings/new" className={buttonClasses({ size: "sm" })}>
           New listing
         </Link>
       </div>
 
       {rows.length === 0 ? (
-        <div className="mt-10 rounded-lg border border-dashed border-paper-200 bg-paper-100 p-10 text-center">
-          <p className="text-ink-900">No listings yet.</p>
-          <p className="mt-1 text-sm text-slate-500">
+        <div className="mt-10 rounded-lg border border-dashed border-gray-200 bg-white p-10 text-center">
+          <p className="text-black">No listings yet.</p>
+          <p className="mt-1 text-sm text-gray-500">
             Add your first vehicle to get it in front of buyers.
           </p>
           <Link
@@ -105,23 +105,23 @@ export default async function SellerListingsPage() {
           {rows.map((v) => (
             <li
               key={v.id}
-              className="rounded-lg border border-paper-200 bg-paper-100 p-5"
+              className="rounded-lg border border-gray-200 bg-white p-5"
             >
               <div className="flex items-start justify-between gap-4">
                 <div>
-                  <h2 className="text-lg font-semibold text-ink-900">
+                  <h2 className="text-lg font-semibold text-black">
                     {v.year} {v.make} {v.model}
                     {v.trim ? ` ${v.trim}` : ""}
                   </h2>
-                  <p className="mt-1 font-mono text-sm text-ink-400">
+                  <p className="mt-1 font-mono text-sm text-gray-500">
                     {usd.format(Number(v.price_usd))} · {v.mileage.toLocaleString("en-US")} mi ·{" "}
                     {v.location_city}, {v.location_state}
                   </p>
-                  <p className="mt-1 font-mono text-xs uppercase tracking-wider text-ink-400">
+                  <p className="mt-1 font-mono text-xs uppercase tracking-wider text-gray-500">
                     VIN {v.vehicle_vin_display}
                     {v.vin_decode_status === "mismatch" ? " · VIN mismatch flagged" : ""}
                   </p>
-                  <p className="mt-1 text-xs text-ink-400">
+                  <p className="mt-1 text-xs text-gray-500">
                     {FEE_LABEL[v.fee_responsibility]}
                   </p>
                 </div>

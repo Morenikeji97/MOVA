@@ -20,7 +20,7 @@ import {
 } from "./actions";
 
 const inputClass =
-  "h-10 rounded border border-paper-200 bg-paper-100 px-3 text-sm text-ink-900";
+  "h-10 rounded border border-gray-200 bg-white px-3 text-sm text-black";
 
 export interface ShipperRate {
   id: string;
@@ -141,9 +141,9 @@ export function AddRateForm() {
   return (
     <form
       action={addShipperRate}
-      className="mt-4 grid grid-cols-1 gap-2 rounded-lg border border-paper-200 bg-paper-100 p-4 sm:grid-cols-2"
+      className="mt-4 grid grid-cols-1 gap-2 rounded-lg border border-gray-200 bg-white p-4 sm:grid-cols-2"
     >
-      <p className="font-mono text-xs uppercase tracking-wider text-ink-400 sm:col-span-2">
+      <p className="font-mono text-xs uppercase tracking-wider text-gray-500 sm:col-span-2">
         Add a rate — buyers see the price exactly as entered
       </p>
       <RateFields />
@@ -161,7 +161,7 @@ function RateRow({ rate }: { rate: ShipperRate }) {
 
   if (editing) {
     return (
-      <li className="rounded-lg border border-marine bg-paper-100 p-4">
+      <li className="rounded-lg border border-black bg-white p-4">
         <form
           action={updateShipperRate}
           className="grid grid-cols-1 gap-2 sm:grid-cols-2"
@@ -175,7 +175,7 @@ function RateRow({ rate }: { rate: ShipperRate }) {
             <button
               type="button"
               onClick={() => setEditing(false)}
-              className="text-sm text-slate-500 hover:text-ink-900"
+              className="text-sm text-gray-500 hover:text-black"
             >
               Cancel
             </button>
@@ -186,9 +186,9 @@ function RateRow({ rate }: { rate: ShipperRate }) {
   }
 
   return (
-    <li className="flex flex-wrap items-center justify-between gap-3 rounded-lg border border-paper-200 bg-paper-100 p-4">
+    <li className="flex flex-wrap items-center justify-between gap-3 rounded-lg border border-gray-200 bg-white p-4">
       <div>
-        <p className="text-ink-900">
+        <p className="text-black">
           {rate.origin_region}
           {rate.origin_port ? ` (${rate.origin_port})` : ""} &rarr;{" "}
           {countryName(rate.destination_country)}
@@ -242,7 +242,7 @@ function RateRow({ rate }: { rate: ShipperRate }) {
 export function RateList({ rates }: { rates: ShipperRate[] }) {
   if (rates.length === 0) {
     return (
-      <p className="mt-4 rounded-lg border border-dashed border-paper-200 bg-paper-100 p-6 text-sm text-slate-500">
+      <p className="mt-4 rounded-lg border border-dashed border-gray-200 bg-white p-6 text-sm text-gray-500">
         No rates yet. Add one below — buyers shipping to a country you serve will
         see it at reservation time.
       </p>

@@ -57,12 +57,12 @@ export default async function EditListingPhotosPage({
     <main className="mx-auto max-w-3xl px-6 py-16">
       <Link
         href="/seller/listings"
-        className="font-mono text-xs uppercase tracking-wider text-ink-400 hover:text-ink-900"
+        className="font-mono text-xs uppercase tracking-wider text-gray-500 hover:text-black"
       >
         &larr; My listings
       </Link>
-      <h1 className="mt-4 text-2xl font-semibold text-ink-900">Edit photos</h1>
-      <p className="mt-1 text-slate-500">{title}</p>
+      <h1 className="mt-4 text-2xl font-semibold text-black">Edit photos</h1>
+      <p className="mt-1 text-gray-500">{title}</p>
 
       <div className="mt-8">
         <EditPhotosForm vehicleId={vehicle.id} initialPhotos={initialPhotos} />

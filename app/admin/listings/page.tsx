@@ -20,8 +20,8 @@ const submitted = new Intl.DateTimeFormat("en-US", {
 function Detail({ label, children }: { label: string; children: ReactNode }) {
   return (
     <div>
-      <dt className="font-mono text-xs uppercase tracking-wider text-ink-400">{label}</dt>
-      <dd className="text-ink-900">{children}</dd>
+      <dt className="font-mono text-xs uppercase tracking-wider text-gray-500">{label}</dt>
+      <dd className="text-black">{children}</dd>
     </div>
   );
 }
@@ -78,21 +78,21 @@ export default async function AdminListingReviewPage() {
     <main className="mx-auto max-w-4xl px-6 py-16">
       <Link
         href="/admin/dashboard"
-        className="font-mono text-xs uppercase tracking-wider text-ink-400 hover:text-ink-900"
+        className="font-mono text-xs uppercase tracking-wider text-gray-500 hover:text-black"
       >
         &larr; Admin dashboard
       </Link>
-      <h1 className="mt-4 text-2xl font-semibold text-ink-900">Listing review queue</h1>
-      <p className="mt-2 text-sm text-slate-500">
+      <h1 className="mt-4 text-2xl font-semibold text-black">Listing review queue</h1>
+      <p className="mt-2 text-sm text-gray-500">
         {rows.length === 0
           ? "Nothing waiting for review right now."
           : `${rows.length} listing${rows.length === 1 ? "" : "s"} awaiting review.`}
       </p>
 
       {rows.length === 0 ? (
-        <div className="mt-10 rounded-lg border border-dashed border-paper-200 bg-paper-100 p-10 text-center">
-          <p className="text-ink-900">The queue is clear.</p>
-          <p className="mt-1 text-sm text-slate-500">
+        <div className="mt-10 rounded-lg border border-dashed border-gray-200 bg-white p-10 text-center">
+          <p className="text-black">The queue is clear.</p>
+          <p className="mt-1 text-sm text-gray-500">
             New submissions from sellers will show up here.
           </p>
         </div>
@@ -108,20 +108,20 @@ export default async function AdminListingReviewPage() {
             return (
               <li
                 key={v.id}
-                className="rounded-lg border border-paper-200 bg-paper-100 p-5"
+                className="rounded-lg border border-gray-200 bg-white p-5"
               >
                 <div className="flex items-start justify-between gap-4">
                   <div>
-                    <h2 className="text-lg font-semibold text-ink-900">
+                    <h2 className="text-lg font-semibold text-black">
                       {v.year} {v.make} {v.model}
                       {v.trim ? ` ${v.trim}` : ""}
                     </h2>
-                    <p className="mt-1 font-mono text-sm text-ink-400">
+                    <p className="mt-1 font-mono text-sm text-gray-500">
                       {usd.format(Number(v.price_usd))} ·{" "}
                       {v.mileage.toLocaleString("en-US")} mi · {v.location_city},{" "}
                       {v.location_state}
                     </p>
-                    <p className="mt-1 font-mono text-xs uppercase tracking-wider text-ink-400">
+                    <p className="mt-1 font-mono text-xs uppercase tracking-wider text-gray-500">
                       VIN {v.vehicle_vin_display}
                       {v.vin_decode_status === "mismatch"
                         ? " · VIN mismatch flagged"
@@ -160,7 +160,7 @@ export default async function AdminListingReviewPage() {
                 </dl>
 
                 {v.description ? (
-                  <p className="mt-3 whitespace-pre-line text-sm text-slate-500">
+                  <p className="mt-3 whitespace-pre-line text-sm text-gray-500">
                     {v.description}
                   </p>
                 ) : null}
@@ -175,7 +175,7 @@ export default async function AdminListingReviewPage() {
                         alt={`${v.year} ${v.make} ${v.model} photo ${i + 1}`}
                         className={cn(
                           "h-28 w-40 shrink-0 rounded border object-cover",
-                          p.is_primary ? "border-marine" : "border-paper-200"
+                          p.is_primary ? "border-black" : "border-gray-200"
                         )}
                       />
                     ))}
@@ -185,7 +185,7 @@ export default async function AdminListingReviewPage() {
                 )}
 
                 <div className="mt-4">
-                  <p className="font-mono text-xs uppercase tracking-wider text-ink-400">
+                  <p className="font-mono text-xs uppercase tracking-wider text-gray-500">
                     Title photo
                   </p>
                   {titlePhotoUrl ? (
@@ -194,7 +194,7 @@ export default async function AdminListingReviewPage() {
                         href={titlePhotoUrl}
                         target="_blank"
                         rel="noopener noreferrer"
-                        className="mt-1 inline-block text-sm text-marine-700 underline underline-offset-2"
+                        className="mt-1 inline-block text-sm text-black underline underline-offset-2"
                       >
                         View title photo (PDF) &rarr;
                       </a>
@@ -204,7 +204,7 @@ export default async function AdminListingReviewPage() {
                         <img
                           src={titlePhotoUrl}
                           alt={`Title document for ${v.year} ${v.make} ${v.model}`}
-                          className="mt-1 h-28 w-40 rounded border border-paper-200 object-cover"
+                          className="mt-1 h-28 w-40 rounded border border-gray-200 object-cover"
                         />
                       </a>
                     )

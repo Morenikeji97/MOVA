@@ -59,10 +59,10 @@ export async function SellerReviewHub({ userId }: { userId: string }) {
 
   return (
     <section className="mt-10">
-      <h2 className="text-lg font-semibold text-ink-900">Reviews</h2>
+      <h2 className="text-lg font-semibold text-black">Reviews</h2>
 
-      <div className="mt-3 rounded-lg border border-paper-200 bg-paper-100 p-5">
-        <p className="font-mono text-xs uppercase tracking-wider text-ink-400">
+      <div className="mt-3 rounded-lg border border-gray-200 bg-white p-5">
+        <p className="font-mono text-xs uppercase tracking-wider text-gray-500">
           Your seller rating
         </p>
         <div className="mt-1">
@@ -76,11 +76,11 @@ export async function SellerReviewHub({ userId }: { userId: string }) {
       </div>
 
       <div className="mt-4">
-        <p className="font-mono text-xs uppercase tracking-wider text-ink-400">
+        <p className="font-mono text-xs uppercase tracking-wider text-gray-500">
           Reviews you can leave
         </p>
         {openPr.length === 0 ? (
-          <p className="mt-2 text-sm text-slate-500">
+          <p className="mt-2 text-sm text-gray-500">
             Nothing to review yet — you can review a buyer once they&rsquo;ve
             paid MOVA&rsquo;s fee on one of your vehicles.
           </p>

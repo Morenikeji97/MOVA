@@ -4,7 +4,6 @@ import { notFound } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
 import { VEHICLE_DETAIL_COLUMNS } from "@/lib/listings";
 import { cn } from "@/lib/utils";
-import { buttonClasses } from "@/components/ui/button";
 import { VerifiedBadge } from "@/components/ui/verified-badge";
 import { PriceBreakdown } from "@/components/ui/price-breakdown";
 import { feeBreakdown } from "@/lib/fees";
@@ -17,34 +16,11 @@ import { ReserveVehicle, type ReserveState } from "./reserve-vehicle";
 import { MessageSeller } from "./message-seller";
 import { ShippingRates, type PublicRate } from "./shipping-rates";
 
-function BrowseHeader() {
-  return (
-    <header className="border-b border-paper-200 bg-paper-100">
-      <div className="mx-auto flex max-w-6xl items-center justify-between px-6 py-4">
-        <Link href="/" className="font-mono text-sm font-semibold uppercase tracking-widest text-ink-900">
-          MOVA
-        </Link>
-        <nav className="flex items-center gap-4 text-sm">
-          <Link href="/shipper" className="text-slate-500 hover:text-ink-900">
-            Shippers
-          </Link>
-          <Link href="/login" className="text-slate-500 hover:text-ink-900">
-            Sign in
-          </Link>
-          <Link href="/signup" className={buttonClasses({ size: "sm" })}>
-            Create account
-          </Link>
-        </nav>
-      </div>
-    </header>
-  );
-}
-
 function Spec({ label, children }: { label: string; children: ReactNode }) {
   return (
     <div className="flex flex-col gap-0.5">
-      <dt className="font-mono text-xs uppercase tracking-wider text-ink-400">{label}</dt>
-      <dd className="text-ink-900">{children}</dd>
+      <dt className="font-mono text-xs uppercase tracking-wider text-gray-500">{label}</dt>
+      <dd className="text-black">{children}</dd>
     </div>
   );
 }
@@ -239,19 +215,17 @@ export default async function VehicleDetailPage({
   const title = `${v.year} ${v.make} ${v.model}${v.trim ? ` ${v.trim}` : ""}`;
 
   return (
-    <div className="min-h-screen bg-paper">
-      <BrowseHeader />
-
+    <div className="min-h-screen bg-white">
       <main className="mx-auto max-w-4xl px-6 py-12">
         <Link
           href="/browse"
-          className="font-mono text-xs uppercase tracking-wider text-ink-400 hover:text-ink-900"
+          className="font-mono text-xs uppercase tracking-wider text-gray-500 hover:text-black"
         >
           &larr; Back to browse
         </Link>
 
         <div className="mt-4 flex flex-wrap items-start justify-between gap-3">
-          <h1 className="text-2xl font-semibold text-ink-900">{title}</h1>
+          <h1 className="text-2xl font-semibold text-black">{title}</h1>
           <div className="flex flex-wrap items-center gap-2">
             <VerifiedBadge />
             {v.vin_verification_status === "verified" ? (
@@ -273,12 +247,12 @@ export default async function VehicleDetailPage({
           variant="detail"
           className="mt-3 max-w-xs"
         />
-        <p className="mt-2 font-mono text-sm text-ink-400">
+        <p className="mt-2 font-mono text-sm text-gray-500">
           {v.mileage.toLocaleString("en-US")} mi · {v.location_city}, {v.location_state}
         </p>
         <div className="mt-2">
           <RatingSummary aggregate={sellerAggregate} />
-          <span className="ml-1 font-mono text-xs text-ink-400">seller rating</span>
+          <span className="ml-1 font-mono text-xs text-gray-500">seller rating</span>
         </div>
 
         {gallery.length > 0 ? (
@@ -290,14 +264,14 @@ export default async function VehicleDetailPage({
                 src={p.url}
                 alt={`${title} photo ${i + 1}`}
                 className={cn(
-                  "w-full rounded-lg border border-paper-200 object-cover",
+                  "w-full rounded-lg border border-gray-200 object-cover",
                   i === 0 ? "aspect-[16/10] sm:col-span-2" : "aspect-[4/3]"
                 )}
               />
             ))}
           </div>
         ) : (
-          <div className="mt-6 rounded-lg border border-dashed border-paper-200 bg-paper-100 p-12 text-center font-mono text-xs uppercase tracking-wider text-ink-400">
+          <div className="mt-6 rounded-lg border border-dashed border-gray-200 bg-white p-12 text-center font-mono text-xs uppercase tracking-wider text-gray-500">
             No photos provided
           </div>
         )}
@@ -308,7 +282,7 @@ export default async function VehicleDetailPage({
             <video
               src={video.url}
               controls
-              className="aspect-video w-full rounded-lg border border-paper-200 bg-black object-contain"
+              className="aspect-video w-full rounded-lg border border-gray-200 bg-black object-contain"
             />
           </div>
         ) : null}
@@ -335,10 +309,10 @@ export default async function VehicleDetailPage({
 
         {v.description ? (
           <section className="mt-8">
-            <h2 className="font-mono text-xs uppercase tracking-wider text-ink-400">
+            <h2 className="font-mono text-xs uppercase tracking-wider text-gray-500">
               Description
             </h2>
-            <p className="mt-2 whitespace-pre-line text-sm text-slate-500">
+            <p className="mt-2 whitespace-pre-line text-sm text-gray-500">
               {v.description}
             </p>
           </section>
@@ -378,7 +352,7 @@ export default async function VehicleDetailPage({
         ) : null}
 
         <section className="mt-12">
-          <h2 className="font-mono text-xs uppercase tracking-wider text-ink-400">
+          <h2 className="font-mono text-xs uppercase tracking-wider text-gray-500">
             Seller reviews
           </h2>
           <div className="mt-2">

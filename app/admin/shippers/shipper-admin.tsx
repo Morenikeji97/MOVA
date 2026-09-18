@@ -13,7 +13,7 @@ import {
 } from "./actions";
 
 const inputClass =
-  "h-10 rounded border border-paper-200 bg-paper-100 px-3 text-sm text-ink-900";
+  "h-10 rounded border border-gray-200 bg-white px-3 text-sm text-black";
 
 function PendingButton({
   children,
@@ -32,12 +32,12 @@ export function ShipperReviewActions({ shipperId }: { shipperId: string }) {
   const [rejecting, setRejecting] = useState(false);
 
   return (
-    <div className="mt-4 border-t border-paper-200 pt-4">
+    <div className="mt-4 border-t border-gray-200 pt-4">
       {rejecting ? (
         <form action={rejectShipper} className="flex flex-col gap-2">
           <input type="hidden" name="id" value={shipperId} />
           <label className="flex flex-col gap-1">
-            <span className="text-sm text-slate-500">
+            <span className="text-sm text-gray-500">
               Reason for rejection <span className="text-copper-700">*</span>
             </span>
             <textarea
@@ -45,7 +45,7 @@ export function ShipperReviewActions({ shipperId }: { shipperId: string }) {
               required
               rows={3}
               placeholder="Tell the applicant what's missing (e.g. FMC OTI license can't be verified)."
-              className="rounded border border-paper-200 bg-paper-100 px-3 py-2 text-ink-900"
+              className="rounded border border-gray-200 bg-white px-3 py-2 text-black"
             />
           </label>
           <div className="flex items-center gap-3">
@@ -55,7 +55,7 @@ export function ShipperReviewActions({ shipperId }: { shipperId: string }) {
             <button
               type="button"
               onClick={() => setRejecting(false)}
-              className="text-sm text-slate-500 hover:text-ink-900"
+              className="text-sm text-gray-500 hover:text-black"
             >
               Cancel
             </button>

@@ -105,14 +105,14 @@ export default async function AdminBlockedMessagesPage() {
     <main className="mx-auto max-w-4xl px-6 py-16">
       <Link
         href="/admin/dashboard"
-        className="font-mono text-xs uppercase tracking-wider text-ink-400 hover:text-ink-900"
+        className="font-mono text-xs uppercase tracking-wider text-gray-500 hover:text-black"
       >
         &larr; Admin dashboard
       </Link>
-      <h1 className="mt-4 text-2xl font-semibold text-ink-900">
+      <h1 className="mt-4 text-2xl font-semibold text-black">
         Blocked contact-info attempts
       </h1>
-      <p className="mt-2 text-sm text-slate-500">
+      <p className="mt-2 text-sm text-gray-500">
         {blocked.length === 0
           ? "No blocked attempts recorded."
           : `${blocked.length} blocked message${
@@ -138,9 +138,9 @@ export default async function AdminBlockedMessagesPage() {
       ) : null}
 
       {blocked.length === 0 ? (
-        <div className="mt-10 rounded-lg border border-dashed border-paper-200 bg-paper-100 p-10 text-center">
-          <p className="text-ink-900">Nothing flagged.</p>
-          <p className="mt-1 text-sm text-slate-500">
+        <div className="mt-10 rounded-lg border border-dashed border-gray-200 bg-white p-10 text-center">
+          <p className="text-black">Nothing flagged.</p>
+          <p className="mt-1 text-sm text-gray-500">
             Messages that trip the contact-info filter will appear here.
           </p>
         </div>
@@ -174,15 +174,15 @@ export default async function AdminBlockedMessagesPage() {
             return (
               <li
                 key={m.id}
-                className="rounded-lg border border-paper-200 bg-paper-100 p-5"
+                className="rounded-lg border border-gray-200 bg-white p-5"
               >
                 <div className="flex flex-wrap items-start justify-between gap-2">
                   <div>
-                    <p className="text-sm font-semibold text-ink-900">
+                    <p className="text-sm font-semibold text-black">
                       {senderEmail}{" "}
-                      <span className="font-normal text-ink-400">({role})</span>
+                      <span className="font-normal text-gray-500">({role})</span>
                     </p>
-                    <p className="mt-0.5 font-mono text-xs uppercase tracking-wider text-ink-400">
+                    <p className="mt-0.5 font-mono text-xs uppercase tracking-wider text-gray-500">
                       {title}
                       {convo
                         ? ` · buyer ${emailById.get(convo.buyer_id) ?? "—"} · seller ${
@@ -191,7 +191,7 @@ export default async function AdminBlockedMessagesPage() {
                         : ""}
                     </p>
                   </div>
-                  <span className="font-mono text-[11px] text-ink-400">
+                  <span className="font-mono text-[11px] text-gray-500">
                     {stamp.format(new Date(m.created_at))}
                   </span>
                 </div>
@@ -209,14 +209,14 @@ export default async function AdminBlockedMessagesPage() {
                     {scan.categories.map((c) => (
                       <span
                         key={c}
-                        className="inline-flex items-center rounded-full bg-paper-200 px-2 py-0.5 font-mono text-[11px] text-ink-400"
+                        className="inline-flex items-center rounded-full bg-gray-100 px-2 py-0.5 font-mono text-[11px] text-gray-500"
                       >
                         {CATEGORY_LABEL[c]}
                       </span>
                     ))}
                   </div>
                 ) : null}
-                <p className="mt-3 whitespace-pre-wrap break-words rounded border border-paper-200 bg-paper p-3 text-sm text-slate-500">
+                <p className="mt-3 whitespace-pre-wrap break-words rounded border border-gray-200 bg-white p-3 text-sm text-gray-500">
                   {m.content}
                 </p>
               </li>

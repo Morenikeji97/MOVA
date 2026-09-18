@@ -37,31 +37,31 @@ export function ShipperProfileForm({
       className="flex flex-col gap-4"
     >
       <label className="flex flex-col gap-1">
-        <span className="text-sm text-slate-500">Company name</span>
+        <span className="text-sm text-gray-500">Company name</span>
         <input
           type="text"
           name="companyName"
           required
           defaultValue={companyName}
-          className="h-11 rounded border border-paper-200 px-3"
+          className="h-11 rounded border border-gray-200 px-3"
         />
       </label>
 
       <label className="flex flex-col gap-1">
-        <span className="text-sm text-slate-500">
-          Description <span className="text-ink-400">(shown on your public profile)</span>
+        <span className="text-sm text-gray-500">
+          Description <span className="text-gray-500">(shown on your public profile)</span>
         </span>
         <textarea
           name="description"
           rows={4}
           defaultValue={description}
           placeholder="A short description of your service — years in business, typical transit time, what makes you reliable."
-          className="rounded border border-paper-200 px-3 py-2 text-sm"
+          className="rounded border border-gray-200 px-3 py-2 text-sm"
         />
       </label>
 
       <fieldset>
-        <legend className="text-sm text-slate-500">Countries you ship to</legend>
+        <legend className="text-sm text-gray-500">Countries you ship to</legend>
         <div className="mt-2 flex flex-wrap gap-2">
           {SERVICE_COUNTRIES.map((c) => {
             const checked = selected.has(c.code);
@@ -70,8 +70,8 @@ export function ShipperProfileForm({
                 key={c.code}
                 className={`flex h-11 cursor-pointer items-center gap-2 rounded border px-4 text-sm font-medium ${
                   checked
-                    ? "border-marine bg-marine-50 text-marine-700"
-                    : "border-paper-200 text-slate-500"
+                    ? "border-black bg-gray-100 text-black"
+                    : "border-gray-200 text-gray-500"
                 }`}
               >
                 <input

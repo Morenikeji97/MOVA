@@ -42,28 +42,28 @@ export function PriceBreakdown({
         className,
       )}
     >
-      <div className="flex items-baseline justify-between gap-4 text-slate-500">
+      <div className="flex items-baseline justify-between gap-4 text-gray-500">
         <dt>Vehicle price</dt>
         <dd className="font-mono">{usd.format(b.vehiclePrice)}</dd>
       </div>
-      <div className="flex items-baseline justify-between gap-4 text-slate-500">
+      <div className="flex items-baseline justify-between gap-4 text-gray-500">
         <dt>
           MOVA service fee ({b.buyerRatePct}%)
           {b.split ? (
-            <span className="text-ink-400"> · seller covers the other 4%</span>
+            <span className="text-gray-500"> · seller covers the other 4%</span>
           ) : null}
         </dt>
         <dd className="font-mono">{usd.format(b.buyerFee)}</dd>
       </div>
       {shipping ? (
-        <div className="flex items-baseline justify-between gap-4 text-slate-500">
+        <div className="flex items-baseline justify-between gap-4 text-gray-500">
           <dt>Shipping ({shipping.label})</dt>
           <dd className="font-mono">{usd.format(shipping.cost)}</dd>
         </div>
       ) : null}
       <div
         className={cn(
-          "mt-1 flex items-baseline justify-between gap-4 border-t border-paper-200 pt-1 font-semibold text-ink-900",
+          "mt-1 flex items-baseline justify-between gap-4 border-t border-gray-200 pt-1 font-semibold text-black",
           detail ? "text-lg" : "text-sm",
         )}
       >

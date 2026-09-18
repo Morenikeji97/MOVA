@@ -55,7 +55,7 @@ export function AcceptPricePrompt({
         Seller proposed {usd.format(negotiatedPriceUsd)}, down from{" "}
         {usd.format(listingPriceUsd)}
       </p>
-      <p className="mt-1 text-sm text-slate-500">
+      <p className="mt-1 text-sm text-gray-500">
         Accepting locks in this price for your reservation — MOVA&rsquo;s service
         fee will be calculated from it instead of the listing price.
       </p>

@@ -34,8 +34,8 @@ function StatusButton({
       className={cn(
         "h-11 flex-1 min-w-[7.5rem] rounded border text-sm font-medium transition-colors disabled:opacity-100",
         active
-          ? "border-marine bg-marine text-white"
-          : "border-paper-200 bg-paper-100 text-ink-900 hover:border-marine-400",
+          ? "border-black bg-black text-white"
+          : "border-gray-200 bg-white text-black hover:border-black",
         pending && !active && "opacity-50",
       )}
     >

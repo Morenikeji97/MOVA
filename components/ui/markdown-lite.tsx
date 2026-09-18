@@ -20,14 +20,14 @@ export function MarkdownLite({ source }: { source: string }) {
 
         if (lines[0].startsWith("## ")) {
           return (
-            <h2 key={i} className="mt-8 text-lg font-semibold text-ink-900">
+            <h2 key={i} className="mt-8 text-lg font-semibold text-black">
               {lines[0].slice(3)}
             </h2>
           );
         }
         if (lines[0].startsWith("# ")) {
           return (
-            <h1 key={i} className="text-2xl font-semibold text-ink-900">
+            <h1 key={i} className="text-2xl font-semibold text-black">
               {lines[0].slice(2)}
             </h1>
           );
@@ -38,14 +38,14 @@ export function MarkdownLite({ source }: { source: string }) {
             (lines[0].startsWith("*") && lines[0].endsWith("*")))
         ) {
           return (
-            <p key={i} className="mt-2 text-sm italic text-ink-400">
+            <p key={i} className="mt-2 text-sm italic text-gray-500">
               {lines[0].slice(1, -1)}
             </p>
           );
         }
         if (lines.every((l) => l.startsWith("- "))) {
           return (
-            <ul key={i} className="mt-3 list-disc space-y-1 pl-5 text-sm text-slate-500">
+            <ul key={i} className="mt-3 list-disc space-y-1 pl-5 text-sm text-gray-500">
               {lines.map((l, j) => (
                 <li key={j}>{l.slice(2)}</li>
               ))}
@@ -53,7 +53,7 @@ export function MarkdownLite({ source }: { source: string }) {
           );
         }
         return (
-          <p key={i} className="mt-3 text-sm text-slate-500">
+          <p key={i} className="mt-3 text-sm text-gray-500">
             {lines.join(" ")}
           </p>
         );

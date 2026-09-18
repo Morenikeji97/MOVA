@@ -37,9 +37,9 @@ export function FeePaymentConsent({
   }
 
   return (
-    <div className="mt-3 rounded border border-paper-200 bg-paper p-3 text-sm text-ink-900">
+    <div className="mt-3 rounded border border-gray-200 bg-white p-3 text-sm text-black">
       <p className="font-medium">Refund terms, in brief</p>
-      <ul className="mt-1.5 list-disc space-y-1 pl-5 text-slate-500">
+      <ul className="mt-1.5 list-disc space-y-1 pl-5 text-gray-500">
         <li>Full refund if you cancel before the seller&rsquo;s contact is revealed.</li>
         <li>
           No refund after contact is revealed — except for seller misrepresentation, a MOVA
@@ -50,7 +50,7 @@ export function FeePaymentConsent({
             href={BUYER_PROTECTION_POLICY_PATH}
             target="_blank"
             rel="noopener noreferrer"
-            className="text-marine-700 underline underline-offset-2"
+            className="text-black underline underline-offset-2"
           >
             Read the full Buyer Protection &amp; Refund Policy
           </Link>

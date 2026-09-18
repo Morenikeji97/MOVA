@@ -38,7 +38,7 @@ export function ReviewForm({
 
   return (
     <form
-      className="rounded-lg border border-paper-200 bg-paper-100 p-4"
+      className="rounded-lg border border-gray-200 bg-white p-4"
       onSubmit={async (e) => {
         e.preventDefault();
         if (!rating || sending) return;
@@ -57,7 +57,7 @@ export function ReviewForm({
         }
       }}
     >
-      <p className="text-sm font-semibold text-ink-900">
+      <p className="text-sm font-semibold text-black">
         Rate your experience with {counterpartyLabel}
       </p>
 
@@ -71,7 +71,7 @@ export function ReviewForm({
         rows={3}
         maxLength={REVIEW_COMMENT_MAX}
         placeholder="How did it go? (optional)"
-        className="mt-3 w-full resize-y rounded border border-paper-200 bg-paper-100 px-3 py-2 text-sm text-ink-900 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-marine-400"
+        className="mt-3 w-full resize-y rounded border border-gray-200 bg-white px-3 py-2 text-sm text-black focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-black"
       />
 
       {blockReason ? (
@@ -85,7 +85,7 @@ export function ReviewForm({
         <Button type="submit" size="sm" disabled={!rating || sending}>
           {sending ? "Submitting…" : "Submit review"}
         </Button>
-        <span className="font-mono text-[11px] text-ink-400">
+        <span className="font-mono text-[11px] text-gray-500">
           Phone numbers, emails and links aren&rsquo;t allowed in reviews.
         </span>
       </div>

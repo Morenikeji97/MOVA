@@ -43,10 +43,10 @@ const CHARGE_LABEL: Record<CommissionChargeStatus, string> = {
 function Detail({ label, children }: { label: string; children: ReactNode }) {
   return (
     <div>
-      <dt className="font-mono text-xs uppercase tracking-wider text-ink-400">
+      <dt className="font-mono text-xs uppercase tracking-wider text-gray-500">
         {label}
       </dt>
-      <dd className="text-ink-900">{children}</dd>
+      <dd className="text-black">{children}</dd>
     </div>
   );
 }
@@ -114,30 +114,30 @@ export default async function AdminShipmentsPage() {
     <main className="mx-auto max-w-5xl px-6 py-16">
       <Link
         href="/admin/dashboard"
-        className="font-mono text-xs uppercase tracking-wider text-ink-400 hover:text-ink-900"
+        className="font-mono text-xs uppercase tracking-wider text-gray-500 hover:text-black"
       >
         &larr; Admin dashboard
       </Link>
-      <h1 className="mt-4 text-2xl font-semibold text-ink-900">
+      <h1 className="mt-4 text-2xl font-semibold text-black">
         Shipments &amp; commission
       </h1>
-      <p className="mt-2 text-sm text-slate-500">
+      <p className="mt-2 text-sm text-gray-500">
         Every buyer&rarr;shipper shipment request, and what each shipper owes
         MOVA in commission.
       </p>
 
       {/* Per-shipper commission summary */}
       <section className="mt-8">
-        <h2 className="font-mono text-xs uppercase tracking-wider text-ink-400">
+        <h2 className="font-mono text-xs uppercase tracking-wider text-gray-500">
           Per-shipper commission
         </h2>
         {shipperIds.length === 0 ? (
-          <p className="mt-3 text-sm text-slate-500">No shipment requests yet.</p>
+          <p className="mt-3 text-sm text-gray-500">No shipment requests yet.</p>
         ) : (
           <div className="mt-3 overflow-x-auto">
             <table className="w-full min-w-[36rem] text-sm">
               <thead>
-                <tr className="text-left font-mono text-xs uppercase tracking-wider text-ink-400">
+                <tr className="text-left font-mono text-xs uppercase tracking-wider text-gray-500">
                   <th className="py-2 pr-4">Shipper</th>
                   <th className="py-2 pr-4">Standing</th>
                   <th className="py-2 pr-4">Pending</th>
@@ -155,8 +155,8 @@ export default async function AdminShipmentsPage() {
                   const ps = (shipper?.payment_status ??
                     "good_standing") as ShipperPaymentStatus;
                   return (
-                    <tr key={sid} className="border-t border-paper-200">
-                      <td className="py-2 pr-4 text-ink-900">
+                    <tr key={sid} className="border-t border-gray-200">
+                      <td className="py-2 pr-4 text-black">
                         {shipper?.company_name ?? "—"}
                       </td>
                       <td className="py-2 pr-4">
@@ -166,7 +166,7 @@ export default async function AdminShipmentsPage() {
                           {PAYMENT_STATUS_LABEL[ps]}
                         </span>
                       </td>
-                      <td className="py-2 pr-4 text-ink-900">
+                      <td className="py-2 pr-4 text-black">
                         {money(t.owed, t.currency)}
                       </td>
                       <td className="py-2 pr-4 text-verified-600">
@@ -179,7 +179,7 @@ export default async function AdminShipmentsPage() {
                         {ps === "suspended" ? (
                           <ReinstateShipperButton shipperId={sid} />
                         ) : (
-                          <span className="text-ink-400">—</span>
+                          <span className="text-gray-500">—</span>
                         )}
                       </td>
                     </tr>
@@ -193,14 +193,14 @@ export default async function AdminShipmentsPage() {
 
       {/* All shipment requests */}
       <section className="mt-12">
-        <h2 className="font-mono text-xs uppercase tracking-wider text-ink-400">
+        <h2 className="font-mono text-xs uppercase tracking-wider text-gray-500">
           All shipment requests ({requests.length})
         </h2>
 
         {requests.length === 0 ? (
-          <div className="mt-4 rounded-lg border border-dashed border-paper-200 bg-paper-100 p-10 text-center">
-            <p className="text-ink-900">No shipment requests yet.</p>
-            <p className="mt-1 text-sm text-slate-500">
+          <div className="mt-4 rounded-lg border border-dashed border-gray-200 bg-white p-10 text-center">
+            <p className="text-black">No shipment requests yet.</p>
+            <p className="mt-1 text-sm text-gray-500">
               These are created when a buyer selects a shipper at reservation.
             </p>
           </div>
@@ -218,11 +218,11 @@ export default async function AdminShipmentsPage() {
               return (
                 <li
                   key={r.id}
-                  className="rounded-lg border border-paper-200 bg-paper-100 p-5"
+                  className="rounded-lg border border-gray-200 bg-white p-5"
                 >
                   <div className="flex flex-wrap items-start justify-between gap-3">
                     <div>
-                      <h3 className="text-lg font-semibold text-ink-900">
+                      <h3 className="text-lg font-semibold text-black">
                         {shipper?.company_name ?? "Shipper unavailable"}
                         {shipper && !shipper.card_on_file ? (
                           <span className="ml-2 align-middle text-xs font-normal text-copper-700">
@@ -230,7 +230,7 @@ export default async function AdminShipmentsPage() {
                           </span>
                         ) : null}
                       </h3>
-                      <p className="mt-1 font-mono text-sm text-ink-400">
+                      <p className="mt-1 font-mono text-sm text-gray-500">
                         {rate
                           ? `${rate.origin_region} → ${countryName(rate.destination_country)} · `
                           : ""}
@@ -255,7 +255,7 @@ export default async function AdminShipmentsPage() {
                             ? "text-verified-600"
                             : chargeStatus === "failed"
                               ? "text-copper-700"
-                              : "text-ink-400"
+                              : "text-gray-500"
                         }`}
                       >
                         {CHARGE_LABEL[chargeStatus]}
@@ -283,7 +283,7 @@ export default async function AdminShipmentsPage() {
                   </dl>
 
                   {r.status === "pending" ? (
-                    <div className="mt-4 border-t border-paper-200 pt-4">
+                    <div className="mt-4 border-t border-gray-200 pt-4">
                       <CompleteShipmentButton shipmentId={r.id} />
                     </div>
                   ) : null}

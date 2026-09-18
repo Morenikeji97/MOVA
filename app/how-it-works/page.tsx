@@ -97,46 +97,40 @@ const usd = new Intl.NumberFormat("en-US", {
 
 export default function HowItWorksPage() {
   return (
-    <main className="min-h-screen bg-paper">
-      <header className="bg-ink text-white">
+    <main className="min-h-screen bg-white">
+      <section className="bg-black text-white">
         <div className="mx-auto max-w-4xl px-6 py-16">
-          <Link
-            href="/"
-            className="font-mono text-xs uppercase tracking-wider text-ink-100 hover:text-white"
-          >
-            &larr; MOVA
-          </Link>
-          <h1 className="mt-6 text-4xl font-semibold leading-tight sm:text-5xl">
+          <h1 className="text-4xl font-semibold leading-tight sm:text-5xl">
             How MOVA works
           </h1>
-          <p className="mt-4 max-w-xl text-ink-100">
+          <p className="mt-4 max-w-xl text-gray-300">
             Buying a car from another country can feel risky. Here&rsquo;s
             exactly how MOVA makes it safe, transparent, and simple — from
             browsing a listing to the car arriving at your door.
           </p>
         </div>
-      </header>
+      </section>
 
       {/* Section 1 — the journey, step by step */}
       <section className="mx-auto max-w-4xl px-6 py-16">
-        <h2 className="font-mono text-xs uppercase tracking-wider text-ink-400">
+        <h2 className="font-mono text-xs uppercase tracking-wider text-gray-500">
           The journey, step by step
         </h2>
         <ol className="mt-6 flex flex-col gap-4">
           {STEPS.map((step, i) => (
             <li
               key={step.title}
-              className="flex gap-4 rounded-lg border border-paper-200 bg-paper-100 p-5"
+              className="flex gap-4 rounded-lg border border-gray-200 bg-white p-5"
             >
-              <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-marine-50 text-marine-700">
+              <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-gray-100 text-black">
                 <step.icon className="h-5 w-5" aria-hidden />
               </div>
               <div>
-                <p className="font-mono text-xs uppercase tracking-wider text-ink-400">
+                <p className="font-mono text-xs uppercase tracking-wider text-gray-500">
                   Step {i + 1}
                 </p>
-                <h3 className="mt-1 font-semibold text-ink-900">{step.title}</h3>
-                <p className="mt-1 text-sm text-slate-500">{step.body}</p>
+                <h3 className="mt-1 font-semibold text-black">{step.title}</h3>
+                <p className="mt-1 text-sm text-gray-500">{step.body}</p>
               </div>
             </li>
           ))}
@@ -144,45 +138,45 @@ export default function HowItWorksPage() {
       </section>
 
       {/* Section 2 — fee structure */}
-      <section className="border-t border-paper-200 bg-paper-100">
+      <section className="border-t border-gray-200 bg-white">
         <div className="mx-auto max-w-4xl px-6 py-16">
-          <h2 className="font-mono text-xs uppercase tracking-wider text-ink-400">
+          <h2 className="font-mono text-xs uppercase tracking-wider text-gray-500">
             What you actually pay for
           </h2>
-          <p className="mt-3 max-w-2xl text-slate-500">
+          <p className="mt-3 max-w-2xl text-gray-500">
             Buying internationally shouldn&rsquo;t come with surprise costs.
             Every dollar is shown to you before you pay anything. Here&rsquo;s
             a real example:
           </p>
 
-          <dl className="mt-6 max-w-md rounded-lg border border-paper-200 bg-paper p-6">
+          <dl className="mt-6 max-w-md rounded-lg border border-gray-200 bg-white p-6">
             <div className="flex items-center justify-between py-2 text-sm">
-              <dt className="text-slate-500">Vehicle price</dt>
-              <dd className="font-mono text-ink-900">{usd.format(25000)}</dd>
+              <dt className="text-gray-500">Vehicle price</dt>
+              <dd className="font-mono text-black">{usd.format(25000)}</dd>
             </div>
-            <div className="flex items-center justify-between border-t border-paper-200 py-2 text-sm">
-              <dt className="text-slate-500">MOVA facilitation fee (8%)</dt>
-              <dd className="font-mono text-ink-900">{usd.format(2000)}</dd>
+            <div className="flex items-center justify-between border-t border-gray-200 py-2 text-sm">
+              <dt className="text-gray-500">MOVA facilitation fee (8%)</dt>
+              <dd className="font-mono text-black">{usd.format(2000)}</dd>
             </div>
-            <div className="flex items-center justify-between border-t border-paper-200 py-2 text-sm">
-              <dt className="text-slate-500">Shipping (varies by route)</dt>
-              <dd className="font-mono text-ink-900">{usd.format(2500)}</dd>
+            <div className="flex items-center justify-between border-t border-gray-200 py-2 text-sm">
+              <dt className="text-gray-500">Shipping (varies by route)</dt>
+              <dd className="font-mono text-black">{usd.format(2500)}</dd>
             </div>
-            <div className="flex items-center justify-between border-t border-paper-200 pt-3 text-base font-semibold">
-              <dt className="text-ink-900">Total shown to you upfront</dt>
-              <dd className="font-mono text-marine-700">{usd.format(29500)}</dd>
+            <div className="flex items-center justify-between border-t border-gray-200 pt-3 text-base font-semibold">
+              <dt className="text-black">Total shown to you upfront</dt>
+              <dd className="font-mono text-black">{usd.format(29500)}</dd>
             </div>
           </dl>
 
-          <p className="mt-6 max-w-2xl text-sm text-slate-500">
-            The <strong className="text-ink-900">facilitation fee</strong> and
-            the <strong className="text-ink-900">shipping cost</strong> are two
+          <p className="mt-6 max-w-2xl text-sm text-gray-500">
+            The <strong className="text-black">facilitation fee</strong> and
+            the <strong className="text-black">shipping cost</strong> are two
             separate things, paid separately, with separate refund rules —
             we&rsquo;re never bundling costs to hide what you&rsquo;re actually
             paying for. Full detail in our{" "}
             <Link
               href={BUYER_PROTECTION_POLICY_PATH}
-              className="text-marine-700 underline underline-offset-2"
+              className="text-black underline underline-offset-2"
             >
               Buyer Protection &amp; Refund Policy
             </Link>
@@ -193,14 +187,14 @@ export default function HowItWorksPage() {
 
       {/* Section 3 — what MOVA is and isn't */}
       <section className="mx-auto max-w-4xl px-6 py-16">
-        <h2 className="font-mono text-xs uppercase tracking-wider text-ink-400">
+        <h2 className="font-mono text-xs uppercase tracking-wider text-gray-500">
           What MOVA is (and isn&rsquo;t)
         </h2>
-        <p className="mt-3 max-w-2xl text-slate-500">
+        <p className="mt-3 max-w-2xl text-gray-500">
           We&rsquo;re straightforward about our role, because trust starts
           with clarity.
         </p>
-        <div className="mt-6 max-w-2xl rounded-lg border border-paper-200 bg-paper-100 p-6 text-sm text-ink-900">
+        <div className="mt-6 max-w-2xl rounded-lg border border-gray-200 bg-white p-6 text-sm text-black">
           <p>
             MOVA is a <strong>technology platform</strong> — we verify
             sellers, check listings, and give buyers and sellers the tools to
@@ -221,12 +215,12 @@ export default function HowItWorksPage() {
       </section>
 
       {/* Section 4 — trust and safety */}
-      <section className="border-t border-paper-200 bg-paper-100">
+      <section className="border-t border-gray-200 bg-white">
         <div className="mx-auto max-w-4xl px-6 py-16">
-          <h2 className="font-mono text-xs uppercase tracking-wider text-ink-400">
+          <h2 className="font-mono text-xs uppercase tracking-wider text-gray-500">
             Why this is safer than going it alone
           </h2>
-          <p className="mt-3 max-w-2xl text-slate-500">
+          <p className="mt-3 max-w-2xl text-gray-500">
             Buying a car sight-unseen from another country is exactly the
             kind of transaction scammers target. Here&rsquo;s what stands
             between you and that risk:
@@ -235,19 +229,19 @@ export default function HowItWorksPage() {
             {TRUST_POINTS.map((point) => (
               <li
                 key={point.title}
-                className="rounded-lg border border-paper-200 bg-paper p-5"
+                className="rounded-lg border border-gray-200 bg-white p-5"
               >
-                <div className="flex h-9 w-9 items-center justify-center rounded-full bg-verified-50 text-verified-600">
+                <div className="flex h-9 w-9 items-center justify-center rounded-full bg-gray-100 text-black">
                   <point.icon className="h-5 w-5" aria-hidden />
                 </div>
-                <h3 className="mt-3 font-semibold text-ink-900">
+                <h3 className="mt-3 font-semibold text-black">
                   {point.title}
                 </h3>
-                <p className="mt-1 text-sm text-slate-500">{point.body}</p>
+                <p className="mt-1 text-sm text-gray-500">{point.body}</p>
               </li>
             ))}
           </ul>
-          <p className="mt-6 max-w-2xl text-sm text-slate-500">
+          <p className="mt-6 max-w-2xl text-sm text-gray-500">
             Put together, this is a level of upfront verification you simply
             don&rsquo;t get buying from an anonymous listing site or wiring
             money to a stranger you found online.
@@ -257,7 +251,7 @@ export default function HowItWorksPage() {
 
       {/* Closing CTA */}
       <section className="mx-auto max-w-4xl px-6 py-16 text-center">
-        <h2 className="text-2xl font-semibold text-ink-900">
+        <h2 className="text-2xl font-semibold text-black">
           Ready to see what&rsquo;s available?
         </h2>
         <div className="mt-6 flex flex-wrap items-center justify-center gap-3">

@@ -150,23 +150,23 @@ export function PhotoUploader({
         }}
         className={cn(
           "flex flex-col items-center justify-center gap-2 rounded-lg border-2 border-dashed px-6 py-8 text-center transition-colors",
-          dragOver ? "border-marine bg-marine-50" : "border-paper-200 bg-paper-100",
+          dragOver ? "border-black bg-gray-100" : "border-gray-200 bg-white",
           !canAdd && "opacity-60",
         )}
       >
-        <ImagePlus className="h-6 w-6 text-ink-400" aria-hidden />
-        <p className="text-sm text-slate-500">
+        <ImagePlus className="h-6 w-6 text-gray-500" aria-hidden />
+        <p className="text-sm text-gray-500">
           Drag photos here, or{" "}
           <button
             type="button"
             onClick={() => inputRef.current?.click()}
             disabled={!canAdd}
-            className="font-medium text-marine-700 underline underline-offset-2 disabled:no-underline disabled:opacity-60"
+            className="font-medium text-black underline underline-offset-2 disabled:no-underline disabled:opacity-60"
           >
             choose files
           </button>
         </p>
-        <p className="font-mono text-xs uppercase tracking-wider text-ink-400">
+        <p className="font-mono text-xs uppercase tracking-wider text-gray-500">
           JPEG, PNG or WebP · up to 10 MB · {value.length}/{maxPhotos} added
         </p>
         <input
@@ -186,7 +186,7 @@ export function PhotoUploader({
       </div>
 
       {busy ? (
-        <p className="flex items-center gap-2 text-sm text-slate-500">
+        <p className="flex items-center gap-2 text-sm text-gray-500">
           <Loader2 className="h-4 w-4 animate-spin" aria-hidden />
           Uploading…
         </p>
@@ -216,8 +216,8 @@ export function PhotoUploader({
                 dragIndex.current = null;
               }}
               className={cn(
-                "group relative overflow-hidden rounded border bg-paper-100",
-                photo.isPrimary ? "border-marine" : "border-paper-200",
+                "group relative overflow-hidden rounded border bg-white",
+                photo.isPrimary ? "border-black" : "border-gray-200",
               )}
             >
               {/* eslint-disable-next-line @next/next/no-img-element */}
@@ -229,7 +229,7 @@ export function PhotoUploader({
               />
 
               {photo.isPrimary ? (
-                <span className="absolute left-1.5 top-1.5 inline-flex items-center gap-1 rounded-full bg-marine px-2 py-0.5 text-xs font-medium text-white">
+                <span className="absolute left-1.5 top-1.5 inline-flex items-center gap-1 rounded-full bg-black px-2 py-0.5 text-xs font-medium text-white">
                   <Star className="h-3 w-3 fill-current" aria-hidden />
                   Primary
                 </span>
@@ -240,19 +240,19 @@ export function PhotoUploader({
                 onClick={() => removeAt(index)}
                 disabled={disabled}
                 aria-label={`Remove photo ${index + 1}`}
-                className="absolute right-1.5 top-1.5 rounded-full bg-ink-900/70 p-1 text-white opacity-0 transition-opacity focus-visible:opacity-100 group-hover:opacity-100"
+                className="absolute right-1.5 top-1.5 rounded-full bg-black/70 p-1 text-white opacity-0 transition-opacity focus-visible:opacity-100 group-hover:opacity-100"
               >
                 <X className="h-3.5 w-3.5" aria-hidden />
               </button>
 
-              <div className="flex items-center justify-between gap-1 border-t border-paper-200 px-1.5 py-1">
+              <div className="flex items-center justify-between gap-1 border-t border-gray-200 px-1.5 py-1">
                 <div className="flex gap-0.5">
                   <button
                     type="button"
                     onClick={() => move(index, index - 1)}
                     disabled={disabled || index === 0}
                     aria-label={`Move photo ${index + 1} earlier`}
-                    className="rounded p-1 text-ink-400 hover:text-ink-900 disabled:opacity-30"
+                    className="rounded p-1 text-gray-500 hover:text-black disabled:opacity-30"
                   >
                     <ArrowUp className="h-3.5 w-3.5" aria-hidden />
                   </button>
@@ -261,7 +261,7 @@ export function PhotoUploader({
                     onClick={() => move(index, index + 1)}
                     disabled={disabled || index === value.length - 1}
                     aria-label={`Move photo ${index + 1} later`}
-                    className="rounded p-1 text-ink-400 hover:text-ink-900 disabled:opacity-30"
+                    className="rounded p-1 text-gray-500 hover:text-black disabled:opacity-30"
                   >
                     <ArrowDown className="h-3.5 w-3.5" aria-hidden />
                   </button>
@@ -270,7 +270,7 @@ export function PhotoUploader({
                   type="button"
                   onClick={() => makePrimary(index)}
                   disabled={disabled || photo.isPrimary}
-                  className="rounded px-1.5 py-0.5 text-xs font-medium text-marine-700 hover:bg-marine-50 disabled:opacity-40"
+                  className="rounded px-1.5 py-0.5 text-xs font-medium text-black hover:bg-gray-100 disabled:opacity-40"
                 >
                   {photo.isPrimary ? "Primary" : "Make primary"}
                 </button>

@@ -25,8 +25,8 @@ const usdCents = new Intl.NumberFormat("en-US", {
 function Field({ label, value }: { label: string; value: string }) {
   return (
     <div>
-      <dt className="font-mono text-xs uppercase tracking-wider text-ink-400">{label}</dt>
-      <dd className="text-ink-900">{value}</dd>
+      <dt className="font-mono text-xs uppercase tracking-wider text-gray-500">{label}</dt>
+      <dd className="text-black">{value}</dd>
     </div>
   );
 }
@@ -114,7 +114,7 @@ export function BankTransferPayment({
   }
 
   return (
-    <div className="mt-3 rounded border border-paper-200 bg-paper p-3 text-sm text-ink-900">
+    <div className="mt-3 rounded border border-gray-200 bg-white p-3 text-sm text-black">
       <p className="font-medium">Wire the fee to MOVA</p>
       <dl className="mt-2 grid grid-cols-1 gap-y-2 sm:grid-cols-2 sm:gap-x-4">
         <Field label="Bank" value={bankDetails.name} />
@@ -127,13 +127,13 @@ export function BankTransferPayment({
           value={buyerFeeUsd != null ? usdCents.format(buyerFeeUsd) : "—"}
         />
       </dl>
-      <div className="mt-3 rounded border border-marine-100 bg-marine-50 p-2.5">
-        <p className="font-mono text-xs uppercase tracking-wider text-marine-700">
+      <div className="mt-3 rounded border border-gray-200 bg-gray-100 p-2.5">
+        <p className="font-mono text-xs uppercase tracking-wider text-gray-500">
           Reference — include this in your transfer memo
         </p>
-        <p className="font-mono text-lg font-semibold text-marine-700">{referenceCode}</p>
+        <p className="font-mono text-lg font-semibold text-black">{referenceCode}</p>
       </div>
-      <p className="mt-3 text-slate-500">
+      <p className="mt-3 text-gray-500">
         After you&rsquo;ve sent the transfer, upload a screenshot or photo of
         the confirmation. MOVA will verify it and unlock the seller&rsquo;s
         contact details once received — this can take a little longer than
@@ -151,12 +151,12 @@ export function BankTransferPayment({
             e.target.value = "";
             if (file) void upload(file);
           }}
-          className="text-sm text-slate-500 file:mr-3 file:rounded file:border-0 file:bg-marine-700 file:px-3 file:py-1.5 file:text-sm file:font-medium file:text-white"
+          className="text-sm text-gray-500 file:mr-3 file:rounded file:border-0 file:bg-black file:px-3 file:py-1.5 file:text-sm file:font-medium file:text-white"
         />
       </label>
 
       {busy ? (
-        <p className="mt-2 flex items-center gap-2 text-sm text-slate-500">
+        <p className="mt-2 flex items-center gap-2 text-sm text-gray-500">
           <Loader2 className="h-4 w-4 animate-spin" aria-hidden />
           Uploading…
         </p>

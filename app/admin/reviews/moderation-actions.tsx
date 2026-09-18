@@ -28,7 +28,7 @@ export function ModerationActions({
   const [removing, setRemoving] = useState(false);
 
   return (
-    <div className="mt-4 flex flex-wrap items-start gap-3 border-t border-paper-200 pt-4">
+    <div className="mt-4 flex flex-wrap items-start gap-3 border-t border-gray-200 pt-4">
       {removing ? (
         <form action={moderateReview} className="flex w-full flex-col gap-2">
           <input type="hidden" name="id" value={reviewId} />
@@ -37,7 +37,7 @@ export function ModerationActions({
             name="note"
             rows={2}
             placeholder="Internal note (optional) — why this was removed."
-            className="rounded border border-paper-200 bg-paper-100 px-3 py-2 text-sm text-ink-900"
+            className="rounded border border-gray-200 bg-white px-3 py-2 text-sm text-black"
           />
           <div className="flex items-center gap-3">
             <PendingButton variant="primary" size="sm" pendingLabel="Removing…">
@@ -46,7 +46,7 @@ export function ModerationActions({
             <button
               type="button"
               onClick={() => setRemoving(false)}
-              className="text-sm text-slate-500 hover:text-ink-900"
+              className="text-sm text-gray-500 hover:text-black"
             >
               Cancel
             </button>

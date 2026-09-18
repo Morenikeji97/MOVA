@@ -109,13 +109,13 @@ export function TitlePhotoUploader({
               e.target.value = "";
               if (file) void upload(file);
             }}
-            className="text-sm text-slate-500 file:mr-3 file:rounded file:border-0 file:bg-marine-700 file:px-3 file:py-1.5 file:text-sm file:font-medium file:text-white"
+            className="text-sm text-gray-500 file:mr-3 file:rounded file:border-0 file:bg-black file:px-3 file:py-1.5 file:text-sm file:font-medium file:text-white"
           />
         </label>
       )}
 
       {busy ? (
-        <p className="mt-2 flex items-center gap-2 text-sm text-slate-500">
+        <p className="mt-2 flex items-center gap-2 text-sm text-gray-500">
           <Loader2 className="h-4 w-4 animate-spin" aria-hidden />
           Uploading…
         </p>

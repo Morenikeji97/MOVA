@@ -70,7 +70,7 @@ export default function ResetPasswordPage() {
   if (status === "checking") {
     return (
       <main className="mx-auto flex min-h-screen max-w-md flex-col justify-center px-6 text-center">
-        <p className="text-slate-500">Checking your link…</p>
+        <p className="text-gray-500">Checking your link…</p>
       </main>
     );
   }
@@ -78,13 +78,13 @@ export default function ResetPasswordPage() {
   if (status === "expired") {
     return (
       <main className="mx-auto flex min-h-screen max-w-md flex-col justify-center px-6 text-center">
-        <h1 className="text-2xl font-semibold text-ink-900">Link expired</h1>
-        <p className="mt-2 text-slate-500">
+        <h1 className="text-2xl font-semibold text-black">Link expired</h1>
+        <p className="mt-2 text-gray-500">
           This password reset link is invalid, already used, or has expired.
         </p>
         <Link
           href="/forgot-password"
-          className="mt-6 text-sm text-marine-700 hover:underline"
+          className="mt-6 text-sm text-black hover:underline"
         >
           Request a new link
         </Link>
@@ -94,10 +94,10 @@ export default function ResetPasswordPage() {
 
   return (
     <main className="mx-auto flex min-h-screen max-w-md flex-col justify-center px-6">
-      <h1 className="mb-6 text-2xl font-semibold text-ink-900">Set a new password</h1>
+      <h1 className="mb-6 text-2xl font-semibold text-black">Set a new password</h1>
       <form onSubmit={handleSubmit} className="flex flex-col gap-4">
         <label className="flex flex-col gap-1">
-          <span className="text-sm text-slate-500">New password</span>
+          <span className="text-sm text-gray-500">New password</span>
           <input
             type="password"
             required
@@ -105,18 +105,18 @@ export default function ResetPasswordPage() {
             autoFocus
             value={password}
             onChange={(e) => setPassword(e.target.value)}
-            className="h-11 rounded border border-paper-200 px-3"
+            className="h-11 rounded border border-gray-200 px-3"
           />
         </label>
         <label className="flex flex-col gap-1">
-          <span className="text-sm text-slate-500">Confirm new password</span>
+          <span className="text-sm text-gray-500">Confirm new password</span>
           <input
             type="password"
             required
             minLength={8}
             value={confirmPassword}
             onChange={(e) => setConfirmPassword(e.target.value)}
-            className="h-11 rounded border border-paper-200 px-3"
+            className="h-11 rounded border border-gray-200 px-3"
           />
         </label>
         {error && <p className="text-sm text-copper-700">{error}</p>}

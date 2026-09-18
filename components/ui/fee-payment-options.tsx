@@ -30,8 +30,8 @@ function Tab({
       className={cn(
         "rounded px-3 py-1.5 text-sm font-medium transition-colors",
         active
-          ? "bg-marine-700 text-white"
-          : "bg-paper-100 text-slate-500 hover:text-ink-900",
+          ? "bg-black text-white"
+          : "bg-white text-gray-500 hover:text-black",
         disabled && "cursor-not-allowed opacity-50",
       )}
     >

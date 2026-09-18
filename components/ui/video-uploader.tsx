@@ -152,23 +152,23 @@ export function VideoUploader({ value, onChange, disabled, error }: VideoUploade
           }}
           className={cn(
             "flex flex-col items-center justify-center gap-2 rounded-lg border-2 border-dashed px-6 py-8 text-center transition-colors",
-            dragOver ? "border-marine bg-marine-50" : "border-paper-200 bg-paper-100",
+            dragOver ? "border-black bg-gray-100" : "border-gray-200 bg-white",
             !canAdd && "opacity-60",
           )}
         >
-          <VideoIcon className="h-6 w-6 text-ink-400" aria-hidden />
-          <p className="text-sm text-slate-500">
+          <VideoIcon className="h-6 w-6 text-gray-500" aria-hidden />
+          <p className="text-sm text-gray-500">
             Drag a video here, or{" "}
             <button
               type="button"
               onClick={() => inputRef.current?.click()}
               disabled={!canAdd}
-              className="font-medium text-marine-700 underline underline-offset-2 disabled:no-underline disabled:opacity-60"
+              className="font-medium text-black underline underline-offset-2 disabled:no-underline disabled:opacity-60"
             >
               choose a file
             </button>
           </p>
-          <p className="font-mono text-xs uppercase tracking-wider text-ink-400">
+          <p className="font-mono text-xs uppercase tracking-wider text-gray-500">
             MP4 only · up to 100 MB · up to {MAX_DURATION_SECONDS}s
           </p>
           <input
@@ -186,7 +186,7 @@ export function VideoUploader({ value, onChange, disabled, error }: VideoUploade
           />
         </div>
       ) : (
-        <div className="relative overflow-hidden rounded border border-paper-200 bg-paper-100">
+        <div className="relative overflow-hidden rounded border border-gray-200 bg-white">
           {/* eslint-disable-next-line jsx-a11y/media-has-caption */}
           <video
             src={value.url}
@@ -198,7 +198,7 @@ export function VideoUploader({ value, onChange, disabled, error }: VideoUploade
             onClick={remove}
             disabled={disabled}
             aria-label="Remove video"
-            className="absolute right-1.5 top-1.5 rounded-full bg-ink-900/70 p-1 text-white transition-opacity hover:bg-ink-900"
+            className="absolute right-1.5 top-1.5 rounded-full bg-black/70 p-1 text-white transition-opacity hover:bg-black"
           >
             <X className="h-3.5 w-3.5" aria-hidden />
           </button>
@@ -206,7 +206,7 @@ export function VideoUploader({ value, onChange, disabled, error }: VideoUploade
       )}
 
       {busy ? (
-        <p className="flex items-center gap-2 text-sm text-slate-500">
+        <p className="flex items-center gap-2 text-sm text-gray-500">
           <Loader2 className="h-4 w-4 animate-spin" aria-hidden />
           Uploading…
         </p>
