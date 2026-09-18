@@ -5,6 +5,10 @@ import { createClient } from "@/lib/supabase/server";
 import { getStripe } from "@/lib/stripe";
 import { appUrl } from "@/lib/app-url";
 import { feeBreakdown } from "@/lib/fees";
+import {
+  notifyFeePaymentConfirmed,
+  notifyBankTransferRejected,
+} from "@/lib/notifications";
 
 /**
  * Admin actions for the reservation queue (purchase_requests). Bound to
@@ -258,6 +262,8 @@ export async function confirmBankTransferPayment(formData: FormData): Promise<vo
 
   revalidatePath("/admin/reservations");
   revalidatePath("/buyer/dashboard");
+
+  await notifyFeePaymentConfirmed(id);
 }
 
 /**
@@ -295,4 +301,6 @@ export async function rejectBankTransferPayment(formData: FormData): Promise<voi
 
   revalidatePath("/admin/reservations");
   revalidatePath("/buyer/dashboard");
+
+  await notifyBankTransferRejected(id, reason);
 }

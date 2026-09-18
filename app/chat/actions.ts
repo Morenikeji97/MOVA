@@ -5,6 +5,7 @@ import { createClient } from "@/lib/supabase/server";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { scanForContactInfo, CONTACT_INFO_BLOCK_MESSAGE } from "@/lib/chat-filter";
 import { checkRateLimit, RATE_LIMIT_MESSAGE } from "@/lib/rate-limit";
+import { notifyNewChatMessage, notifyNegotiatedPriceProposed } from "@/lib/notifications";
 
 /** Longest a single chat message may be. */
 const MAX_MESSAGE_LENGTH = 4000;
@@ -194,6 +195,11 @@ export async function sendChatMessage(
 
   revalidatePath("/seller/messages");
   revalidatePath(`/seller/messages/${conversation.id}`);
+
+  const recipientId =
+    conversation.buyer_id === user.id ? conversation.seller_id : conversation.buyer_id;
+  await notifyNewChatMessage(conversation.id, recipientId);
+
   return { ok: true };
 }
 
@@ -308,6 +314,9 @@ export async function proposeNegotiatedPrice(
   revalidatePath(`/seller/messages/${conversationId}`);
   revalidatePath("/buyer/dashboard");
   revalidatePath(`/browse/${conversation.vehicle_id}`);
+
+  await notifyNegotiatedPriceProposed(pr.id, priceUsd);
+
   return { ok: true };
 }
 

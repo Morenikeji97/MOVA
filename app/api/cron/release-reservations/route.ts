@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import { revalidatePath } from "next/cache";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { getAutoReleaseStatus } from "@/lib/auto-release";
+import { notifyReservationExpired } from "@/lib/notifications";
 import type { Database } from "@/types/database";
 
 export const runtime = "nodejs";
@@ -81,6 +82,8 @@ export async function POST(request: Request) {
 
     revalidatePath("/admin/reservations");
     revalidatePath("/buyer/dashboard");
+
+    await Promise.all(idsToRelease.map((id) => notifyReservationExpired(id)));
   }
 
   return NextResponse.json({ released: idsToRelease.length });

@@ -4,6 +4,7 @@ import { revalidatePath } from "next/cache";
 import { createClient } from "@/lib/supabase/server";
 import { scanForContactInfo, CONTACT_INFO_BLOCK_MESSAGE } from "@/lib/chat-filter";
 import { REVIEW_COMMENT_MAX } from "@/lib/reviews";
+import { notifyNewReview } from "@/lib/notifications";
 import type { ReviewType } from "@/types/database";
 
 export interface SubmitReviewInput {
@@ -212,6 +213,10 @@ export async function moderateReview(formData: FormData): Promise<void> {
 
   revalidatePath("/admin/reviews");
   revalidatePath("/admin/dashboard");
+
+  if (action === "publish") {
+    await notifyNewReview(id);
+  }
 }
 
 /** Dismiss a report without changing the review (keeps it published). */

@@ -2,6 +2,7 @@
 
 import { revalidatePath } from "next/cache";
 import { createClient } from "@/lib/supabase/server";
+import { notifyDisputeDecision } from "@/lib/notifications";
 
 /**
  * Admin actions for the dispute queue. Bound to <form action={…}> with a
@@ -65,6 +66,8 @@ export async function approveDisputeForRefund(formData: FormData): Promise<void>
   revalidatePath("/admin/disputes");
   revalidatePath("/buyer/dashboard");
   revalidatePath("/seller/reservations");
+
+  await notifyDisputeDecision(id);
 }
 
 /** Deny a dispute — a reason is required, since it's shown to whoever filed it. */
@@ -90,6 +93,8 @@ export async function denyDispute(formData: FormData): Promise<void> {
   revalidatePath("/admin/disputes");
   revalidatePath("/buyer/dashboard");
   revalidatePath("/seller/reservations");
+
+  await notifyDisputeDecision(id);
 }
 
 /**
