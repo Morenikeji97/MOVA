@@ -154,12 +154,20 @@ export default async function SellerListingsPage() {
                   .
                 </p>
               ) : null}
-              {v.status === "draft" ? (
-                <form action={submitForReview} className="mt-4">
-                  <input type="hidden" name="id" value={v.id} />
-                  <SubmitForReviewButton />
-                </form>
-              ) : null}
+              <div className="mt-4 flex items-center gap-3">
+                {v.status === "draft" ? (
+                  <form action={submitForReview}>
+                    <input type="hidden" name="id" value={v.id} />
+                    <SubmitForReviewButton />
+                  </form>
+                ) : null}
+                <Link
+                  href={`/seller/listings/${v.id}/photos`}
+                  className={buttonClasses({ variant: "secondary", size: "sm" })}
+                >
+                  Edit photos
+                </Link>
+              </div>
             </li>
           ))}
         </ul>
