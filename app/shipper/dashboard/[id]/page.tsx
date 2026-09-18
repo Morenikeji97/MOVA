@@ -29,7 +29,7 @@ function Shell({ children }: { children: ReactNode }) {
     <main className="mx-auto max-w-2xl px-6 py-16">
       <Link
         href="/shipper/dashboard"
-        className="font-mono text-xs uppercase tracking-wider text-ink-400 hover:text-ink-900"
+        className="font-mono text-xs uppercase tracking-wider text-gray-500 hover:text-black"
       >
         &larr; Your shipments
       </Link>
@@ -41,10 +41,10 @@ function Shell({ children }: { children: ReactNode }) {
 function Detail({ label, children }: { label: string; children: ReactNode }) {
   return (
     <div>
-      <dt className="font-mono text-xs uppercase tracking-wider text-ink-400">
+      <dt className="font-mono text-xs uppercase tracking-wider text-gray-500">
         {label}
       </dt>
-      <dd className="text-ink-900">{children}</dd>
+      <dd className="text-black">{children}</dd>
     </div>
   );
 }
@@ -118,10 +118,10 @@ export default async function ShipmentDetailPage({
 
   return (
     <Shell>
-      <h1 className="mt-4 text-2xl font-semibold text-ink-900">
+      <h1 className="mt-4 text-2xl font-semibold text-black">
         {vehicleLabel || "Vehicle details unavailable"}
         {shipment.vehicle_trim ? (
-          <span className="font-normal text-ink-400"> {shipment.vehicle_trim}</span>
+          <span className="font-normal text-gray-500"> {shipment.vehicle_trim}</span>
         ) : null}
       </h1>
 
@@ -129,7 +129,7 @@ export default async function ShipmentDetailPage({
         <ShippingStatusControl shipmentId={shipment.id} current={shipment.shipping_status} />
       </div>
 
-      <dl className="mt-6 grid grid-cols-2 gap-x-4 gap-y-3 rounded-lg border border-paper-200 bg-paper-100 p-5 text-sm">
+      <dl className="mt-6 grid grid-cols-2 gap-x-4 gap-y-3 rounded-lg border border-gray-200 bg-white p-5 text-sm">
         <Detail label="Pickup location">
           {[shipment.pickup_city, shipment.pickup_state].filter(Boolean).join(", ") || "—"}
         </Detail>
@@ -142,7 +142,7 @@ export default async function ShipmentDetailPage({
 
       {/* Buyer contact — always revealed once the shipment exists (see 0016). */}
       <section className="mt-6 rounded-lg border border-verified-100 bg-verified-50 p-5">
-        <h2 className="font-mono text-xs uppercase tracking-wider text-ink-400">
+        <h2 className="font-mono text-xs uppercase tracking-wider text-gray-500">
           Buyer contact
         </h2>
         <dl className="mt-3 grid grid-cols-2 gap-x-4 gap-y-3 text-sm sm:grid-cols-3">
@@ -157,7 +157,7 @@ export default async function ShipmentDetailPage({
 
       {/* Proof of pickup / delivery */}
       <section className="mt-10">
-        <h2 className="font-mono text-xs uppercase tracking-wider text-ink-400">
+        <h2 className="font-mono text-xs uppercase tracking-wider text-gray-500">
           Proof of pickup
         </h2>
         <div className="mt-3 flex flex-col gap-3">
@@ -171,7 +171,7 @@ export default async function ShipmentDetailPage({
                     key={p.id}
                     src={url}
                     alt="Proof of pickup"
-                    className="aspect-square w-full rounded border border-paper-200 object-cover"
+                    className="aspect-square w-full rounded border border-gray-200 object-cover"
                   />
                 ) : null;
               })}
@@ -182,7 +182,7 @@ export default async function ShipmentDetailPage({
       </section>
 
       <section className="mt-8">
-        <h2 className="font-mono text-xs uppercase tracking-wider text-ink-400">
+        <h2 className="font-mono text-xs uppercase tracking-wider text-gray-500">
           Proof of delivery
         </h2>
         <div className="mt-3 flex flex-col gap-3">
@@ -196,7 +196,7 @@ export default async function ShipmentDetailPage({
                     key={p.id}
                     src={url}
                     alt="Proof of delivery"
-                    className="aspect-square w-full rounded border border-paper-200 object-cover"
+                    className="aspect-square w-full rounded border border-gray-200 object-cover"
                   />
                 ) : null;
               })}
@@ -212,7 +212,7 @@ export default async function ShipmentDetailPage({
 
       {/* Buyer-visible notes */}
       <section className="mt-10">
-        <h2 className="font-mono text-xs uppercase tracking-wider text-ink-400">
+        <h2 className="font-mono text-xs uppercase tracking-wider text-gray-500">
           Updates ({(updateRows ?? []).length})
         </h2>
         <div className="mt-3">
@@ -223,10 +223,10 @@ export default async function ShipmentDetailPage({
             {(updateRows ?? []).map((u) => (
               <li
                 key={u.id}
-                className="rounded border border-paper-200 bg-paper-100 p-3 text-sm"
+                className="rounded border border-gray-200 bg-white p-3 text-sm"
               >
-                <p className="text-ink-900">{u.note}</p>
-                <p className="mt-1 font-mono text-xs text-ink-400">
+                <p className="text-black">{u.note}</p>
+                <p className="mt-1 font-mono text-xs text-gray-500">
                   {fmtDateTime.format(new Date(u.created_at))}
                 </p>
               </li>

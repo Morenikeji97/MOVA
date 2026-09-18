@@ -10,7 +10,7 @@
 
 @layer base {
   body {
-    @apply bg-paper text-slate font-sans antialiased;
+    @apply bg-white text-black font-sans antialiased;
   }
 
   @media (prefers-reduced-motion: reduce) {
@@ -22,7 +22,7 @@
   }
 
   :focus-visible {
-    outline: 2px solid theme("colors.marine.400");
+    outline: 2px solid black;
     outline-offset: 2px;
   }
 }

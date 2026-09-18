@@ -41,9 +41,9 @@ export function VerificationPanel({
   const s: VerificationStatus = status ?? "unverified";
 
   return (
-    <section className="mt-10 rounded-lg border border-paper-200 bg-paper-100 p-6">
+    <section className="mt-10 rounded-lg border border-gray-200 bg-white p-6">
       <div className="flex items-center justify-between gap-3">
-        <h2 className="text-lg font-semibold text-ink-900">Identity verification</h2>
+        <h2 className="text-lg font-semibold text-black">Identity verification</h2>
         {s === "verified" ? <VerifiedBadge label="Verified" /> : null}
       </div>
 
@@ -60,14 +60,14 @@ export function VerificationPanel({
       ) : null}
 
       {s === "verified" ? (
-        <p className="mt-3 text-sm text-slate-500">
+        <p className="mt-3 text-sm text-gray-500">
           Your identity was verified
           {verifiedAt ? ` on ${fmtDate.format(new Date(verifiedAt))}` : ""}. No
           further action needed.
         </p>
       ) : s === "pending" ? (
         <>
-          <p className="mt-3 text-sm text-slate-500">
+          <p className="mt-3 text-sm text-gray-500">
             Verification is in progress. If you didn&rsquo;t finish on Stripe or
             closed the tab, you can pick it back up.
           </p>
@@ -84,7 +84,7 @@ export function VerificationPanel({
         </>
       ) : (
         <>
-          <p className="mt-3 text-sm text-slate-500">
+          <p className="mt-3 text-sm text-gray-500">
             Verify your identity to list vehicles. You&rsquo;ll be taken to
             Stripe&rsquo;s secure flow to photograph a government ID and take a
             selfie, then returned here.

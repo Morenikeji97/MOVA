@@ -27,7 +27,7 @@ export function NoteForm({ shipmentId }: { shipmentId: string }) {
     >
       <input type="hidden" name="shipmentId" value={shipmentId} />
       <label className="flex flex-col gap-1">
-        <span className="text-sm text-slate-500">
+        <span className="text-sm text-gray-500">
           Post an update the buyer will see
         </span>
         <textarea
@@ -35,7 +35,7 @@ export function NoteForm({ shipmentId }: { shipmentId: string }) {
           required
           rows={3}
           placeholder="e.g. Picked up from the seller, on the way to the port."
-          className="rounded border border-paper-200 px-3 py-2 text-sm"
+          className="rounded border border-gray-200 px-3 py-2 text-sm"
         />
       </label>
       <div>

@@ -34,10 +34,10 @@ function Contact({ label, value }: { label: string; value: string | null }) {
   if (!value) return null;
   return (
     <div>
-      <dt className="font-mono text-xs uppercase tracking-wider text-ink-400">
+      <dt className="font-mono text-xs uppercase tracking-wider text-gray-500">
         {label}
       </dt>
-      <dd className="text-ink-900">{value}</dd>
+      <dd className="text-black">{value}</dd>
     </div>
   );
 }
@@ -127,9 +127,9 @@ export default async function BuyerDashboard({
 
   return (
     <main className="mx-auto max-w-4xl px-6 py-16">
-      <h1 className="text-2xl font-semibold text-ink-900">Buyer Dashboard</h1>
-      <p className="mt-2 text-slate-500">Signed in as {user?.email}</p>
-      <p className="mt-1 font-mono text-sm text-ink-400">
+      <h1 className="text-2xl font-semibold text-black">Buyer Dashboard</h1>
+      <p className="mt-2 text-gray-500">Signed in as {user?.email}</p>
+      <p className="mt-1 font-mono text-sm text-gray-500">
         NIN verification: {profile?.nin_verification_status ?? "unverified"}
       </p>
 
@@ -149,19 +149,19 @@ export default async function BuyerDashboard({
 
       <section className="mt-10">
         <div className="flex items-center justify-between gap-4">
-          <h2 className="text-lg font-semibold text-ink-900">Your reservations</h2>
+          <h2 className="text-lg font-semibold text-black">Your reservations</h2>
           <Link
             href="/browse"
-            className="text-sm text-marine-700 hover:underline"
+            className="text-sm text-black hover:underline"
           >
             Browse vehicles &rarr;
           </Link>
         </div>
 
         {reservations.length === 0 ? (
-          <div className="mt-4 rounded-lg border border-dashed border-paper-200 bg-paper-100 p-8 text-center">
-            <p className="text-ink-900">You haven&rsquo;t reserved any vehicles yet.</p>
-            <p className="mt-1 text-sm text-slate-500">
+          <div className="mt-4 rounded-lg border border-dashed border-gray-200 bg-white p-8 text-center">
+            <p className="text-black">You haven&rsquo;t reserved any vehicles yet.</p>
+            <p className="mt-1 text-sm text-gray-500">
               Reserve a vehicle from its listing to send MOVA a request.
             </p>
           </div>
@@ -231,11 +231,11 @@ export default async function BuyerDashboard({
               return (
                 <li
                   key={r.id}
-                  className="rounded-lg border border-paper-200 bg-paper-100 p-5"
+                  className="rounded-lg border border-gray-200 bg-white p-5"
                 >
                   <div className="flex items-start justify-between gap-4">
                     <div>
-                      <h3 className="font-semibold text-ink-900">
+                      <h3 className="font-semibold text-black">
                         {vehicle ? (
                           <Link
                             href={`/browse/${r.vehicle_id}`}
@@ -264,7 +264,7 @@ export default async function BuyerDashboard({
                       ) : null}
                     </div>
                   </div>
-                  <p className="mt-2 text-sm text-slate-500">
+                  <p className="mt-2 text-sm text-gray-500">
                     {RESERVATION_STATUS_COPY[r.status] ?? r.status}
                   </p>
 
@@ -299,7 +299,7 @@ export default async function BuyerDashboard({
                   ) : null}
 
                   {showFeePending ? (
-                    <p className="mt-3 rounded border border-paper-200 bg-paper p-3 text-sm text-slate-500">
+                    <p className="mt-3 rounded border border-gray-200 bg-white p-3 text-sm text-gray-500">
                       Shipping selected. MOVA will send your service-fee
                       payment link here once your reservation has been
                       reviewed.
@@ -312,7 +312,7 @@ export default async function BuyerDashboard({
                         Pay MOVA&rsquo;s service fee
                         {buyerFee != null ? ` — ${usdCents.format(buyerFee)}` : ""}
                       </p>
-                      <p className="mt-1 text-sm text-slate-500">
+                      <p className="mt-1 text-sm text-gray-500">
                         Paying this unlocks the seller&rsquo;s contact and payment
                         details. You then wire the vehicle price to the seller
                         directly.
@@ -348,10 +348,10 @@ export default async function BuyerDashboard({
 
                   {feePaid ? (
                     <div className="mt-3 rounded border border-verified-100 bg-verified-50 p-4">
-                      <p className="text-sm font-semibold text-ink-900">
+                      <p className="text-sm font-semibold text-black">
                         Seller contact &amp; payment details
                       </p>
-                      <p className="mt-1 text-sm text-slate-500">
+                      <p className="mt-1 text-sm text-gray-500">
                         MOVA&rsquo;s service fee is paid. Wire the vehicle price
                         below to the seller directly — the fee is not part of that
                         amount.
@@ -362,10 +362,10 @@ export default async function BuyerDashboard({
                         <Contact label="Phone" value={r.seller_phone} />
                         <Contact label="WhatsApp" value={r.seller_whatsapp} />
                         <div>
-                          <dt className="font-mono text-xs uppercase tracking-wider text-ink-400">
+                          <dt className="font-mono text-xs uppercase tracking-wider text-gray-500">
                             Wire to seller
                           </dt>
-                          <dd className="font-semibold text-ink-900">
+                          <dd className="font-semibold text-black">
                             {snapshotPrice != null
                               ? usdCents.format(snapshotPrice)
                               : "—"}

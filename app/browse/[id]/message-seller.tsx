@@ -36,7 +36,7 @@ export function MessageSeller({
 
   return (
     <section className="mt-10">
-      <h2 className="font-mono text-xs uppercase tracking-wider text-ink-400">
+      <h2 className="font-mono text-xs uppercase tracking-wider text-gray-500">
         Message the seller
       </h2>
 
@@ -50,8 +50,8 @@ export function MessageSeller({
           />
         </div>
       ) : (
-        <div className="mt-3 rounded-lg border border-paper-200 bg-paper-100 p-6">
-          <p className="text-sm text-slate-500">
+        <div className="mt-3 rounded-lg border border-gray-200 bg-white p-6">
+          <p className="text-sm text-gray-500">
             Have a question about this vehicle? Message the seller directly.
             You don&rsquo;t need to reserve it first.
           </p>

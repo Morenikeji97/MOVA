@@ -18,7 +18,7 @@ function Shell({ children }: { children: ReactNode }) {
     <main className="mx-auto max-w-3xl px-6 py-16">
       <Link
         href="/shipper"
-        className="font-mono text-xs uppercase tracking-wider text-ink-400 hover:text-ink-900"
+        className="font-mono text-xs uppercase tracking-wider text-gray-500 hover:text-black"
       >
         &larr; Shipper portal
       </Link>
@@ -70,17 +70,17 @@ export default async function ShipperDashboardPage() {
 
   return (
     <Shell>
-      <h1 className="mt-4 text-2xl font-semibold text-ink-900">
+      <h1 className="mt-4 text-2xl font-semibold text-black">
         {shipper.company_name}
       </h1>
-      <p className="mt-1 text-sm text-slate-500">
+      <p className="mt-1 text-sm text-gray-500">
         Your assigned shipments, most urgent first.
       </p>
 
       {shipments.length === 0 ? (
-        <div className="mt-8 rounded-lg border border-dashed border-paper-200 bg-paper-100 p-10 text-center">
-          <p className="text-ink-900">No shipments yet.</p>
-          <p className="mt-1 text-sm text-slate-500">
+        <div className="mt-8 rounded-lg border border-dashed border-gray-200 bg-white p-10 text-center">
+          <p className="text-black">No shipments yet.</p>
+          <p className="mt-1 text-sm text-gray-500">
             When a buyer selects one of your rates, it shows up here.
           </p>
         </div>
@@ -97,26 +97,26 @@ export default async function ShipperDashboardPage() {
             return (
               <li
                 key={s.id}
-                className="rounded-lg border border-paper-200 bg-paper-100 p-5"
+                className="rounded-lg border border-gray-200 bg-white p-5"
               >
                 <Link
                   href={`/shipper/dashboard/${s.id}`}
                   className="block"
                 >
-                  <h2 className="text-lg font-semibold text-ink-900">
+                  <h2 className="text-lg font-semibold text-black">
                     {vehicleLabel || "Vehicle details unavailable"}
                     {s.vehicle_trim ? (
-                      <span className="font-normal text-ink-400"> {s.vehicle_trim}</span>
+                      <span className="font-normal text-gray-500"> {s.vehicle_trim}</span>
                     ) : null}
                   </h2>
-                  <p className="mt-1 font-mono text-sm text-ink-400">
+                  <p className="mt-1 font-mono text-sm text-gray-500">
                     {[s.pickup_city, s.pickup_state].filter(Boolean).join(", ") || "Pickup location unavailable"}
                     {" → "}
                     {countryName(destination)}
                   </p>
                 </Link>
 
-                <div className="mt-4 border-t border-paper-200 pt-4">
+                <div className="mt-4 border-t border-gray-200 pt-4">
                   <ShippingStatusControl
                     shipmentId={s.id}
                     current={s.shipping_status}
@@ -125,7 +125,7 @@ export default async function ShipperDashboardPage() {
 
                 <Link
                   href={`/shipper/dashboard/${s.id}`}
-                  className="mt-3 inline-block text-sm text-marine-700 hover:underline"
+                  className="mt-3 inline-block text-sm text-black hover:underline"
                 >
                   View details, contact &amp; photos &rarr;
                 </Link>

@@ -58,7 +58,7 @@ export function DisputeStatusList({
             </span>
           </div>
           {d.status === "open" ? (
-            <p className="mt-1 text-slate-500">
+            <p className="mt-1 text-gray-500">
               MOVA is reviewing this dispute — usually within 5 business days.
             </p>
           ) : null}

@@ -23,7 +23,7 @@ const REQUEST_STATUS_COPY: Record<string, string> = {
 
 function Card({ children }: { children: ReactNode }) {
   return (
-    <div className="mt-10 rounded-lg border border-paper-200 bg-paper-100 p-6">
+    <div className="mt-10 rounded-lg border border-gray-200 bg-white p-6">
       {children}
     </div>
   );
@@ -56,8 +56,8 @@ export function ReserveVehicle({
   if (state === "requested") {
     return (
       <Card>
-        <p className="text-ink-900">You&rsquo;ve requested to reserve this vehicle.</p>
-        <p className="mt-1 text-sm text-slate-500">
+        <p className="text-black">You&rsquo;ve requested to reserve this vehicle.</p>
+        <p className="mt-1 text-sm text-gray-500">
           {(requestStatus && REQUEST_STATUS_COPY[requestStatus]) ??
             "MOVA will be in touch."}
         </p>
@@ -83,7 +83,7 @@ export function ReserveVehicle({
 
         <Link
           href="/buyer/dashboard"
-          className="mt-3 inline-block text-sm text-marine-700 hover:underline"
+          className="mt-3 inline-block text-sm text-black hover:underline"
         >
           View your dashboard &rarr;
         </Link>
@@ -94,8 +94,8 @@ export function ReserveVehicle({
   if (state === "anonymous") {
     return (
       <Card>
-        <p className="text-ink-900">Interested in this vehicle?</p>
-        <p className="mt-1 text-sm text-slate-500">
+        <p className="text-black">Interested in this vehicle?</p>
+        <p className="mt-1 text-sm text-gray-500">
           Sign in with a buyer account to send MOVA a reservation request.
         </p>
         <div className="mt-4 flex flex-wrap items-center gap-3">
@@ -107,7 +107,7 @@ export function ReserveVehicle({
           </Link>
           <Link
             href="/signup"
-            className="text-sm text-slate-500 hover:text-ink-900"
+            className="text-sm text-gray-500 hover:text-black"
           >
             Create a buyer account
           </Link>
@@ -119,8 +119,8 @@ export function ReserveVehicle({
   if (state === "not-buyer") {
     return (
       <Card>
-        <p className="text-ink-900">Reserving is for buyer accounts.</p>
-        <p className="mt-1 text-sm text-slate-500">
+        <p className="text-black">Reserving is for buyer accounts.</p>
+        <p className="mt-1 text-sm text-gray-500">
           Sign in with a buyer account to send MOVA a reservation request for
           this vehicle.
         </p>
@@ -131,12 +131,12 @@ export function ReserveVehicle({
   // available
   return (
     <Card>
-      <p className="text-ink-900">Reserve this vehicle</p>
-      <p className="mt-1 text-sm text-slate-500">
+      <p className="text-black">Reserve this vehicle</p>
+      <p className="mt-1 text-sm text-gray-500">
         This sends a reservation request to MOVA. The vehicle stays listed until
         our team confirms who proceeds.
       </p>
-      <p className="mt-2 text-sm text-slate-500">
+      <p className="mt-2 text-sm text-gray-500">
         If MOVA approves your reservation, you&rsquo;ll pay a{" "}
         {usdCents.format(buyerFeeUsd)} MOVA service fee to unlock the seller&rsquo;s
         contact and payment details. The rest is wired to the seller directly.

@@ -32,10 +32,10 @@ const PAYMENT_STATUS_LABEL: Record<ShipperPaymentStatus, string> = {
 function Detail({ label, children }: { label: string; children: ReactNode }) {
   return (
     <div>
-      <dt className="font-mono text-xs uppercase tracking-wider text-ink-400">
+      <dt className="font-mono text-xs uppercase tracking-wider text-gray-500">
         {label}
       </dt>
-      <dd className="text-ink-900">{children}</dd>
+      <dd className="text-black">{children}</dd>
     </div>
   );
 }
@@ -129,33 +129,33 @@ export default async function AdminShippersPage() {
     <main className="mx-auto max-w-4xl px-6 py-16">
       <Link
         href="/admin/dashboard"
-        className="font-mono text-xs uppercase tracking-wider text-ink-400 hover:text-ink-900"
+        className="font-mono text-xs uppercase tracking-wider text-gray-500 hover:text-black"
       >
         &larr; Admin dashboard
       </Link>
-      <h1 className="mt-4 text-2xl font-semibold text-ink-900">
+      <h1 className="mt-4 text-2xl font-semibold text-black">
         Shipper review
       </h1>
-      <p className="mt-2 text-sm text-slate-500">
+      <p className="mt-2 text-sm text-gray-500">
         Approve applicants, manage their rates, and reinstate suspended shippers.
       </p>
 
       {/* Pending applications */}
       <section className="mt-8">
-        <h2 className="font-mono text-xs uppercase tracking-wider text-ink-400">
+        <h2 className="font-mono text-xs uppercase tracking-wider text-gray-500">
           Pending applications ({pending.length})
         </h2>
         {pending.length === 0 ? (
-          <p className="mt-3 text-sm text-slate-500">Nothing waiting for review.</p>
+          <p className="mt-3 text-sm text-gray-500">Nothing waiting for review.</p>
         ) : (
           <ul className="mt-3 flex flex-col gap-4">
             {pending.map((s) => (
               <li
                 key={s.id}
-                className="rounded-lg border border-paper-200 bg-paper-100 p-5"
+                className="rounded-lg border border-gray-200 bg-white p-5"
               >
                 <div className="flex items-start justify-between gap-4">
-                  <h3 className="text-lg font-semibold text-ink-900">
+                  <h3 className="text-lg font-semibold text-black">
                     {s.company_name}
                   </h3>
                   <span className="inline-flex shrink-0 items-center rounded-full bg-marine-50 px-2.5 py-1 text-sm font-medium text-marine-700">
@@ -180,10 +180,10 @@ export default async function AdminShippersPage() {
       {/* Suspended */}
       {suspended.length > 0 ? (
         <section className="mt-12">
-          <h2 className="font-mono text-xs uppercase tracking-wider text-ink-400">
+          <h2 className="font-mono text-xs uppercase tracking-wider text-gray-500">
             Suspended ({suspended.length})
           </h2>
-          <p className="mt-1 text-sm text-slate-500">
+          <p className="mt-1 text-sm text-gray-500">
             Hidden from buyer-facing results until reinstated.
           </p>
           <ul className="mt-3 flex flex-col gap-4">
@@ -193,7 +193,7 @@ export default async function AdminShippersPage() {
                 className="rounded-lg border border-copper-100 bg-copper-50 p-5"
               >
                 <div className="flex items-start justify-between gap-4">
-                  <h3 className="text-lg font-semibold text-ink-900">
+                  <h3 className="text-lg font-semibold text-black">
                     {s.company_name}
                   </h3>
                   <span className="inline-flex shrink-0 items-center rounded-full bg-copper-100 px-2.5 py-1 text-sm font-medium text-copper-700">
@@ -212,11 +212,11 @@ export default async function AdminShippersPage() {
 
       {/* Approved + rate management */}
       <section className="mt-12">
-        <h2 className="font-mono text-xs uppercase tracking-wider text-ink-400">
+        <h2 className="font-mono text-xs uppercase tracking-wider text-gray-500">
           Approved shippers ({approved.length})
         </h2>
         {approved.length === 0 ? (
-          <p className="mt-3 text-sm text-slate-500">None yet.</p>
+          <p className="mt-3 text-sm text-gray-500">None yet.</p>
         ) : (
           <ul className="mt-3 flex flex-col gap-4">
             {approved.map((s) => {
@@ -224,10 +224,10 @@ export default async function AdminShippersPage() {
               return (
                 <li
                   key={s.id}
-                  className="rounded-lg border border-paper-200 bg-paper-100 p-5"
+                  className="rounded-lg border border-gray-200 bg-white p-5"
                 >
                   <div className="flex items-start justify-between gap-4">
-                    <h3 className="text-lg font-semibold text-ink-900">
+                    <h3 className="text-lg font-semibold text-black">
                       {s.company_name}
                     </h3>
                     <span className="inline-flex shrink-0 items-center rounded-full bg-verified-50 px-2.5 py-1 text-sm font-medium text-verified-600">
@@ -236,8 +236,8 @@ export default async function AdminShippersPage() {
                   </div>
                   <ShipperFacts s={s} />
 
-                  <div className="mt-4 border-t border-paper-200 pt-4">
-                    <p className="font-mono text-xs uppercase tracking-wider text-ink-400">
+                  <div className="mt-4 border-t border-gray-200 pt-4">
+                    <p className="font-mono text-xs uppercase tracking-wider text-gray-500">
                       Rates ({rates.length}) — shown to buyers exactly as entered
                     </p>
                     {rates.length > 0 ? (
@@ -245,9 +245,9 @@ export default async function AdminShippersPage() {
                         {rates.map((r) => (
                           <li
                             key={r.id}
-                            className="flex flex-wrap items-center justify-between gap-2 rounded border border-paper-200 px-3 py-2 text-sm"
+                            className="flex flex-wrap items-center justify-between gap-2 rounded border border-gray-200 px-3 py-2 text-sm"
                           >
-                            <span className="text-ink-900">
+                            <span className="text-black">
                               {r.origin_region}
                               {r.origin_port ? ` (${r.origin_port})` : ""} &rarr;{" "}
                               {countryName(r.destination_country)}
@@ -262,7 +262,7 @@ export default async function AdminShippersPage() {
                         ))}
                       </ul>
                     ) : (
-                      <p className="mt-2 text-sm text-slate-500">
+                      <p className="mt-2 text-sm text-gray-500">
                         No rates yet — buyers won&rsquo;t see this shipper until
                         one is added.
                       </p>

@@ -135,16 +135,16 @@ export function ReportIssuePanel({ purchaseRequestId }: { purchaseRequestId: str
   return (
     <form
       onSubmit={handleSubmit}
-      className="mt-3 flex flex-col gap-3 rounded border border-paper-200 bg-paper p-4"
+      className="mt-3 flex flex-col gap-3 rounded border border-gray-200 bg-white p-4"
     >
-      <p className="text-sm font-medium text-ink-900">Report an issue</p>
+      <p className="text-sm font-medium text-black">Report an issue</p>
 
       <label className="flex flex-col gap-1">
-        <span className="text-sm text-slate-500">Category</span>
+        <span className="text-sm text-gray-500">Category</span>
         <select
           value={category}
           onChange={(e) => setCategory(e.target.value as DisputeCategory)}
-          className="h-11 rounded border border-paper-200 bg-paper-100 px-3 text-sm text-ink-900"
+          className="h-11 rounded border border-gray-200 bg-white px-3 text-sm text-black"
         >
           {DISPUTE_CATEGORIES.map((c) => (
             <option key={c} value={c}>
@@ -155,7 +155,7 @@ export function ReportIssuePanel({ purchaseRequestId }: { purchaseRequestId: str
       </label>
 
       <label className="flex flex-col gap-1">
-        <span className="text-sm text-slate-500">
+        <span className="text-sm text-gray-500">
           Description <span className="text-copper-700">*</span>
         </span>
         <textarea
@@ -164,12 +164,12 @@ export function ReportIssuePanel({ purchaseRequestId }: { purchaseRequestId: str
           value={description}
           onChange={(e) => setDescription(e.target.value)}
           placeholder="What happened? Include dates, amounts, and anything relevant."
-          className="rounded border border-paper-200 bg-paper-100 px-3 py-2 text-sm text-ink-900"
+          className="rounded border border-gray-200 bg-white px-3 py-2 text-sm text-black"
         />
       </label>
 
       <label className="flex flex-col gap-1">
-        <span className="text-sm text-slate-500">
+        <span className="text-sm text-gray-500">
           Evidence (optional) — photos or screenshots
         </span>
         <input
@@ -181,9 +181,9 @@ export function ReportIssuePanel({ purchaseRequestId }: { purchaseRequestId: str
             addFiles(e.target.files);
             e.target.value = "";
           }}
-          className="text-sm text-slate-500 file:mr-3 file:rounded file:border-0 file:bg-marine-700 file:px-3 file:py-1.5 file:text-sm file:font-medium file:text-white"
+          className="text-sm text-gray-500 file:mr-3 file:rounded file:border-0 file:bg-black file:px-3 file:py-1.5 file:text-sm file:font-medium file:text-white"
         />
-        <span className="font-mono text-xs uppercase tracking-wider text-ink-400">
+        <span className="font-mono text-xs uppercase tracking-wider text-gray-500">
           JPEG, PNG, WebP, or PDF · up to 10 MB each · up to {DISPUTE_EVIDENCE_MAX_FILES} files
         </span>
       </label>
@@ -193,13 +193,13 @@ export function ReportIssuePanel({ purchaseRequestId }: { purchaseRequestId: str
           {files.map((f, i) => (
             <li
               key={`${f.name}-${i}`}
-              className="flex items-center justify-between gap-2 text-sm text-ink-900"
+              className="flex items-center justify-between gap-2 text-sm text-black"
             >
               <span className="truncate">{f.name}</span>
               <button
                 type="button"
                 onClick={() => removeFile(i)}
-                className="shrink-0 text-xs text-copper-700 hover:underline"
+                className="shrink-0 text-xs text-black hover:underline"
               >
                 Remove
               </button>
@@ -218,11 +218,11 @@ export function ReportIssuePanel({ purchaseRequestId }: { purchaseRequestId: str
           type="button"
           onClick={() => setOpen(false)}
           disabled={submitting}
-          className="text-sm text-slate-500 hover:text-ink-900"
+          className="text-sm text-gray-500 hover:text-black"
         >
           Cancel
         </button>
-        {submitting ? <Loader2 className="h-4 w-4 animate-spin text-ink-400" aria-hidden /> : null}
+        {submitting ? <Loader2 className="h-4 w-4 animate-spin text-gray-500" aria-hidden /> : null}
       </div>
     </form>
   );

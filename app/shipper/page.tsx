@@ -34,7 +34,7 @@ function Shell({ children }: { children: ReactNode }) {
     <main className="mx-auto max-w-3xl px-6 py-16">
       <Link
         href="/"
-        className="font-mono text-xs uppercase tracking-wider text-ink-400 hover:text-ink-900"
+        className="font-mono text-xs uppercase tracking-wider text-gray-500 hover:text-black"
       >
         &larr; MOVA
       </Link>
@@ -79,10 +79,10 @@ export default async function ShipperPortalPage({
 
     return (
       <Shell>
-        <h1 className="mt-4 text-2xl font-semibold text-ink-900">
+        <h1 className="mt-4 text-2xl font-semibold text-black">
           Shipper portal
         </h1>
-        <p className="mt-1 text-sm text-slate-500">Signed in as {user.email}</p>
+        <p className="mt-1 text-sm text-gray-500">Signed in as {user.email}</p>
 
         {claim === "failed" ? (
           <p className="mt-4 rounded border border-copper-100 bg-copper-50 p-3 text-sm text-copper-700">
@@ -92,12 +92,12 @@ export default async function ShipperPortalPage({
         ) : null}
 
         {claimable ? (
-          <div className="mt-6 rounded-lg border border-paper-200 bg-paper-100 p-6">
-            <p className="text-ink-900">
+          <div className="mt-6 rounded-lg border border-gray-200 bg-white p-6">
+            <p className="text-black">
               We found an approved shipper application for{" "}
               <strong>{claimable.company_name}</strong> under {user.email}.
             </p>
-            <p className="mt-1 text-sm text-slate-500">
+            <p className="mt-1 text-sm text-gray-500">
               Link it to this account to manage your rates.
             </p>
             <div className="mt-4">
@@ -105,11 +105,11 @@ export default async function ShipperPortalPage({
             </div>
           </div>
         ) : (
-          <div className="mt-6 rounded-lg border border-dashed border-paper-200 bg-paper-100 p-6">
-            <p className="text-ink-900">
+          <div className="mt-6 rounded-lg border border-dashed border-gray-200 bg-white p-6">
+            <p className="text-black">
               No shipper record is linked to this account.
             </p>
-            <p className="mt-1 text-sm text-slate-500">
+            <p className="mt-1 text-sm text-gray-500">
               If you&rsquo;ve applied, sign in with the email on your
               application. Otherwise, apply to list your rates.
             </p>
@@ -129,7 +129,7 @@ export default async function ShipperPortalPage({
   if (linked.status !== "approved") {
     return (
       <Shell>
-        <h1 className="mt-4 text-2xl font-semibold text-ink-900">
+        <h1 className="mt-4 text-2xl font-semibold text-black">
           {linked.company_name}
         </h1>
         {linked.status === "pending" ? (
@@ -171,10 +171,10 @@ export default async function ShipperPortalPage({
     <Shell>
       <div className="mt-4 flex flex-wrap items-start justify-between gap-3">
         <div>
-          <h1 className="text-2xl font-semibold text-ink-900">
+          <h1 className="text-2xl font-semibold text-black">
             {linked.company_name}
           </h1>
-          <p className="mt-1 text-sm text-slate-500">Signed in as {user.email}</p>
+          <p className="mt-1 text-sm text-gray-500">Signed in as {user.email}</p>
         </div>
         <Link
           href="/shipper/profile"
@@ -217,7 +217,7 @@ export default async function ShipperPortalPage({
 
       {/* Rates */}
       <section className="mt-10">
-        <h2 className="font-mono text-xs uppercase tracking-wider text-ink-400">
+        <h2 className="font-mono text-xs uppercase tracking-wider text-gray-500">
           Your rates ({rates.length}) · serving{" "}
           {linked.service_countries.map(countryName).join(", ") || "—"}
         </h2>
@@ -228,10 +228,10 @@ export default async function ShipperPortalPage({
       {/* Shipments — full list, one-tap status updates, proof photos and
           buyer contact live on the dedicated dashboard now. */}
       <section className="mt-10">
-        <h2 className="font-mono text-xs uppercase tracking-wider text-ink-400">
+        <h2 className="font-mono text-xs uppercase tracking-wider text-gray-500">
           Shipments ({shipmentCount ?? 0})
         </h2>
-        <p className="mt-1 text-sm text-slate-500">
+        <p className="mt-1 text-sm text-gray-500">
           {shipmentCount
             ? "Update pickup/delivery status, upload proof photos and message buyers."
             : "None yet. When a buyer selects one of your rates it appears here."}

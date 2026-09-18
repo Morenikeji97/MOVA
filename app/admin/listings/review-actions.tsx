@@ -55,14 +55,14 @@ export function ReviewActions({
   const blockedOnApproval = flagged || !titleIdentityMatchConfirmed;
 
   return (
-    <div className="mt-4 border-t border-paper-200 pt-4">
-      <p className="text-sm text-slate-500">
+    <div className="mt-4 border-t border-gray-200 pt-4">
+      <p className="text-sm text-gray-500">
         Check this VIN at{" "}
         <a
           href="https://www.nicb.org/vincheck"
           target="_blank"
           rel="noopener noreferrer"
-          className="text-marine-700 underline underline-offset-2"
+          className="text-black underline underline-offset-2"
         >
           nicb.org/vincheck
         </a>{" "}
@@ -71,7 +71,7 @@ export function ReviewActions({
           href="https://vehiclehistory.gov"
           target="_blank"
           rel="noopener noreferrer"
-          className="text-marine-700 underline underline-offset-2"
+          className="text-black underline underline-offset-2"
         >
           vehiclehistory.gov
         </a>{" "}
@@ -83,13 +83,13 @@ export function ReviewActions({
         className="mt-2 flex flex-wrap items-center gap-2"
       >
         <input type="hidden" name="id" value={vehicleId} />
-        <label className="flex items-center gap-2 text-sm text-slate-500">
+        <label className="flex items-center gap-2 text-sm text-gray-500">
           VIN check result
           <select
             name="vin_verification_status"
             defaultValue={vinVerificationStatus}
             onChange={() => vinFormRef.current?.requestSubmit()}
-            className="h-9 rounded border border-paper-200 bg-paper-100 px-2 text-sm text-ink-900"
+            className="h-9 rounded border border-gray-200 bg-white px-2 text-sm text-black"
           >
             {(Object.keys(VIN_STATUS_LABEL) as VinVerificationStatus[]).map((s) => (
               <option key={s} value={s}>
@@ -117,13 +117,13 @@ export function ReviewActions({
           name="title_identity_match_confirmed"
           value={(!titleIdentityMatchConfirmed).toString()}
         />
-        <label className="flex items-center gap-2 text-sm text-slate-500">
+        <label className="flex items-center gap-2 text-sm text-gray-500">
           <input
             type="checkbox"
             defaultChecked={titleIdentityMatchConfirmed}
             disabled={!titlePhotoPath}
             onChange={() => identityFormRef.current?.requestSubmit()}
-            className="h-4 w-4 rounded border-paper-200"
+            className="h-4 w-4 rounded border-gray-200"
           />
           Title photo matches seller&rsquo;s verified identity
         </label>
@@ -144,7 +144,7 @@ export function ReviewActions({
         <form action={rejectListing} className="flex flex-col gap-2">
           <input type="hidden" name="id" value={vehicleId} />
           <label className="flex flex-col gap-1">
-            <span className="text-sm text-slate-500">
+            <span className="text-sm text-gray-500">
               Reason for rejection <span className="text-copper-700">*</span>
             </span>
             <textarea
@@ -152,7 +152,7 @@ export function ReviewActions({
               required
               rows={3}
               placeholder="Tell the seller what needs to change before this can be approved."
-              className="rounded border border-paper-200 bg-paper-100 px-3 py-2 text-ink-900"
+              className="rounded border border-gray-200 bg-white px-3 py-2 text-black"
             />
           </label>
           <div className="flex items-center gap-3">
@@ -162,7 +162,7 @@ export function ReviewActions({
             <button
               type="button"
               onClick={() => setRejecting(false)}
-              className="text-sm text-slate-500 hover:text-ink-900"
+              className="text-sm text-gray-500 hover:text-black"
             >
               Cancel
             </button>

@@ -45,7 +45,7 @@ function LoginForm() {
 
   return (
     <main className="mx-auto flex min-h-screen max-w-md flex-col justify-center px-6">
-      <h1 className="mb-6 text-2xl font-semibold text-ink-900">Sign in to MOVA</h1>
+      <h1 className="mb-6 text-2xl font-semibold text-black">Sign in to MOVA</h1>
 
       {resetNotice === "success" ? (
         <p className="mb-4 rounded border border-verified-100 bg-verified-50 p-3 text-sm text-verified-600">
@@ -60,21 +60,21 @@ function LoginForm() {
 
       <form onSubmit={handleSubmit} className="flex flex-col gap-4">
         <label className="flex flex-col gap-1">
-          <span className="text-sm text-slate-500">Email</span>
+          <span className="text-sm text-gray-500">Email</span>
           <input
             type="email"
             required
             value={email}
             onChange={(e) => setEmail(e.target.value)}
-            className="h-11 rounded border border-paper-200 px-3"
+            className="h-11 rounded border border-gray-200 px-3"
           />
         </label>
         <label className="flex flex-col gap-1">
           <div className="flex items-baseline justify-between">
-            <span className="text-sm text-slate-500">Password</span>
+            <span className="text-sm text-gray-500">Password</span>
             <Link
               href={email ? `/forgot-password?email=${encodeURIComponent(email)}` : "/forgot-password"}
-              className="text-sm text-marine-700 hover:underline"
+              className="text-sm text-black hover:underline"
             >
               Forgot password?
             </Link>
@@ -84,7 +84,7 @@ function LoginForm() {
             required
             value={password}
             onChange={(e) => setPassword(e.target.value)}
-            className="h-11 rounded border border-paper-200 px-3"
+            className="h-11 rounded border border-gray-200 px-3"
           />
         </label>
         {error && <p className="text-sm text-copper-700">{error}</p>}
@@ -97,13 +97,13 @@ function LoginForm() {
           account type (buyer, seller, shipper, admin). So there's nothing
           to build here beyond this note: if you can't remember which email
           you signed up with, there's no separate identity to recover. */}
-      <p className="mt-3 text-center text-xs text-ink-400">
+      <p className="mt-3 text-center text-xs text-gray-500">
         Your email is your MOVA username — there&rsquo;s no separate login name.
       </p>
 
-      <p className="mt-6 text-center text-sm text-slate-500">
+      <p className="mt-6 text-center text-sm text-gray-500">
         Shipping company?{" "}
-        <Link href="/shipper" className="text-marine-700 hover:underline">
+        <Link href="/shipper" className="text-black hover:underline">
           Shipper portal
         </Link>
       </p>

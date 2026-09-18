@@ -14,7 +14,7 @@ export default function BuyerProtectionPolicyPage() {
     <main className="mx-auto max-w-2xl px-6 py-16">
       <Link
         href="/"
-        className="font-mono text-xs uppercase tracking-wider text-ink-400 hover:text-ink-900"
+        className="font-mono text-xs uppercase tracking-wider text-gray-500 hover:text-black"
       >
         &larr; MOVA
       </Link>

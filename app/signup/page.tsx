@@ -55,8 +55,8 @@ export default function SignupPage() {
   if (submitted) {
     return (
       <main className="mx-auto flex min-h-screen max-w-md flex-col justify-center px-6 text-center">
-        <h1 className="text-2xl font-semibold text-ink-900">Check your email</h1>
-        <p className="mt-2 text-slate-500">
+        <h1 className="text-2xl font-semibold text-black">Check your email</h1>
+        <p className="mt-2 text-gray-500">
           We&apos;ve sent a verification link to {email}. Confirm your email to
           finish creating your MOVA account.
         </p>
@@ -66,7 +66,7 @@ export default function SignupPage() {
 
   return (
     <main className="mx-auto flex min-h-screen max-w-md flex-col justify-center px-6">
-      <h1 className="mb-6 text-2xl font-semibold text-ink-900">Create your MOVA account</h1>
+      <h1 className="mb-6 text-2xl font-semibold text-black">Create your MOVA account</h1>
       <form onSubmit={handleSubmit} className="flex flex-col gap-4">
         <fieldset className="flex gap-2">
           {(["buyer", "seller"] as UserRole[]).map((r) => (
@@ -76,8 +76,8 @@ export default function SignupPage() {
               onClick={() => setRole(r)}
               className={`h-11 flex-1 rounded border text-sm font-medium capitalize ${
                 role === r
-                  ? "border-marine bg-marine-50 text-marine-700"
-                  : "border-paper-200 text-slate-500"
+                  ? "border-black bg-gray-100 text-black"
+                  : "border-gray-200 text-gray-500"
               }`}
             >
               I&apos;m a {r}
@@ -87,33 +87,33 @@ export default function SignupPage() {
               license, Stripe card capture), so this jumps straight there. */}
           <Link
             href="/shipper/signup"
-            className="flex h-11 flex-1 items-center justify-center rounded border border-paper-200 text-sm font-medium text-slate-500"
+            className="flex h-11 flex-1 items-center justify-center rounded border border-gray-200 text-sm font-medium text-gray-500"
           >
             I&apos;m a shipper
           </Link>
         </fieldset>
         <label className="flex flex-col gap-1">
-          <span className="text-sm text-slate-500">Email</span>
+          <span className="text-sm text-gray-500">Email</span>
           <input
             type="email"
             required
             value={email}
             onChange={(e) => setEmail(e.target.value)}
-            className="h-11 rounded border border-paper-200 px-3"
+            className="h-11 rounded border border-gray-200 px-3"
           />
         </label>
         <label className="flex flex-col gap-1">
-          <span className="text-sm text-slate-500">Password</span>
+          <span className="text-sm text-gray-500">Password</span>
           <input
             type="password"
             required
             minLength={8}
             value={password}
             onChange={(e) => setPassword(e.target.value)}
-            className="h-11 rounded border border-paper-200 px-3"
+            className="h-11 rounded border border-gray-200 px-3"
           />
         </label>
-        <label className="flex items-start gap-2 text-sm text-slate-500">
+        <label className="flex items-start gap-2 text-sm text-gray-500">
           <input
             type="checkbox"
             checked={policyAccepted}
@@ -127,7 +127,7 @@ export default function SignupPage() {
               href={BUYER_PROTECTION_POLICY_PATH}
               target="_blank"
               rel="noopener noreferrer"
-              className="text-marine-700 underline underline-offset-2"
+              className="text-black underline underline-offset-2"
             >
               Buyer Protection &amp; Refund Policy
             </Link>

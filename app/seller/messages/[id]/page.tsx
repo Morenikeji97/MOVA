@@ -66,23 +66,23 @@ export default async function SellerConversationPage({
     <main className="mx-auto max-w-3xl px-6 py-16">
       <Link
         href="/seller/messages"
-        className="font-mono text-xs uppercase tracking-wider text-ink-400 hover:text-ink-900"
+        className="font-mono text-xs uppercase tracking-wider text-gray-500 hover:text-black"
       >
         &larr; All messages
       </Link>
 
       <div className="mt-4 flex flex-wrap items-baseline justify-between gap-2">
-        <h1 className="text-2xl font-semibold text-ink-900">{title}</h1>
+        <h1 className="text-2xl font-semibold text-black">{title}</h1>
         {vehicle ? (
           <Link
             href={`/browse/${vehicle.id}`}
-            className="text-sm text-marine-700 hover:underline"
+            className="text-sm text-black hover:underline"
           >
             View listing &rarr;
           </Link>
         ) : null}
       </div>
-      <p className="mt-1 font-mono text-sm text-ink-400">
+      <p className="mt-1 font-mono text-sm text-gray-500">
         Conversation with {buyerLabel}
       </p>
 

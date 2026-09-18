@@ -5,9 +5,10 @@ import { whatsappLink } from "@/lib/whatsapp";
  * Persistent floating WhatsApp contact button, fixed to the bottom-right on
  * every page (mounted once in app/layout.tsx).
  *
- * Palette: the resting state is MOVA ink navy so WhatsApp's bright green never
- * fights the ink/copper scheme; the WhatsApp glyph keeps it recognizable, and
- * the brand green only appears on hover/active. `z-50` keeps it above content;
+ * Palette: the resting state is black so WhatsApp's bright green never fights
+ * the site's black-and-white scheme; the WhatsApp glyph keeps it
+ * recognizable, and the brand green only appears on hover/active. `z-50`
+ * keeps it above content;
  * the bottom-right corner is clear of every form submit / nav in the app, and
  * the inset shrinks on small viewports.
  */
@@ -24,9 +25,9 @@ export function WhatsAppButton() {
       className={cn(
         "fixed bottom-4 right-4 z-50 sm:bottom-6 sm:right-6 print:hidden",
         "flex h-14 w-14 items-center justify-center rounded-full",
-        "bg-ink text-white shadow-lg shadow-ink-900/25",
+        "bg-black text-white shadow-lg shadow-black/25",
         "transition-colors hover:bg-[#128C7E] active:bg-[#0f7a6b]",
-        "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-marine-400 focus-visible:ring-offset-2"
+        "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-black focus-visible:ring-offset-2"
       )}
     >
       <svg

@@ -20,13 +20,13 @@ export function buttonClasses({
 } = {}) {
   return cn(
     "inline-flex items-center justify-center rounded font-sans font-medium transition-colors",
-    "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-marine-400",
+    "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-black",
     "disabled:opacity-50 disabled:pointer-events-none",
     variant === "primary" &&
-      "bg-copper text-white hover:bg-copper-700 active:bg-copper-700",
+      "bg-black text-white hover:bg-gray-800 active:bg-gray-800",
     variant === "secondary" &&
-      "border border-marine text-marine hover:bg-marine-50",
-    variant === "ghost" && "text-slate hover:bg-paper-200",
+      "border border-black text-black hover:bg-gray-100",
+    variant === "ghost" && "text-gray-700 hover:bg-gray-100",
     size === "sm" && "h-9 px-3 text-sm",
     size === "md" && "h-11 px-5 text-base",
     size === "lg" && "h-13 px-7 text-lg",

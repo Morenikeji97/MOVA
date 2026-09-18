@@ -50,17 +50,17 @@ export default async function ShipperProfilePage({
     <main className="mx-auto max-w-3xl px-6 py-16">
       <Link
         href="/browse"
-        className="font-mono text-xs uppercase tracking-wider text-ink-400 hover:text-ink-900"
+        className="font-mono text-xs uppercase tracking-wider text-gray-500 hover:text-black"
       >
         &larr; Browse vehicles
       </Link>
 
       <div className="mt-4 flex flex-wrap items-start justify-between gap-3">
         <div>
-          <h1 className="text-2xl font-semibold text-ink-900">
+          <h1 className="text-2xl font-semibold text-black">
             {shipper.company_name}
           </h1>
-          <p className="mt-1 font-mono text-sm text-ink-400">
+          <p className="mt-1 font-mono text-sm text-gray-500">
             Ships to{" "}
             {(shipper.service_countries ?? [])
               .map((c) => countryName(c))
@@ -74,7 +74,7 @@ export default async function ShipperProfilePage({
       </div>
 
       <section className="mt-10">
-        <h2 className="font-mono text-xs uppercase tracking-wider text-ink-400">
+        <h2 className="font-mono text-xs uppercase tracking-wider text-gray-500">
           Buyer reviews
         </h2>
         <div className="mt-3">
@@ -87,7 +87,7 @@ export default async function ShipperProfilePage({
       </section>
 
       {!user ? (
-        <p className="mt-8 text-sm text-slate-500">
+        <p className="mt-8 text-sm text-gray-500">
           <Link href="/login" className={buttonClasses({ size: "sm", variant: "secondary" })}>
             Sign in
           </Link>{" "}

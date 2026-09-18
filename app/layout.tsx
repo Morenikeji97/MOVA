@@ -1,6 +1,6 @@
 import type { Metadata } from "next";
 import { Inter, JetBrains_Mono } from "next/font/google";
-import { AccountMenu } from "@/components/ui/account-menu";
+import { Header } from "@/components/ui/header";
 import { WhatsAppButton } from "@/components/ui/whatsapp-button";
 import { Footer } from "@/components/ui/footer";
 import "./globals.css";
@@ -27,9 +27,9 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
   return (
     <html lang="en" className={`${inter.variable} ${jetbrainsMono.variable}`}>
       <body>
+        <Header />
         {children}
         <Footer />
-        <AccountMenu />
         <WhatsAppButton />
       </body>
     </html>

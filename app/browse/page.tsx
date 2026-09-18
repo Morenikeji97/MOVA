@@ -6,7 +6,7 @@ import { VehicleCard, type VehicleCardData } from "@/components/ui/vehicle-card"
 import { LISTING_CARD_COLUMNS, loadListingThumbnails } from "@/lib/listings";
 
 const inputClass =
-  "h-11 rounded border border-paper-200 bg-paper-100 px-3 text-ink-900";
+  "h-11 rounded border border-gray-200 bg-white px-3 text-black";
 
 /** Reads a single-value string search param, ignoring arrays and blanks. */
 function str(value: string | string[] | undefined): string {
@@ -17,29 +17,6 @@ function str(value: string | string[] | undefined): string {
 function int(value: string | string[] | undefined): number | null {
   const s = str(value);
   return /^\d+$/.test(s) ? Number(s) : null;
-}
-
-function BrowseHeader() {
-  return (
-    <header className="border-b border-paper-200 bg-paper-100">
-      <div className="mx-auto flex max-w-6xl items-center justify-between px-6 py-4">
-        <Link href="/" className="font-mono text-sm font-semibold uppercase tracking-widest text-ink-900">
-          MOVA
-        </Link>
-        <nav className="flex items-center gap-4 text-sm">
-          <Link href="/shipper" className="text-slate-500 hover:text-ink-900">
-            Shippers
-          </Link>
-          <Link href="/login" className="text-slate-500 hover:text-ink-900">
-            Sign in
-          </Link>
-          <Link href="/signup" className={buttonClasses({ size: "sm" })}>
-            Create account
-          </Link>
-        </nav>
-      </div>
-    </header>
-  );
 }
 
 export default async function BrowsePage({
@@ -82,22 +59,20 @@ export default async function BrowsePage({
   );
 
   return (
-    <div className="min-h-screen bg-paper">
-      <BrowseHeader />
-
+    <div className="min-h-screen bg-white">
       <main className="mx-auto max-w-6xl px-6 py-12">
-        <h1 className="text-2xl font-semibold text-ink-900">Browse vehicles</h1>
-        <p className="mt-2 text-sm text-slate-500">
+        <h1 className="text-2xl font-semibold text-black">Browse vehicles</h1>
+        <p className="mt-2 text-sm text-gray-500">
           {rows.length} verified {rows.length === 1 ? "listing" : "listings"}
           {hasFilters ? " matching your filters" : " available now"}.
         </p>
 
         <form
           method="get"
-          className="mt-6 flex flex-wrap items-end gap-3 rounded-lg border border-paper-200 bg-paper-100 p-4"
+          className="mt-6 flex flex-wrap items-end gap-3 rounded-lg border border-gray-200 bg-white p-4"
         >
           <label className="flex flex-col gap-1">
-            <span className="font-mono text-xs uppercase tracking-wider text-ink-400">
+            <span className="font-mono text-xs uppercase tracking-wider text-gray-500">
               Make
             </span>
             <select name="make" defaultValue={make} className={cn(inputClass, "min-w-40")}>
@@ -110,7 +85,7 @@ export default async function BrowsePage({
             </select>
           </label>
           <label className="flex flex-col gap-1">
-            <span className="font-mono text-xs uppercase tracking-wider text-ink-400">
+            <span className="font-mono text-xs uppercase tracking-wider text-gray-500">
               Min price (USD)
             </span>
             <input
@@ -124,7 +99,7 @@ export default async function BrowsePage({
             />
           </label>
           <label className="flex flex-col gap-1">
-            <span className="font-mono text-xs uppercase tracking-wider text-ink-400">
+            <span className="font-mono text-xs uppercase tracking-wider text-gray-500">
               Max price (USD)
             </span>
             <input
@@ -143,7 +118,7 @@ export default async function BrowsePage({
           {hasFilters ? (
             <Link
               href="/browse"
-              className="text-sm text-slate-500 hover:text-ink-900"
+              className="text-sm text-gray-500 hover:text-black"
             >
               Clear
             </Link>
@@ -151,9 +126,9 @@ export default async function BrowsePage({
         </form>
 
         {rows.length === 0 ? (
-          <div className="mt-10 rounded-lg border border-dashed border-paper-200 bg-paper-100 p-12 text-center">
-            <p className="text-ink-900">No vehicles match your filters yet.</p>
-            <p className="mt-1 text-sm text-slate-500">
+          <div className="mt-10 rounded-lg border border-dashed border-gray-200 bg-white p-12 text-center">
+            <p className="text-black">No vehicles match your filters yet.</p>
+            <p className="mt-1 text-sm text-gray-500">
               Try widening the price range or clearing the make filter.
             </p>
           </div>

@@ -26,8 +26,8 @@ const ACTIVE_STATUSES: DisputeStatus[] = ["open", "approved_pending_refund"];
 function Detail({ label, children }: { label: string; children: ReactNode }) {
   return (
     <div>
-      <dt className="font-mono text-xs uppercase tracking-wider text-ink-400">{label}</dt>
-      <dd className="text-ink-900">{children}</dd>
+      <dt className="font-mono text-xs uppercase tracking-wider text-gray-500">{label}</dt>
+      <dd className="text-black">{children}</dd>
     </div>
   );
 }
@@ -94,20 +94,20 @@ export default async function AdminDisputesPage() {
     <main className="mx-auto max-w-4xl px-6 py-16">
       <Link
         href="/admin/dashboard"
-        className="font-mono text-xs uppercase tracking-wider text-ink-400 hover:text-ink-900"
+        className="font-mono text-xs uppercase tracking-wider text-gray-500 hover:text-black"
       >
         &larr; Admin dashboard
       </Link>
-      <h1 className="mt-4 text-2xl font-semibold text-ink-900">Disputes</h1>
-      <p className="mt-2 text-sm text-slate-500">
+      <h1 className="mt-4 text-2xl font-semibold text-black">Disputes</h1>
+      <p className="mt-2 text-sm text-gray-500">
         {disputes.length === 0
           ? "No open disputes."
           : `${disputes.length} dispute${disputes.length === 1 ? "" : "s"} needing attention.`}
       </p>
 
       {disputes.length === 0 ? (
-        <div className="mt-10 rounded-lg border border-dashed border-paper-200 bg-paper-100 p-10 text-center">
-          <p className="text-ink-900">Nothing to review.</p>
+        <div className="mt-10 rounded-lg border border-dashed border-gray-200 bg-white p-10 text-center">
+          <p className="text-black">Nothing to review.</p>
         </div>
       ) : (
         <ul className="mt-8 flex flex-col gap-4">
@@ -129,23 +129,23 @@ export default async function AdminDisputesPage() {
             return (
               <li
                 key={d.id}
-                className="rounded-lg border border-paper-200 bg-paper-100 p-5"
+                className="rounded-lg border border-gray-200 bg-white p-5"
               >
                 <div className="flex items-start justify-between gap-4">
                   <div>
-                    <h2 className="text-lg font-semibold text-ink-900">
+                    <h2 className="text-lg font-semibold text-black">
                       {DISPUTE_CATEGORY_LABEL[d.category]}
                     </h2>
                     {reservation ? (
                       <Link
                         href={`/browse/${reservation.vehicle_id}`}
-                        className="mt-1 block text-sm text-marine-700 hover:underline"
+                        className="mt-1 block text-sm text-black hover:underline"
                       >
                         {title}
                         {vehicle ? ` — VIN ${vehicle.vehicle_vin_display}` : ""}
                       </Link>
                     ) : (
-                      <p className="mt-1 text-sm text-ink-400">Reservation unavailable</p>
+                      <p className="mt-1 text-sm text-gray-500">Reservation unavailable</p>
                     )}
                   </div>
                   <span className="inline-flex shrink-0 items-center rounded-full bg-marine-50 px-2.5 py-1 text-sm font-medium text-marine-700">
@@ -181,17 +181,17 @@ export default async function AdminDisputesPage() {
                 </dl>
 
                 <div className="mt-3">
-                  <p className="font-mono text-xs uppercase tracking-wider text-ink-400">
+                  <p className="font-mono text-xs uppercase tracking-wider text-gray-500">
                     Description
                   </p>
-                  <p className="mt-1 whitespace-pre-wrap text-sm text-ink-900">
+                  <p className="mt-1 whitespace-pre-wrap text-sm text-black">
                     {d.description}
                   </p>
                 </div>
 
                 {d.evidence_paths.length > 0 ? (
                   <div className="mt-3">
-                    <p className="font-mono text-xs uppercase tracking-wider text-ink-400">
+                    <p className="font-mono text-xs uppercase tracking-wider text-gray-500">
                       Evidence ({d.evidence_paths.length})
                     </p>
                     <div className="mt-2 flex flex-wrap gap-2">
@@ -212,7 +212,7 @@ export default async function AdminDisputesPage() {
                               href={url}
                               target="_blank"
                               rel="noopener noreferrer"
-                              className="text-sm text-marine-700 underline underline-offset-2"
+                              className="text-sm text-black underline underline-offset-2"
                             >
                               View PDF &rarr;
                             </a>
@@ -224,7 +224,7 @@ export default async function AdminDisputesPage() {
                             <img
                               src={url}
                               alt="Dispute evidence"
-                              className="h-24 w-24 rounded border border-paper-200 object-cover"
+                              className="h-24 w-24 rounded border border-gray-200 object-cover"
                             />
                           </a>
                         );

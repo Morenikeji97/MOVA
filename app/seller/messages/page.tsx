@@ -88,12 +88,12 @@ export default async function SellerMessagesPage() {
     <main className="mx-auto max-w-4xl px-6 py-16">
       <Link
         href="/seller/dashboard"
-        className="font-mono text-xs uppercase tracking-wider text-ink-400 hover:text-ink-900"
+        className="font-mono text-xs uppercase tracking-wider text-gray-500 hover:text-black"
       >
         &larr; Seller dashboard
       </Link>
-      <h1 className="mt-4 text-2xl font-semibold text-ink-900">Messages</h1>
-      <p className="mt-2 text-sm text-slate-500">
+      <h1 className="mt-4 text-2xl font-semibold text-black">Messages</h1>
+      <p className="mt-2 text-sm text-gray-500">
         {conversations.length === 0
           ? "No buyer messages yet."
           : `${conversations.length} conversation${
@@ -102,9 +102,9 @@ export default async function SellerMessagesPage() {
       </p>
 
       {conversations.length === 0 ? (
-        <div className="mt-10 rounded-lg border border-dashed border-paper-200 bg-paper-100 p-10 text-center">
-          <p className="text-ink-900">Nothing here yet.</p>
-          <p className="mt-1 text-sm text-slate-500">
+        <div className="mt-10 rounded-lg border border-dashed border-gray-200 bg-white p-10 text-center">
+          <p className="text-black">Nothing here yet.</p>
+          <p className="mt-1 text-sm text-gray-500">
             When a buyer messages you from one of your listings, the
             conversation shows up here.
           </p>
@@ -125,14 +125,14 @@ export default async function SellerMessagesPage() {
               <li key={c.id}>
                 <Link
                   href={`/seller/messages/${c.id}`}
-                  className="block rounded-lg border border-paper-200 bg-paper-100 p-5 transition-colors hover:border-marine"
+                  className="block rounded-lg border border-gray-200 bg-white p-5 transition-colors hover:border-black"
                 >
                   <div className="flex items-start justify-between gap-4">
                     <div className="min-w-0">
-                      <h2 className="truncate text-lg font-semibold text-ink-900">
+                      <h2 className="truncate text-lg font-semibold text-black">
                         {title}
                       </h2>
-                      <p className="mt-1 font-mono text-xs uppercase tracking-wider text-ink-400">
+                      <p className="mt-1 font-mono text-xs uppercase tracking-wider text-gray-500">
                         {buyer?.email ?? "Buyer"}
                       </p>
                     </div>
@@ -143,17 +143,17 @@ export default async function SellerMessagesPage() {
                     ) : null}
                   </div>
                   {summary?.last ? (
-                    <p className="mt-3 truncate text-sm text-slate-500">
-                      <span className="text-ink-400">
+                    <p className="mt-3 truncate text-sm text-gray-500">
+                      <span className="text-gray-500">
                         {summary.last.fromSeller ? "You: " : ""}
                       </span>
                       {summary.last.content}
-                      <span className="ml-2 font-mono text-[11px] text-ink-400">
+                      <span className="ml-2 font-mono text-[11px] text-gray-500">
                         {stamp.format(new Date(summary.last.created_at))}
                       </span>
                     </p>
                   ) : (
-                    <p className="mt-3 text-sm text-ink-400">No messages yet.</p>
+                    <p className="mt-3 text-sm text-gray-500">No messages yet.</p>
                   )}
                 </Link>
               </li>

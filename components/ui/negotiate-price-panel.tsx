@@ -61,11 +61,11 @@ export function NegotiatePricePanel({
   }
 
   return (
-    <section className="mt-6 rounded-lg border border-paper-200 bg-paper-100 p-5">
-      <h2 className="font-mono text-xs uppercase tracking-wider text-ink-400">
+    <section className="mt-6 rounded-lg border border-gray-200 bg-white p-5">
+      <h2 className="font-mono text-xs uppercase tracking-wider text-gray-500">
         Negotiated price
       </h2>
-      <p className="mt-1 text-sm text-slate-500">
+      <p className="mt-1 text-sm text-gray-500">
         Listing price: {usd.format(listingPriceUsd)}
       </p>
 
@@ -77,14 +77,14 @@ export function NegotiatePricePanel({
       ) : (
         <>
           {negotiatedPriceStatus === "proposed" && negotiatedPriceUsd != null ? (
-            <p className="mt-2 text-sm text-slate-500">
+            <p className="mt-2 text-sm text-gray-500">
               Current offer: {usd.format(negotiatedPriceUsd)} — waiting on the buyer.
               You can revise it below.
             </p>
           ) : null}
           <form onSubmit={submit} className="mt-3 flex flex-wrap items-end gap-3">
             <label className="flex flex-col gap-1">
-              <span className="text-sm text-slate-500">Propose a price (USD)</span>
+              <span className="text-sm text-gray-500">Propose a price (USD)</span>
               <input
                 type="number"
                 inputMode="decimal"
@@ -93,7 +93,7 @@ export function NegotiatePricePanel({
                 value={price}
                 onChange={(e) => setPrice(e.target.value)}
                 disabled={pending}
-                className="h-10 w-40 rounded border border-paper-200 bg-paper px-3 text-ink-900"
+                className="h-10 w-40 rounded border border-gray-200 bg-white px-3 text-black"
                 placeholder={usd.format(listingPriceUsd)}
               />
             </label>

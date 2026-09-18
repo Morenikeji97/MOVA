@@ -19,7 +19,7 @@ export function RatingSummary({
     return (
       <span
         className={cn(
-          "font-mono text-xs uppercase tracking-wider text-ink-400",
+          "font-mono text-xs uppercase tracking-wider text-gray-500",
           className,
         )}
       >
@@ -30,10 +30,10 @@ export function RatingSummary({
   return (
     <span className={cn("inline-flex items-center gap-1.5", className)}>
       <StarRating value={aggregate.avg} size={size} />
-      <span className="text-sm font-semibold text-ink-900">
+      <span className="text-sm font-semibold text-black">
         {formatAvg(aggregate.avg)}
       </span>
-      <span className="font-mono text-xs text-ink-400">
+      <span className="font-mono text-xs text-gray-500">
         · {reviewCountLabel(aggregate.count)}
       </span>
     </span>

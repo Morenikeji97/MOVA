@@ -71,9 +71,9 @@ export function ShippingRates({
   const visibleRates = rates.filter((r) => r.destination_country === destination);
 
   return (
-    <section className="mt-10 rounded-lg border border-paper-200 bg-paper-100 p-6">
-      <h2 className="text-ink-900">Shipping — required before your invoice</h2>
-      <p className="mt-1 text-sm text-slate-500">
+    <section className="mt-10 rounded-lg border border-gray-200 bg-white p-6">
+      <h2 className="text-black">Shipping — required before your invoice</h2>
+      <p className="mt-1 text-sm text-gray-500">
         Rates are set by each shipper and shown exactly as listed — MOVA
         doesn&rsquo;t mark them up. You need to pick one before MOVA can send
         your service-fee invoice.
@@ -81,12 +81,12 @@ export function ShippingRates({
 
       {selectedRate ? (
         <div className="mt-4 rounded border border-verified-100 bg-verified-50 p-4">
-          <p className="text-sm font-semibold text-ink-900">
+          <p className="text-sm font-semibold text-black">
             Selected: {selectedRate.company_name} — {countryName(selectedRate.destination_country)},{" "}
             {shippingMethodLabel(selectedRate.shipping_method)} —{" "}
             {money(selectedRate.price, selectedRate.currency)}
           </p>
-          <p className="mt-1 text-sm text-slate-500">
+          <p className="mt-1 text-sm text-gray-500">
             {locked
               ? "Locked in — your invoice has been sent."
               : "To change shippers, contact MOVA support before your invoice is sent."}
@@ -101,11 +101,11 @@ export function ShippingRates({
       {!locked && !selectedRate ? (
         <>
           <label className="mt-4 flex flex-col gap-1">
-            <span className="text-sm text-slate-500">Destination</span>
+            <span className="text-sm text-gray-500">Destination</span>
             <select
               value={destination}
               onChange={(e) => setDestination(e.target.value)}
-              className="h-11 w-full max-w-xs rounded border border-paper-200 bg-paper-100 px-3 text-sm text-ink-900 sm:w-auto"
+              className="h-11 w-full max-w-xs rounded border border-gray-200 bg-white px-3 text-sm text-black sm:w-auto"
             >
               {SERVICE_COUNTRIES.map((c) => (
                 <option key={c.code} value={c.code}>
@@ -116,7 +116,7 @@ export function ShippingRates({
           </label>
 
           {visibleRates.length === 0 ? (
-            <p className="mt-4 rounded border border-dashed border-paper-200 bg-paper p-3 text-sm text-slate-500">
+            <p className="mt-4 rounded border border-dashed border-gray-200 bg-white p-3 text-sm text-gray-500">
               No shippers are listing rates to {countryName(destination)} for
               this vehicle&rsquo;s size class yet. Try another destination, or
               check back soon.
@@ -126,24 +126,24 @@ export function ShippingRates({
               {visibleRates.map((r) => (
                 <li
                   key={r.rate_id}
-                  className="flex flex-wrap items-center justify-between gap-3 rounded border border-paper-200 p-4"
+                  className="flex flex-wrap items-center justify-between gap-3 rounded border border-gray-200 p-4"
                 >
                   <div>
-                    <p className="font-semibold text-ink-900">
+                    <p className="font-semibold text-black">
                       <a href={`/shipper/${r.shipper_id}`} className="hover:underline">
                         {r.company_name}
                       </a>
                       {r.payment_status !== "good_standing" ? (
-                        <span className="ml-2 align-middle text-xs font-normal text-ink-400">
+                        <span className="ml-2 align-middle text-xs font-normal text-gray-500">
                           limited availability
                         </span>
                       ) : null}
                     </p>
-                    <p className="mt-0.5 font-mono text-sm text-ink-400">
+                    <p className="mt-0.5 font-mono text-sm text-gray-500">
                       {r.origin_region}
                       {r.origin_port ? ` (${r.origin_port})` : ""} ·{" "}
                       {shippingMethodLabel(r.shipping_method)} ·{" "}
-                      <strong className="text-ink-900">{money(r.price, r.currency)}</strong>
+                      <strong className="text-black">{money(r.price, r.currency)}</strong>
                     </p>
                   </div>
                   <form action={selectShippingRate}>

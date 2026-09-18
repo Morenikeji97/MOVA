@@ -35,9 +35,9 @@ export function VehicleCard({
   return (
     <Link
       href={`/browse/${v.id}`}
-      className="group flex h-full flex-col overflow-hidden rounded-lg border border-paper-200 bg-paper-100 shadow-sm transition-colors hover:border-marine"
+      className="group flex h-full flex-col overflow-hidden rounded-lg border border-gray-200 bg-white shadow-sm transition-colors hover:border-black"
     >
-      <div className="aspect-[4/3] w-full overflow-hidden bg-paper-200">
+      <div className="aspect-[4/3] w-full overflow-hidden bg-gray-100">
         {thumbnailUrl ? (
           // eslint-disable-next-line @next/next/no-img-element
           <img
@@ -46,14 +46,14 @@ export function VehicleCard({
             className="h-full w-full object-cover transition-transform duration-200 group-hover:scale-[1.02]"
           />
         ) : (
-          <div className="flex h-full items-center justify-center font-mono text-xs uppercase tracking-wider text-ink-400">
+          <div className="flex h-full items-center justify-center font-mono text-xs uppercase tracking-wider text-gray-500">
             No photo
           </div>
         )}
       </div>
       <div className="flex flex-1 flex-col gap-3 p-5">
         <div className="flex items-start justify-between gap-2">
-          <h2 className="text-lg font-semibold text-ink-900">
+          <h2 className="text-lg font-semibold text-black">
             {v.year} {v.make} {v.model}
             {v.trim ? ` ${v.trim}` : ""}
           </h2>

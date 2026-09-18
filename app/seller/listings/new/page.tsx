@@ -178,7 +178,7 @@ const EMPTY: FormValues = {
   title_photo_path: null,
 };
 
-const inputClass = "h-11 rounded border border-paper-200 bg-paper-100 px-3 text-ink-900";
+const inputClass = "h-11 rounded border border-gray-200 bg-white px-3 text-black";
 
 /** Trims a form string, returning null for empty values so the column stays NULL. */
 function orNull(value: string): string | null {
@@ -188,7 +188,7 @@ function orNull(value: string): string | null {
 
 function SectionLabel({ children, className }: { children: ReactNode; className?: string }) {
   return (
-    <p className={cn("font-mono text-xs uppercase tracking-wider text-ink-400", className)}>
+    <p className={cn("font-mono text-xs uppercase tracking-wider text-gray-500", className)}>
       {children}
     </p>
   );
@@ -209,9 +209,9 @@ function Field({
 }) {
   return (
     <label className={cn("flex flex-col gap-1", className)}>
-      <span className="text-sm text-slate-500">
+      <span className="text-sm text-gray-500">
         {label}
-        {optional ? <span className="text-ink-400"> (optional)</span> : null}
+        {optional ? <span className="text-gray-500"> (optional)</span> : null}
       </span>
       {children}
       {error ? <span className="text-sm text-copper-700">{error}</span> : null}
@@ -457,12 +457,12 @@ export default function NewListingPage() {
     <main className="mx-auto max-w-2xl px-6 py-16">
       <Link
         href="/seller/listings"
-        className="font-mono text-xs uppercase tracking-wider text-ink-400 hover:text-ink-900"
+        className="font-mono text-xs uppercase tracking-wider text-gray-500 hover:text-black"
       >
         &larr; My listings
       </Link>
-      <h1 className="mt-4 text-2xl font-semibold text-ink-900">New vehicle listing</h1>
-      <p className="mt-2 text-sm text-slate-500">
+      <h1 className="mt-4 text-2xl font-semibold text-black">New vehicle listing</h1>
+      <p className="mt-2 text-sm text-gray-500">
         This saves as a draft. Submit it for review once the details look right.
       </p>
 
@@ -498,8 +498,8 @@ export default function NewListingPage() {
           {vinError ? <p className="text-sm text-copper-700">{vinError}</p> : null}
 
           {vinDecoded ? (
-            <div className="rounded-lg border border-paper-200 bg-paper-100 p-4">
-              <p className="font-mono text-xs uppercase tracking-wider text-ink-400">
+            <div className="rounded-lg border border-gray-200 bg-white p-4">
+              <p className="font-mono text-xs uppercase tracking-wider text-gray-500">
                 NHTSA VIN decode
               </p>
               <div className="mt-3 grid grid-cols-2 gap-4 sm:grid-cols-4">
@@ -525,11 +525,11 @@ export default function NewListingPage() {
                   <button
                     type="button"
                     onClick={applyVinValues}
-                    className="mt-2 text-sm font-medium text-marine-700 underline underline-offset-2"
+                    className="mt-2 text-sm font-medium text-black underline underline-offset-2"
                   >
                     Use the decoded year, make and model
                   </button>
-                  <p className="mt-2 text-xs text-ink-400">
+                  <p className="mt-2 text-xs text-gray-500">
                     You can still save and submit. The listing will be flagged as a VIN
                     mismatch for admin review.
                   </p>
@@ -693,28 +693,28 @@ export default function NewListingPage() {
           </Field>
 
           <fieldset className="flex flex-col gap-2 sm:col-span-2">
-            <legend className="text-sm text-slate-500">
+            <legend className="text-sm text-gray-500">
               Who covers MOVA&rsquo;s 8% service fee?
             </legend>
-            <label className="flex items-start gap-2 rounded border border-paper-200 bg-paper-100 p-3">
+            <label className="flex items-start gap-2 rounded border border-gray-200 bg-white p-3">
               <input
                 type="radio"
                 value="buyer_pays_full"
                 {...register("fee_responsibility")}
                 className="mt-1"
               />
-              <span className="text-sm text-ink-900">Buyer pays full fee</span>
+              <span className="text-sm text-black">Buyer pays full fee</span>
             </label>
-            <label className="flex items-start gap-2 rounded border border-paper-200 bg-paper-100 p-3">
+            <label className="flex items-start gap-2 rounded border border-gray-200 bg-white p-3">
               <input
                 type="radio"
                 value="split"
                 {...register("fee_responsibility")}
                 className="mt-1"
               />
-              <span className="text-sm text-ink-900">Split 50/50 with buyer</span>
+              <span className="text-sm text-black">Split 50/50 with buyer</span>
             </label>
-            <p className="text-xs text-ink-400">
+            <p className="text-xs text-gray-500">
               This doesn&rsquo;t change what you receive for the vehicle — MOVA&rsquo;s
               fee is charged on top of your asking price either way.
             </p>
@@ -732,7 +732,7 @@ export default function NewListingPage() {
             <textarea
               {...register("description")}
               rows={5}
-              className="rounded border border-paper-200 bg-paper-100 px-3 py-2 text-ink-900"
+              className="rounded border border-gray-200 bg-white px-3 py-2 text-black"
               placeholder="Service history, notable features, anything a buyer should know."
             />
           </Field>
@@ -740,7 +740,7 @@ export default function NewListingPage() {
 
         <section className="flex flex-col gap-3">
           <SectionLabel>Photos</SectionLabel>
-          <p className="text-sm text-slate-500">
+          <p className="text-sm text-gray-500">
             Add up to {MAX_PHOTOS} photos. The primary photo leads the listing in
             search results; drag a thumbnail or use the arrows to reorder the rest.
           </p>
@@ -757,7 +757,7 @@ export default function NewListingPage() {
 
         <section className="flex flex-col gap-3">
           <SectionLabel>Video (optional)</SectionLabel>
-          <p className="text-sm text-slate-500">
+          <p className="text-sm text-gray-500">
             Add one walk-around video alongside your photos, up to 90 seconds.
           </p>
           <VideoUploader
@@ -778,10 +778,10 @@ export default function NewListingPage() {
           <Button type="submit" disabled={isSubmitting || saving}>
             {isSubmitting || saving ? "Saving…" : "Save draft"}
           </Button>
-          <Link href="/seller/listings" className="text-sm text-slate-500 hover:text-ink-900">
+          <Link href="/seller/listings" className="text-sm text-gray-500 hover:text-black">
             Cancel
           </Link>
-          <span className="ml-auto font-mono text-xs uppercase tracking-wider text-ink-400">
+          <span className="ml-auto font-mono text-xs uppercase tracking-wider text-gray-500">
             VIN check: {vinDecodeStatus}
           </span>
         </div>
