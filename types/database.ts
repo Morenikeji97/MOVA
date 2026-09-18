@@ -21,6 +21,7 @@ export type MovaFeePaymentStatus =
   | "bank_transfer_rejected";
 export type NegotiatedPriceStatus = "none" | "proposed" | "accepted";
 export type PolicyAcceptanceContext = "signup" | "fee_payment";
+export type TermsAcceptanceContext = "signup" | "login_gate";
 export type ShipperStatus = "pending" | "approved" | "rejected";
 export type ShipperPaymentStatus = "good_standing" | "past_due" | "suspended";
 export type CommissionChargeStatus = "pending" | "charged" | "failed";
@@ -337,6 +338,42 @@ export interface Database {
           context: PolicyAcceptanceContext;
           policy_version: string;
           purchase_request_id: string | null;
+          ip_address: string | null;
+          user_agent: string | null;
+          accepted_at: string;
+        }>;
+        Relationships: [];
+      };
+      terms_acceptances: {
+        Row: {
+          id: string;
+          user_id: string;
+          role: UserRole;
+          context: TermsAcceptanceContext;
+          version: string;
+          ip_address: string | null;
+          user_agent: string | null;
+          accepted_at: string;
+        };
+        Insert: {
+          user_id: string;
+          context: TermsAcceptanceContext;
+          version: string;
+          id?: string;
+          // role is derived server-side by the guard trigger — accepted here
+          // only because the DB column is NOT NULL; whatever is sent is
+          // overwritten.
+          role?: UserRole;
+          ip_address?: string | null;
+          user_agent?: string | null;
+          accepted_at?: string;
+        };
+        Update: Partial<{
+          id: string;
+          user_id: string;
+          role: UserRole;
+          context: TermsAcceptanceContext;
+          version: string;
           ip_address: string | null;
           user_agent: string | null;
           accepted_at: string;

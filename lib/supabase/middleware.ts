@@ -3,6 +3,7 @@ import { NextResponse, type NextRequest } from "next/server";
 import type { Database } from "@/types/database";
 import type { CookieOptions } from "@supabase/ssr";
 import { assertSupabaseKey } from "@/lib/supabase/keys";
+import { CURRENT_TERMS_VERSION } from "@/lib/terms";
 
 export async function updateSession(request: NextRequest) {
   let supabaseResponse = NextResponse.next({ request });
@@ -45,6 +46,12 @@ export async function updateSession(request: NextRequest) {
   } = await supabase.auth.getUser();
 
   let role: "seller" | "buyer" | "admin" | null = null;
+  // Mandatory Terms & Conditions gate — every non-admin authenticated
+  // account (buyer, seller, or a shipper, who is always a plain buyer/seller
+  // -role account underneath: see claimShipper() in app/shipper/actions.ts)
+  // must have a public.terms_acceptances row for CURRENT_TERMS_VERSION.
+  // Independent from the Buyer Protection Policy's own acceptance flow.
+  let needsTerms = false;
   if (user) {
     const { data: profile } = await supabase
       .from("users")
@@ -52,7 +59,17 @@ export async function updateSession(request: NextRequest) {
       .eq("id", user.id)
       .single();
     role = profile?.role ?? null;
+
+    if (role && role !== "admin") {
+      const { data: acceptance } = await supabase
+        .from("terms_acceptances")
+        .select("id")
+        .eq("user_id", user.id)
+        .eq("version", CURRENT_TERMS_VERSION)
+        .maybeSingle();
+      needsTerms = !acceptance;
+    }
   }
 
-  return { supabaseResponse, user, role };
+  return { supabaseResponse, user, role, needsTerms };
 }
