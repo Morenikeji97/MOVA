@@ -6,6 +6,7 @@ import { useSearchParams } from "next/navigation";
 import { useFormStatus } from "react-dom";
 import { Button } from "@/components/ui/button";
 import { SERVICE_COUNTRIES } from "@/lib/shipping";
+import { US_STATES } from "@/lib/us-states";
 import { submitShipperSignup } from "./actions";
 
 const inputClass =
@@ -14,6 +15,7 @@ const inputClass =
 const ERROR_COPY: Record<string, string> = {
   missing: "Please fill in the company name, contact name, email, and FMC OTI license number.",
   countries: "Select at least one country you ship to.",
+  areas: "Select at least one US state you pick up vehicles from.",
   terms: "You must accept the commission terms to sign up.",
   card_cancelled:
     "Card setup was cancelled. Your application is saved — you can add a card by signing up again with the same details.",
@@ -106,6 +108,32 @@ function ShipperSignupForm() {
                   className="h-4 w-4"
                 />
                 {c.name}
+              </label>
+            ))}
+          </div>
+        </fieldset>
+
+        <fieldset className="flex flex-col gap-2">
+          <legend className="text-sm text-gray-500">
+            US states you pick up vehicles from
+          </legend>
+          <p className="text-xs text-gray-500">
+            Buyers see you flagged as a local, likely-cheaper pickup option
+            for vehicles located in these states.
+          </p>
+          <div className="mt-1 grid max-h-56 grid-cols-2 gap-2 overflow-y-auto rounded border border-gray-200 bg-white p-3 sm:grid-cols-3">
+            {US_STATES.map(([code, name]) => (
+              <label
+                key={code}
+                className="inline-flex items-center gap-2 text-sm text-black"
+              >
+                <input
+                  type="checkbox"
+                  name="service_areas"
+                  value={code}
+                  className="h-4 w-4"
+                />
+                {name}
               </label>
             ))}
           </div>

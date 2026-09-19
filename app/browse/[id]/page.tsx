@@ -138,6 +138,7 @@ export default async function VehicleDetailPage({
         rate_id: r.rate_id as string,
         shipper_id: r.shipper_id as string,
         company_name: r.company_name ?? "Shipper",
+        service_areas: r.service_areas ?? [],
         origin_region: r.origin_region ?? "",
         origin_port: r.origin_port,
         destination_country: r.destination_country ?? destinationCode,
@@ -147,7 +148,7 @@ export default async function VehicleDetailPage({
         currency: r.currency ?? "USD",
         payment_status: r.payment_status ?? "good_standing",
       }))
-      .sort(compareRatesForBuyer);
+      .sort((a, b) => compareRatesForBuyer(a, b, v.location_state));
   }
 
   const selectedRate = selectedShippingRateId
@@ -345,6 +346,7 @@ export default async function VehicleDetailPage({
             vehicleId={id}
             purchaseRequestId={requestId}
             defaultDestination={destinationCode}
+            vehicleState={v.location_state}
             rates={shippingRates}
             selectedRateId={selectedShippingRateId}
             locked={shippingSelectionLocked}

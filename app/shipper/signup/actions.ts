@@ -5,6 +5,7 @@ import { createClient } from "@/lib/supabase/server";
 import { getStripe } from "@/lib/stripe";
 import { appUrl } from "@/lib/app-url";
 import { isServiceCountry } from "@/lib/shipping";
+import { isUsState } from "@/lib/us-states";
 
 function str(v: FormDataEntryValue | null): string {
   return typeof v === "string" ? v.trim() : "";
@@ -33,6 +34,10 @@ export async function submitShipperSignup(formData: FormData): Promise<void> {
     .getAll("service_countries")
     .map((c) => str(c))
     .filter((c) => isServiceCountry(c));
+  const serviceAreas = formData
+    .getAll("service_areas")
+    .map((c) => str(c))
+    .filter((c) => isUsState(c));
   // Checkbox: only present in the payload when ticked.
   const termsAccepted = formData.get("terms_accepted") != null;
 
@@ -41,6 +46,9 @@ export async function submitShipperSignup(formData: FormData): Promise<void> {
   }
   if (serviceCountries.length === 0) {
     redirect("/shipper/signup?error=countries");
+  }
+  if (serviceAreas.length === 0) {
+    redirect("/shipper/signup?error=areas");
   }
   if (!termsAccepted) {
     redirect("/shipper/signup?error=terms");
@@ -64,6 +72,7 @@ export async function submitShipperSignup(formData: FormData): Promise<void> {
     contact_phone: contactPhone || null,
     fmc_oti_license_number: licenseNumber,
     service_countries: serviceCountries,
+    service_areas: serviceAreas,
     status: "pending",
     terms_accepted_at: new Date().toISOString(),
   });

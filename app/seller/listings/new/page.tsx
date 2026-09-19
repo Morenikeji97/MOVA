@@ -14,6 +14,7 @@ import { PhotoUploader, type PhotoDraft } from "@/components/ui/photo-uploader";
 import { VideoUploader, type VideoDraft } from "@/components/ui/video-uploader";
 import { TitlePhotoUploader } from "@/components/ui/title-photo-uploader";
 import { VEHICLE_SIZE_TYPES } from "@/lib/shipping";
+import { US_STATES } from "@/lib/us-states";
 
 const MAX_PHOTOS = 20;
 
@@ -53,22 +54,6 @@ const ACCIDENT_HISTORY = [
   "Unknown",
 ] as const;
 const TITLE_STATUSES = ["Clean", "Salvage", "Rebuilt", "Flood", "Lemon / buyback", "Other"] as const;
-
-const US_STATES: ReadonlyArray<readonly [string, string]> = [
-  ["AL", "Alabama"], ["AK", "Alaska"], ["AZ", "Arizona"], ["AR", "Arkansas"],
-  ["CA", "California"], ["CO", "Colorado"], ["CT", "Connecticut"], ["DE", "Delaware"],
-  ["DC", "District of Columbia"], ["FL", "Florida"], ["GA", "Georgia"], ["HI", "Hawaii"],
-  ["ID", "Idaho"], ["IL", "Illinois"], ["IN", "Indiana"], ["IA", "Iowa"],
-  ["KS", "Kansas"], ["KY", "Kentucky"], ["LA", "Louisiana"], ["ME", "Maine"],
-  ["MD", "Maryland"], ["MA", "Massachusetts"], ["MI", "Michigan"], ["MN", "Minnesota"],
-  ["MS", "Mississippi"], ["MO", "Missouri"], ["MT", "Montana"], ["NE", "Nebraska"],
-  ["NV", "Nevada"], ["NH", "New Hampshire"], ["NJ", "New Jersey"], ["NM", "New Mexico"],
-  ["NY", "New York"], ["NC", "North Carolina"], ["ND", "North Dakota"], ["OH", "Ohio"],
-  ["OK", "Oklahoma"], ["OR", "Oregon"], ["PA", "Pennsylvania"], ["RI", "Rhode Island"],
-  ["SC", "South Carolina"], ["SD", "South Dakota"], ["TN", "Tennessee"], ["TX", "Texas"],
-  ["UT", "Utah"], ["VT", "Vermont"], ["VA", "Virginia"], ["WA", "Washington"],
-  ["WV", "West Virginia"], ["WI", "Wisconsin"], ["WY", "Wyoming"],
-];
 
 const schema = z.object({
   vin: z

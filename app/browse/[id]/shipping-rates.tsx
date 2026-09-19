@@ -3,7 +3,7 @@
 import { type ComponentProps, useState } from "react";
 import { useFormStatus } from "react-dom";
 import { Button } from "@/components/ui/button";
-import { SERVICE_COUNTRIES, countryName, shippingMethodLabel } from "@/lib/shipping";
+import { SERVICE_COUNTRIES, countryName, shippingMethodLabel, isLocalPickup } from "@/lib/shipping";
 import type { ShippingMethod, VehicleSizeType } from "@/types/database";
 import { selectShippingRate } from "./shipping-actions";
 
@@ -11,6 +11,7 @@ export interface PublicRate {
   rate_id: string;
   shipper_id: string;
   company_name: string;
+  service_areas: string[];
   origin_region: string;
   origin_port: string | null;
   destination_country: string;
@@ -54,6 +55,7 @@ export function ShippingRates({
   vehicleId,
   purchaseRequestId,
   defaultDestination,
+  vehicleState,
   rates,
   selectedRateId,
   locked,
@@ -61,6 +63,7 @@ export function ShippingRates({
   vehicleId: string;
   purchaseRequestId: string;
   defaultDestination: string;
+  vehicleState: string | null;
   rates: PublicRate[];
   selectedRateId: string | null;
   locked: boolean;
@@ -133,6 +136,11 @@ export function ShippingRates({
                       <a href={`/shipper/${r.shipper_id}`} className="hover:underline">
                         {r.company_name}
                       </a>
+                      {isLocalPickup(r.service_areas, vehicleState) ? (
+                        <span className="ml-2 align-middle rounded bg-verified-50 px-2 py-0.5 text-xs font-normal text-verified-600">
+                          Local pickup — lower rate likely
+                        </span>
+                      ) : null}
                       {r.payment_status !== "good_standing" ? (
                         <span className="ml-2 align-middle text-xs font-normal text-gray-500">
                           limited availability
