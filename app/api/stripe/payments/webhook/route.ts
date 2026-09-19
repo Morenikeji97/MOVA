@@ -3,6 +3,7 @@ import type Stripe from "stripe";
 import { getStripe } from "@/lib/stripe";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { notifyFeePaymentConfirmed } from "@/lib/notifications";
+import { evaluateReferralQualification } from "@/lib/referral-credit";
 import type { Database } from "@/types/database";
 
 // Stripe SDK needs the Node runtime, and the raw request body must not be cached.
@@ -59,7 +60,7 @@ export async function POST(req: Request) {
 
       const { data: pr } = await admin
         .from("purchase_requests")
-        .select("id, vehicle_id, mova_fee_payment_status")
+        .select("id, vehicle_id, buyer_id, mova_fee_payment_status")
         .eq("id", purchaseRequestId)
         .maybeSingle();
 
@@ -105,6 +106,27 @@ export async function POST(req: Request) {
         sellerName = sellerProfile?.full_name ?? null;
       }
 
+      // Best-effort card fingerprint for the referral program's self-referral
+      // check (lib/referrals.ts) — never blocks the actual fee confirmation
+      // if Stripe can't be reached a second time or the session paid by some
+      // non-card method with no fingerprint to report.
+      let paymentMethodFingerprint: string | null = null;
+      if (typeof session.payment_intent === "string") {
+        try {
+          const paymentIntent = await getStripe().paymentIntents.retrieve(
+            session.payment_intent,
+            { expand: ["payment_method"] },
+          );
+          const paymentMethod = paymentIntent.payment_method;
+          paymentMethodFingerprint =
+            typeof paymentMethod === "object" && paymentMethod?.card?.fingerprint
+              ? paymentMethod.card.fingerprint
+              : null;
+        } catch (err) {
+          console.error("payments webhook: fingerprint lookup failed:", err);
+        }
+      }
+
       const update: PurchaseRequestUpdate = {
         mova_fee_payment_status: "paid",
         seller_details_revealed_at: new Date().toISOString(),
@@ -112,6 +134,7 @@ export async function POST(req: Request) {
         seller_email: sellerEmail,
         seller_phone: sellerPhone,
         seller_whatsapp: sellerWhatsapp,
+        mova_fee_payment_method_fingerprint: paymentMethodFingerprint,
       };
 
       const { error } = await admin
@@ -127,6 +150,19 @@ export async function POST(req: Request) {
       }
 
       await notifyFeePaymentConfirmed(purchaseRequestId);
+
+      // Referral program: this fee landing on 'paid' can complete the
+      // buyer's own qualifying referral, and/or the seller's (their vehicle
+      // just had its first paid transaction) — see lib/referral-credit.ts.
+      await evaluateReferralQualification(admin, {
+        referredUserId: pr.buyer_id,
+        purchaseRequestId,
+      });
+      if (vehicle) {
+        await evaluateReferralQualification(admin, {
+          referredUserId: vehicle.seller_id,
+        });
+      }
     }
   }
 

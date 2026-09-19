@@ -2,6 +2,7 @@
 
 import { revalidatePath } from "next/cache";
 import { createClient } from "@/lib/supabase/server";
+import { createAdminClient } from "@/lib/supabase/admin";
 import { getStripe } from "@/lib/stripe";
 import { appUrl } from "@/lib/app-url";
 import { feeBreakdown } from "@/lib/fees";
@@ -9,6 +10,7 @@ import {
   notifyFeePaymentConfirmed,
   notifyBankTransferRejected,
 } from "@/lib/notifications";
+import { evaluateReferralQualification } from "@/lib/referral-credit";
 
 /**
  * Admin actions for the reservation queue (purchase_requests). Bound to
@@ -210,7 +212,7 @@ export async function confirmBankTransferPayment(formData: FormData): Promise<vo
 
   const { data: pr } = await supabase
     .from("purchase_requests")
-    .select("id, vehicle_id, mova_fee_payment_status")
+    .select("id, vehicle_id, buyer_id, mova_fee_payment_status")
     .eq("id", id)
     .maybeSingle();
   if (!pr || pr.mova_fee_payment_status !== "pending_manual_verification") return;
@@ -264,6 +266,19 @@ export async function confirmBankTransferPayment(formData: FormData): Promise<vo
   revalidatePath("/buyer/dashboard");
 
   await notifyFeePaymentConfirmed(id);
+
+  // Referral program: bank-transfer confirmation is the other path to
+  // 'paid' (alongside the Stripe webhook) — same evaluation, run through
+  // the service-role client since referral_credits grants no insert policy
+  // to an admin's own authenticated session. See lib/referral-credit.ts.
+  const adminClient = createAdminClient();
+  await evaluateReferralQualification(adminClient, {
+    referredUserId: pr.buyer_id,
+    purchaseRequestId: id,
+  });
+  if (vehicle) {
+    await evaluateReferralQualification(adminClient, { referredUserId: vehicle.seller_id });
+  }
 }
 
 /**

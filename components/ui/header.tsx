@@ -6,6 +6,7 @@ const NAV_LINKS = [
   { label: "How It Works", href: "/how-it-works" },
   { label: "Sell Your Car", href: "/seller/listings/new" },
   { label: "Ship With Us", href: "/shipper" },
+  { label: "Referrals", href: "/referrals" },
 ];
 
 /**

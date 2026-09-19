@@ -2,6 +2,7 @@ import Link from "next/link";
 import { createClient } from "@/lib/supabase/server";
 import { buttonClasses } from "@/components/ui/button";
 import { SellerReviewHub } from "@/components/reviews/seller-review-hub";
+import { ReferralPanel } from "@/components/ui/referral-panel";
 import { VerificationPanel } from "../verification/verification-panel";
 
 export default async function SellerDashboard({
@@ -100,6 +101,8 @@ export default async function SellerDashboard({
       />
 
       <SellerReviewHub userId={user!.id} />
+
+      <ReferralPanel userId={user!.id} />
     </main>
   );
 }
