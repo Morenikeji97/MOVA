@@ -13,6 +13,7 @@ export default async function AdminDashboard() {
     { count: blockedMessages },
     { count: reviewQueue },
     { count: openDisputes },
+    { count: referralAttention },
   ] = await Promise.all([
     supabase.from("users").select("*", { count: "exact", head: true }),
     supabase
@@ -42,6 +43,11 @@ export default async function AdminDashboard() {
       .from("disputes")
       .select("*", { count: "exact", head: true })
       .in("status", ["open", "approved_pending_refund"]),
+    supabase
+      .from("referral_credits")
+      .select("*", { count: "exact", head: true })
+      .eq("flag_status", "flagged")
+      .is("flag_reviewed_at", null),
   ]);
 
   return (
@@ -141,6 +147,20 @@ export default async function AdminDashboard() {
             {openDisputes ?? 0}
           </p>
           <p className="mt-1 text-sm text-black">Open the dispute queue &rarr;</p>
+        </Link>
+        <Link
+          href="/admin/referrals"
+          className="rounded-lg border border-gray-200 bg-white p-5 transition-colors hover:border-black"
+        >
+          <p className="font-mono text-xs uppercase tracking-wider text-gray-500">
+            Referrals flagged for review
+          </p>
+          <p className="mt-1 text-3xl font-semibold text-black">
+            {referralAttention ?? 0}
+          </p>
+          <p className="mt-1 text-sm text-black">
+            Review flags &amp; payouts &rarr;
+          </p>
         </Link>
       </div>
     </main>

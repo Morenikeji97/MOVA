@@ -45,6 +45,10 @@ export type ShipmentShippingStatus =
   | "in_transit"
   | "delivered";
 export type ShipmentProofKind = "pickup" | "delivery";
+export type ReferralRole = "buyer" | "seller";
+export type ReferralFlagStatus = "clear" | "flagged";
+export type ReferralPayoutStatus = "pending" | "processing" | "paid" | "failed";
+export type ReferralPayoutMethod = "stripe_transfer" | "bank_transfer";
 
 export interface Database {
   public: {
@@ -58,6 +62,10 @@ export interface Database {
           role: UserRole;
           status: UserStatus;
           email_verified_at: string | null;
+          referral_code: string;
+          referred_by: string | null;
+          signup_ip: string | null;
+          signup_device_fingerprint: string | null;
           created_at: string;
         };
         Insert: {
@@ -68,6 +76,15 @@ export interface Database {
           whatsapp_number?: string | null;
           status?: UserStatus;
           email_verified_at?: string | null;
+          // referral_code is generated server-side by
+          // users_generate_referral_code(); referred_by/signup_ip/
+          // signup_device_fingerprint are resolved/copied by
+          // handle_new_user() from signUp()'s raw_user_meta_data. None of
+          // the four are ever set by app code directly.
+          referral_code?: string;
+          referred_by?: string | null;
+          signup_ip?: string | null;
+          signup_device_fingerprint?: string | null;
           created_at?: string;
         };
         Update: Partial<{
@@ -78,6 +95,10 @@ export interface Database {
           role: UserRole;
           status: UserStatus;
           email_verified_at: string | null;
+          referral_code: string;
+          referred_by: string | null;
+          signup_ip: string | null;
+          signup_device_fingerprint: string | null;
           created_at: string;
         }>;
         Relationships: [];
@@ -471,6 +492,7 @@ export interface Database {
           bank_transfer_reviewed_by: string | null;
           bank_transfer_reviewed_at: string | null;
           bank_transfer_rejection_reason: string | null;
+          mova_fee_payment_method_fingerprint: string | null;
           created_at: string;
           updated_at: string;
         };
@@ -504,6 +526,7 @@ export interface Database {
           bank_transfer_reviewed_by?: string | null;
           bank_transfer_reviewed_at?: string | null;
           bank_transfer_rejection_reason?: string | null;
+          mova_fee_payment_method_fingerprint?: string | null;
           created_at?: string;
           updated_at?: string;
         };
@@ -537,6 +560,7 @@ export interface Database {
           bank_transfer_reviewed_by: string | null;
           bank_transfer_reviewed_at: string | null;
           bank_transfer_rejection_reason: string | null;
+          mova_fee_payment_method_fingerprint: string | null;
           created_at: string;
           updated_at: string;
         }>;
@@ -983,8 +1007,104 @@ export interface Database {
         }>;
         Relationships: [];
       };
+      referral_payout_batches: {
+        Row: {
+          id: string;
+          referrer_id: string;
+          role: ReferralRole;
+          batch_number: number;
+          referral_count: number;
+          amount_usd: number;
+          method: ReferralPayoutMethod;
+          status: ReferralPayoutStatus;
+          payout_reference: string | null;
+          reviewed_by: string | null;
+          reviewed_at: string | null;
+          failure_reason: string | null;
+          created_at: string;
+          paid_at: string | null;
+        };
+        Insert: {
+          referrer_id: string;
+          role: ReferralRole;
+          batch_number: number;
+          method: ReferralPayoutMethod;
+          id?: string;
+          referral_count?: number;
+          amount_usd?: number;
+          status?: ReferralPayoutStatus;
+          payout_reference?: string | null;
+          reviewed_by?: string | null;
+          reviewed_at?: string | null;
+          failure_reason?: string | null;
+          created_at?: string;
+          paid_at?: string | null;
+        };
+        Update: Partial<{
+          status: ReferralPayoutStatus;
+          payout_reference: string | null;
+          reviewed_by: string | null;
+          reviewed_at: string | null;
+          failure_reason: string | null;
+          paid_at: string | null;
+        }>;
+        Relationships: [];
+      };
+      referral_credits: {
+        Row: {
+          id: string;
+          referrer_id: string;
+          referred_id: string;
+          role: ReferralRole;
+          purchase_request_id: string;
+          email_pattern_match: boolean;
+          phone_match: boolean;
+          payment_fingerprint_match: boolean;
+          device_fingerprint_match: boolean;
+          ip_subnet_match: boolean;
+          flag_status: ReferralFlagStatus;
+          flag_reviewed_by: string | null;
+          flag_reviewed_at: string | null;
+          payout_batch_id: string | null;
+          created_at: string;
+        };
+        Insert: {
+          referrer_id: string;
+          referred_id: string;
+          role: ReferralRole;
+          purchase_request_id: string;
+          id?: string;
+          email_pattern_match?: boolean;
+          phone_match?: boolean;
+          payment_fingerprint_match?: boolean;
+          device_fingerprint_match?: boolean;
+          ip_subnet_match?: boolean;
+          flag_status?: ReferralFlagStatus;
+          flag_reviewed_by?: string | null;
+          flag_reviewed_at?: string | null;
+          payout_batch_id?: string | null;
+          created_at?: string;
+        };
+        Update: Partial<{
+          flag_status: ReferralFlagStatus;
+          flag_reviewed_by: string | null;
+          flag_reviewed_at: string | null;
+          payout_batch_id: string | null;
+        }>;
+        Relationships: [];
+      };
     };
     Views: {
+      referral_annual_payouts: {
+        Row: {
+          referrer_id: string | null;
+          payout_year: number | null;
+          method: ReferralPayoutMethod | null;
+          batches_paid: number | null;
+          total_paid_usd: number | null;
+        };
+        Relationships: [];
+      };
       seller_ratings: {
         Row: {
           seller_id: string | null;

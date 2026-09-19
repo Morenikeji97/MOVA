@@ -1,14 +1,19 @@
 "use client";
 
-import { useState } from "react";
+import { Suspense, useState } from "react";
 import Link from "next/link";
+import { useSearchParams } from "next/navigation";
 import { createClient } from "@/lib/supabase/client";
 import { Button } from "@/components/ui/button";
 import { CURRENT_POLICY_VERSION, BUYER_PROTECTION_POLICY_PATH } from "@/lib/policy";
+import { collectDeviceFingerprint } from "@/lib/device-fingerprint";
 import type { UserRole } from "@/types/database";
 import { checkSignupRateLimit } from "./actions";
 
-export default function SignupPage() {
+function SignupForm() {
+  const searchParams = useSearchParams();
+  const referralCode = searchParams.get("ref");
+
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [role, setRole] = useState<UserRole>("buyer");
@@ -35,11 +40,19 @@ export default function SignupPage() {
       email,
       password,
       options: {
-        // handle_new_user() reads policy_version the same way it already
-        // reads role, and creates the buyer_profiles/seller_profiles row +
-        // the signup policy_acceptances audit row atomically at account
-        // creation — see migration 0013.
-        data: { role, policy_version: CURRENT_POLICY_VERSION },
+        // handle_new_user() reads policy_version/referral_code/signup_ip/
+        // signup_device_fingerprint the same way it already reads role —
+        // see migrations 0013 and 0030. referral_code is silently ignored
+        // if it doesn't match anyone's code (typo/stale link); the other
+        // two are best-effort fraud signals for the referral program (see
+        // lib/referrals.ts), never client-trusted for anything else.
+        data: {
+          role,
+          policy_version: CURRENT_POLICY_VERSION,
+          referral_code: referralCode ?? undefined,
+          signup_ip: rateLimit.ip ?? undefined,
+          signup_device_fingerprint: collectDeviceFingerprint() || undefined,
+        },
         emailRedirectTo: `${window.location.origin}/auth/callback`,
       },
     });
@@ -67,6 +80,11 @@ export default function SignupPage() {
   return (
     <main className="mx-auto flex min-h-screen max-w-md flex-col justify-center px-6">
       <h1 className="mb-6 text-2xl font-semibold text-black">Create your MOVA account</h1>
+      {referralCode ? (
+        <p className="mb-4 rounded border border-gray-200 bg-gray-50 px-3 py-2 text-sm text-gray-500">
+          Signing up with referral code <strong className="text-black">{referralCode}</strong>.
+        </p>
+      ) : null}
       <form onSubmit={handleSubmit} className="flex flex-col gap-4">
         <fieldset className="flex gap-2">
           {(["buyer", "seller"] as UserRole[]).map((r) => (
@@ -140,5 +158,13 @@ export default function SignupPage() {
         </Button>
       </form>
     </main>
+  );
+}
+
+export default function SignupPage() {
+  return (
+    <Suspense fallback={null}>
+      <SignupForm />
+    </Suspense>
   );
 }

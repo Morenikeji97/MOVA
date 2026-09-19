@@ -3,6 +3,7 @@ import { createClient } from "@/lib/supabase/server";
 import { feeBreakdown } from "@/lib/fees";
 import { bankTransferDetails, bankTransferReference } from "@/lib/bank-transfer";
 import { BuyerReviewHub } from "@/components/reviews/buyer-review-hub";
+import { ReferralPanel } from "@/components/ui/referral-panel";
 import { AcceptPricePrompt } from "@/components/ui/accept-price-prompt";
 import { ReportIssuePanel } from "@/components/ui/report-issue-panel";
 import { DisputeStatusList, type DisputeSummary } from "@/components/ui/dispute-status";
@@ -396,6 +397,8 @@ export default async function BuyerDashboard({
       </section>
 
       <BuyerReviewHub userId={user!.id} />
+
+      <ReferralPanel userId={user!.id} />
     </main>
   );
 }
