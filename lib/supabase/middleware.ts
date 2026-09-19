@@ -4,6 +4,7 @@ import type { Database } from "@/types/database";
 import type { CookieOptions } from "@supabase/ssr";
 import { assertSupabaseKey } from "@/lib/supabase/keys";
 import { CURRENT_TERMS_VERSION } from "@/lib/terms";
+import { CURRENT_PRIVACY_VERSION } from "@/lib/privacy";
 
 export async function updateSession(request: NextRequest) {
   let supabaseResponse = NextResponse.next({ request });
@@ -46,12 +47,13 @@ export async function updateSession(request: NextRequest) {
   } = await supabase.auth.getUser();
 
   let role: "seller" | "buyer" | "admin" | null = null;
-  // Mandatory Terms & Conditions gate — every non-admin authenticated
-  // account (buyer, seller, or a shipper, who is always a plain buyer/seller
-  // -role account underneath: see claimShipper() in app/shipper/actions.ts)
-  // must have a public.terms_acceptances row for CURRENT_TERMS_VERSION.
-  // Independent from the Buyer Protection Policy's own acceptance flow.
-  let needsTerms = false;
+  // Mandatory legal-acceptance gate — every non-admin authenticated account
+  // (buyer, seller, or a shipper, who is always a plain buyer/seller-role
+  // account underneath: see claimShipper() in app/shipper/actions.ts) must
+  // have a current-version row in BOTH public.terms_acceptances and
+  // public.privacy_policy_acceptances. Independent from the Buyer
+  // Protection Policy's own acceptance flow.
+  let needsPolicyAcceptance = false;
   if (user) {
     const { data: profile } = await supabase
       .from("users")
@@ -61,15 +63,23 @@ export async function updateSession(request: NextRequest) {
     role = profile?.role ?? null;
 
     if (role && role !== "admin") {
-      const { data: acceptance } = await supabase
-        .from("terms_acceptances")
-        .select("id")
-        .eq("user_id", user.id)
-        .eq("version", CURRENT_TERMS_VERSION)
-        .maybeSingle();
-      needsTerms = !acceptance;
+      const [{ data: termsAcceptance }, { data: privacyAcceptance }] = await Promise.all([
+        supabase
+          .from("terms_acceptances")
+          .select("id")
+          .eq("user_id", user.id)
+          .eq("version", CURRENT_TERMS_VERSION)
+          .maybeSingle(),
+        supabase
+          .from("privacy_policy_acceptances")
+          .select("id")
+          .eq("user_id", user.id)
+          .eq("version", CURRENT_PRIVACY_VERSION)
+          .maybeSingle(),
+      ]);
+      needsPolicyAcceptance = !termsAcceptance || !privacyAcceptance;
     }
   }
 
-  return { supabaseResponse, user, role, needsTerms };
+  return { supabaseResponse, user, role, needsPolicyAcceptance };
 }

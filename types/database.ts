@@ -380,6 +380,42 @@ export interface Database {
         }>;
         Relationships: [];
       };
+      privacy_policy_acceptances: {
+        Row: {
+          id: string;
+          user_id: string;
+          role: UserRole;
+          context: TermsAcceptanceContext;
+          version: string;
+          ip_address: string | null;
+          user_agent: string | null;
+          accepted_at: string;
+        };
+        Insert: {
+          user_id: string;
+          context: TermsAcceptanceContext;
+          version: string;
+          id?: string;
+          // role is derived server-side by the guard trigger — accepted here
+          // only because the DB column is NOT NULL; whatever is sent is
+          // overwritten.
+          role?: UserRole;
+          ip_address?: string | null;
+          user_agent?: string | null;
+          accepted_at?: string;
+        };
+        Update: Partial<{
+          id: string;
+          user_id: string;
+          role: UserRole;
+          context: TermsAcceptanceContext;
+          version: string;
+          ip_address: string | null;
+          user_agent: string | null;
+          accepted_at: string;
+        }>;
+        Relationships: [];
+      };
       vehicle_videos: {
         Row: {
           id: string;

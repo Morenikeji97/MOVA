@@ -9,11 +9,11 @@ const ROLE_PREFIXES: { prefix: string; role: "seller" | "buyer" | "admin" }[] = 
 ];
 
 // Paths that must stay reachable for a signed-in user who hasn't accepted
-// the current Terms & Conditions yet — everything else is blocked, by
-// design (see supabase/migrations/0027_terms_and_conditions.sql and the
-// mandatory-terms-acceptance plan). Exact-match, except the two marked
-// prefixes.
-const TERMS_EXEMPT_PATHS = [
+// the current Terms & Conditions and Privacy Policy yet — everything else
+// is blocked, by design (see supabase/migrations/0027_terms_and_conditions.sql,
+// 0028_privacy_policy_acceptance.sql, and the mandatory-terms-acceptance
+// plan). Exact-match, except the two marked prefixes.
+const POLICY_EXEMPT_PATHS = [
   TERMS_ACCEPT_PATH,
   "/login",
   "/signup",
@@ -23,15 +23,15 @@ const TERMS_EXEMPT_PATHS = [
   "/auth/callback", // prefix — covers the route handler and any sub-paths
 ];
 
-function isTermsExempt(path: string): boolean {
-  return TERMS_EXEMPT_PATHS.some((p) => path === p || path.startsWith(`${p}/`));
+function isPolicyExempt(path: string): boolean {
+  return POLICY_EXEMPT_PATHS.some((p) => path === p || path.startsWith(`${p}/`));
 }
 
 export async function middleware(request: NextRequest) {
-  const { supabaseResponse, user, role, needsTerms } = await updateSession(request);
+  const { supabaseResponse, user, role, needsPolicyAcceptance } = await updateSession(request);
   const path = request.nextUrl.pathname;
 
-  if (user && needsTerms && !isTermsExempt(path)) {
+  if (user && needsPolicyAcceptance && !isPolicyExempt(path)) {
     const url = new URL(TERMS_ACCEPT_PATH, request.url);
     url.searchParams.set("next", path);
     return NextResponse.redirect(url);
