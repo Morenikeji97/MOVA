@@ -1,4 +1,4 @@
-import { round2 } from "@/lib/fees";
+import { round2 } from "./fees.ts";
 import type { ShipperPaymentStatus, ShippingMethod, VehicleSizeType } from "@/types/database";
 
 /**
@@ -86,19 +86,48 @@ export function commissionOwed(
 }
 
 /**
- * Buyer-facing rate ordering: shippers in good standing first, then cheapest
- * price. `past_due` shippers stay visible but sink to the bottom; `suspended`
- * shippers are filtered out upstream (shipper_rates_public / RLS) and never
- * reach here.
+ * True if a shipper's declared pickup service_areas (US state codes) covers
+ * the vehicle's own location_state — same granularity, see lib/us-states.ts.
+ * Ranking/surfacing only: a Buyer can still see and pick a shipper this
+ * returns false for (see compareRatesForBuyer below and the "Local pickup"
+ * badge in app/browse/[id]/shipping-rates.tsx) — nothing filters them out.
+ */
+export function isLocalPickup(
+  serviceAreas: string[] | null | undefined,
+  vehicleState: string | null | undefined,
+): boolean {
+  return !!vehicleState && !!serviceAreas?.includes(vehicleState);
+}
+
+/**
+ * Buyer-facing rate ordering: shippers whose service_areas cover the
+ * vehicle's pickup state first, then shippers in good standing, then
+ * cheapest price. `past_due` shippers stay visible but sink within their
+ * local/non-local group; `suspended` shippers are filtered out upstream
+ * (shipper_rates_public / RLS) and never reach here. `vehicleState` is
+ * optional so existing callers (and rates with no location context) keep
+ * their prior ordering unchanged.
  */
 export function compareRatesForBuyer(
-  a: { payment_status: ShipperPaymentStatus | null; price: number | null },
-  b: { payment_status: ShipperPaymentStatus | null; price: number | null },
+  a: {
+    payment_status: ShipperPaymentStatus | null;
+    price: number | null;
+    service_areas?: string[] | null;
+  },
+  b: {
+    payment_status: ShipperPaymentStatus | null;
+    price: number | null;
+    service_areas?: string[] | null;
+  },
+  vehicleState?: string | null,
 ): number {
-  const rank = (s: ShipperPaymentStatus | null) =>
+  const localRank = (r: { service_areas?: string[] | null }) =>
+    isLocalPickup(r.service_areas, vehicleState) ? 0 : 1;
+  const standingRank = (s: ShipperPaymentStatus | null) =>
     s === "good_standing" ? 0 : 1;
   return (
-    rank(a.payment_status) - rank(b.payment_status) ||
+    localRank(a) - localRank(b) ||
+    standingRank(a.payment_status) - standingRank(b.payment_status) ||
     (a.price ?? Infinity) - (b.price ?? Infinity)
   );
 }

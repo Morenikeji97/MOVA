@@ -516,6 +516,7 @@ export interface Database {
           contact_phone: string | null;
           fmc_oti_license_number: string;
           service_countries: string[];
+          service_areas: string[];
           status: ShipperStatus;
           payment_status: ShipperPaymentStatus;
           terms_accepted_at: string | null;
@@ -537,6 +538,7 @@ export interface Database {
           user_id?: string | null;
           contact_phone?: string | null;
           service_countries?: string[];
+          service_areas?: string[];
           status?: ShipperStatus;
           payment_status?: ShipperPaymentStatus;
           terms_accepted_at?: string | null;
@@ -558,6 +560,7 @@ export interface Database {
           contact_phone: string | null;
           fmc_oti_license_number: string;
           service_countries: string[];
+          service_areas: string[];
           status: ShipperStatus;
           payment_status: ShipperPaymentStatus;
           terms_accepted_at: string | null;
@@ -975,6 +978,7 @@ export interface Database {
           rate_id: string | null;
           shipper_id: string | null;
           company_name: string | null;
+          service_areas: string[] | null;
           origin_region: string | null;
           origin_port: string | null;
           destination_country: string | null;

@@ -4,6 +4,7 @@ import { useState } from "react";
 import { useFormStatus } from "react-dom";
 import { Button } from "@/components/ui/button";
 import { SERVICE_COUNTRIES } from "@/lib/shipping";
+import { US_STATES } from "@/lib/us-states";
 import { updateShipperProfile } from "./actions";
 
 function SubmitButton() {
@@ -19,12 +20,15 @@ export function ShipperProfileForm({
   companyName,
   description,
   serviceCountries,
+  serviceAreas,
 }: {
   companyName: string;
   description: string;
   serviceCountries: string[];
+  serviceAreas: string[];
 }) {
   const [selected, setSelected] = useState(new Set(serviceCountries));
+  const [selectedAreas, setSelectedAreas] = useState(new Set(serviceAreas));
   const [saved, setSaved] = useState(false);
 
   return (
@@ -88,6 +92,39 @@ export function ShipperProfileForm({
                   className="sr-only"
                 />
                 {c.name}
+              </label>
+            );
+          })}
+        </div>
+      </fieldset>
+
+      <fieldset>
+        <legend className="text-sm text-gray-500">
+          US states you pick up vehicles from
+        </legend>
+        <p className="mt-1 text-xs text-gray-500">
+          Buyers see you flagged as a local, likely-cheaper pickup option for
+          vehicles located in these states.
+        </p>
+        <div className="mt-2 grid max-h-56 grid-cols-2 gap-2 overflow-y-auto rounded border border-gray-200 p-3 sm:grid-cols-3">
+          {US_STATES.map(([code, name]) => {
+            const checked = selectedAreas.has(code);
+            return (
+              <label key={code} className="inline-flex items-center gap-2 text-sm text-black">
+                <input
+                  type="checkbox"
+                  name="serviceAreas"
+                  value={code}
+                  checked={checked}
+                  onChange={(e) => {
+                    const next = new Set(selectedAreas);
+                    if (e.target.checked) next.add(code);
+                    else next.delete(code);
+                    setSelectedAreas(next);
+                  }}
+                  className="h-4 w-4"
+                />
+                {name}
               </label>
             );
           })}

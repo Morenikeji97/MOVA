@@ -30,7 +30,7 @@ export default async function ShipperProfilePage() {
 
   const { data: shipper } = await supabase
     .from("shippers")
-    .select("id, company_name, description, service_countries, status")
+    .select("id, company_name, description, service_countries, service_areas, status")
     .eq("user_id", user.id)
     .maybeSingle();
 
@@ -68,6 +68,7 @@ export default async function ShipperProfilePage() {
           companyName={shipper.company_name}
           description={shipper.description ?? ""}
           serviceCountries={shipper.service_countries ?? []}
+          serviceAreas={shipper.service_areas ?? []}
         />
       </div>
 
