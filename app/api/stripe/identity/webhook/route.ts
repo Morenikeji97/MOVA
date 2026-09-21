@@ -3,6 +3,7 @@ import type Stripe from "stripe";
 import { getStripe } from "@/lib/stripe";
 import { fetchVerifiedSellerName } from "@/lib/stripe-identity";
 import { createAdminClient } from "@/lib/supabase/admin";
+import { evaluateReferralQualification } from "@/lib/referral-credit";
 import type { Database } from "@/types/database";
 
 // Stripe SDK needs the Node runtime, and the raw request body must not be cached.
@@ -75,8 +76,8 @@ export async function POST(req: Request) {
     // Service-role client: the webhook has no user session, and RLS on
     // seller_profiles would otherwise block this write.
     const admin = createAdminClient();
-    const base = admin.from("seller_profiles").update(update);
-    const { error } = userId
+    const base = admin.from("seller_profiles").update(update).select("user_id");
+    const { data: updated, error } = userId
       ? await base.eq("user_id", userId)
       : await base.eq("id_verification_provider_ref", session.id);
 
@@ -84,6 +85,16 @@ export async function POST(req: Request) {
       console.error("seller_profiles update from webhook failed:", error);
       // 500 so Stripe retries.
       return new NextResponse("Database update failed", { status: 500 });
+    }
+
+    // Referral program: this seller's own KYC landing on 'verified' can be
+    // the second (or first) of the two conditions their referral needs —
+    // the other being their own first paid transaction, which may have
+    // already happened. See lib/referral-credit.ts.
+    if (verified) {
+      for (const row of updated ?? []) {
+        await evaluateReferralQualification(admin, { referredUserId: row.user_id });
+      }
     }
   }
 
