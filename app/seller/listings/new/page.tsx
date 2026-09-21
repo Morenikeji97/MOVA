@@ -12,7 +12,7 @@ import { Button } from "@/components/ui/button";
 import { VinData } from "@/components/ui/vin-data";
 import { PhotoUploader, type PhotoDraft } from "@/components/ui/photo-uploader";
 import { VideoUploader, type VideoDraft } from "@/components/ui/video-uploader";
-import { TitlePhotoUploader } from "@/components/ui/title-photo-uploader";
+import { VehicleDocumentUploader } from "@/components/ui/vehicle-document-uploader";
 import { VEHICLE_SIZE_TYPES } from "@/lib/shipping";
 import { US_STATES } from "@/lib/us-states";
 
@@ -131,6 +131,28 @@ const schema = z.object({
     })
     .nullable(),
   title_photo_path: z.string().nullable(),
+  not_titled_owner: z.boolean(),
+  authorization_document_path: z.string().nullable(),
+}).superRefine((data, ctx) => {
+  // Mirrors the DB CHECK constraints added in migration 0031
+  // (vehicles_title_photo_required_before_review /
+  // vehicles_authorization_doc_required_before_review) — enforced here too
+  // so the seller sees the problem before submitting, not after a rejected
+  // insert.
+  if (!data.title_photo_path) {
+    ctx.addIssue({
+      code: z.ZodIssueCode.custom,
+      path: ["title_photo_path"],
+      message: "Upload your vehicle's title before submitting.",
+    });
+  }
+  if (data.not_titled_owner && !data.authorization_document_path) {
+    ctx.addIssue({
+      code: z.ZodIssueCode.custom,
+      path: ["authorization_document_path"],
+      message: "Upload proof you're authorized to sell this vehicle.",
+    });
+  }
 });
 
 type FormValues = z.infer<typeof schema>;
@@ -161,6 +183,8 @@ const EMPTY: FormValues = {
   photos: [],
   video: null,
   title_photo_path: null,
+  not_titled_owner: false,
+  authorization_document_path: null,
 };
 
 const inputClass = "h-11 rounded border border-gray-200 bg-white px-3 text-black";
@@ -239,6 +263,8 @@ export default function NewListingPage() {
   const photos = watch("photos");
   const video = watch("video");
   const titlePhotoPath = watch("title_photo_path");
+  const notTitledOwner = watch("not_titled_owner");
+  const authorizationDocumentPath = watch("authorization_document_path");
 
   // A decoded result only describes the VIN it was fetched for; drop it as
   // soon as the seller edits the VIN field again.
@@ -382,6 +408,8 @@ export default function NewListingPage() {
         accident_history: orNull(values.accident_history),
         title_status: orNull(values.title_status),
         title_photo_path: values.title_photo_path,
+        not_titled_owner: values.not_titled_owner,
+        authorization_document_path: values.authorization_document_path,
         location_city: values.location_city.trim(),
         location_state: values.location_state.trim().toUpperCase(),
         price_usd: Number(values.price_usd),
@@ -633,9 +661,9 @@ export default function NewListingPage() {
           <Field
             label="Photo of the title"
             className="sm:col-span-2"
-            optional
+            error={errors.title_photo_path?.message}
           >
-            <TitlePhotoUploader
+            <VehicleDocumentUploader
               value={titlePhotoPath}
               onChange={(path) =>
                 setValue("title_photo_path", path, {
@@ -643,8 +671,42 @@ export default function NewListingPage() {
                   shouldDirty: true,
                 })
               }
+              successMessage="Title photo uploaded — MOVA will review it alongside your listing."
+              removeAriaLabel="Remove title photo"
             />
           </Field>
+          <div className="sm:col-span-2">
+            <label className="flex items-start gap-2 text-sm text-gray-500">
+              <input
+                type="checkbox"
+                {...register("not_titled_owner")}
+                className="mt-0.5 h-4 w-4"
+              />
+              <span>
+                I am not the titled owner, but I am authorized to sell this
+                vehicle.
+              </span>
+            </label>
+          </div>
+          {notTitledOwner ? (
+            <Field
+              label="Authorization document (letter, power of attorney, etc.)"
+              className="sm:col-span-2"
+              error={errors.authorization_document_path?.message}
+            >
+              <VehicleDocumentUploader
+                value={authorizationDocumentPath}
+                onChange={(path) =>
+                  setValue("authorization_document_path", path, {
+                    shouldValidate: true,
+                    shouldDirty: true,
+                  })
+                }
+                successMessage="Authorization document uploaded — MOVA will review it alongside your title."
+                removeAriaLabel="Remove authorization document"
+              />
+            </Field>
+          ) : null}
         </section>
 
         <section className="grid grid-cols-1 gap-4 sm:grid-cols-2">

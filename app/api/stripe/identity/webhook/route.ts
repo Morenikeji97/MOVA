@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import type Stripe from "stripe";
 import { getStripe } from "@/lib/stripe";
+import { fetchVerifiedSellerName } from "@/lib/stripe-identity";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { evaluateReferralQualification } from "@/lib/referral-credit";
 import type { Database } from "@/types/database";
@@ -51,11 +52,20 @@ export async function POST(req: Request) {
         : null;
     const verified = event.type === "identity.verification_session.verified";
 
+    // Best-effort: the legal name Stripe Identity extracted from the ID
+    // document, for the title-ownership review's side-by-side name
+    // comparison (app/admin/listings/page.tsx). A failure here never blocks
+    // recording the verification outcome itself. Sellers who were already
+    // 'verified' before this existed get the same lookup lazily, once, from
+    // app/admin/listings/page.tsx (see lib/stripe-identity.ts).
+    const verifiedFullName = verified ? await fetchVerifiedSellerName(session.id) : null;
+
     const update: SellerProfileUpdate = verified
       ? {
           id_verification_status: "verified",
           id_verified_at: new Date().toISOString(),
           id_verification_provider_ref: session.id,
+          ...(verifiedFullName ? { full_name: verifiedFullName } : {}),
         }
       : {
           id_verification_status: "failed",

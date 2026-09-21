@@ -3,6 +3,7 @@
 import { type ComponentProps, useRef, useState } from "react";
 import { useFormStatus } from "react-dom";
 import { Button } from "@/components/ui/button";
+import { canApproveListing, canSubmitForReview } from "@/lib/listings-review";
 import type { VinVerificationStatus } from "@/types/database";
 import {
   approveListing,
@@ -42,17 +43,33 @@ export function ReviewActions({
   vinVerificationStatus,
   titlePhotoPath,
   titleIdentityMatchConfirmed,
+  notTitledOwner,
+  authorizationDocumentPath,
 }: {
   vehicleId: string;
   vinVerificationStatus: VinVerificationStatus;
   titlePhotoPath: string | null;
   titleIdentityMatchConfirmed: boolean;
+  notTitledOwner: boolean;
+  authorizationDocumentPath: string | null;
 }) {
   const [rejecting, setRejecting] = useState(false);
   const vinFormRef = useRef<HTMLFormElement>(null);
   const identityFormRef = useRef<HTMLFormElement>(null);
   const flagged = vinVerificationStatus === "flagged";
-  const blockedOnApproval = flagged || !titleIdentityMatchConfirmed;
+  const blockedOnApproval = !canApproveListing({
+    vinVerificationStatus,
+    titleIdentityMatchConfirmed,
+  });
+  // A listing can't reach 'pending_review' at all without these documents
+  // (0031's CHECK constraints), so in practice this is always true here —
+  // checked anyway rather than assumed, since it's what actually gates
+  // whether the confirm checkbox makes sense to enable.
+  const documentsReady = canSubmitForReview({
+    titlePhotoPath,
+    notTitledOwner,
+    authorizationDocumentPath,
+  });
 
   return (
     <div className="mt-4 border-t border-gray-200 pt-4">
@@ -121,17 +138,20 @@ export function ReviewActions({
           <input
             type="checkbox"
             defaultChecked={titleIdentityMatchConfirmed}
-            disabled={!titlePhotoPath}
+            disabled={!documentsReady}
             onChange={() => identityFormRef.current?.requestSubmit()}
             className="h-4 w-4 rounded border-gray-200"
           />
-          Title photo matches seller&rsquo;s verified identity
+          {notTitledOwner
+            ? "Title and authorization document names match seller’s verified identity"
+            : "Title photo matches seller’s verified identity"}
         </label>
       </form>
-      {!titlePhotoPath ? (
+      {!documentsReady ? (
         <p className="mt-1 text-sm text-copper-700">
-          No title photo uploaded yet — can&rsquo;t confirm until the seller
-          adds one.
+          {!titlePhotoPath
+            ? "No title photo uploaded yet — can’t confirm until the seller adds one."
+            : "Seller says they’re not the titled owner, but hasn’t uploaded an authorization document yet — can’t confirm until they do."}
         </p>
       ) : !titleIdentityMatchConfirmed ? (
         <p className="mt-1 text-sm text-copper-700">

@@ -232,6 +232,9 @@ export default async function VehicleDetailPage({
             {v.vin_verification_status === "verified" ? (
               <VerifiedBadge label="VIN Verified" />
             ) : null}
+            {v.title_identity_match_confirmed ? (
+              <VerifiedBadge label="Title reviewed" />
+            ) : null}
           </div>
         </div>
         <PriceBreakdown

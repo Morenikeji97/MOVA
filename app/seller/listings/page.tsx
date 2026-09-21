@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { createClient } from "@/lib/supabase/server";
 import { VEHICLE_DETAIL_COLUMNS } from "@/lib/listings";
+import { canSubmitForReview } from "@/lib/listings-review";
 import { buttonClasses } from "@/components/ui/button";
 import { VerifiedBadge } from "@/components/ui/verified-badge";
 import { cn } from "@/lib/utils";
@@ -130,6 +131,9 @@ export default async function SellerListingsPage() {
                   {v.vin_verification_status === "verified" ? (
                     <VerifiedBadge label="VIN Verified" />
                   ) : null}
+                  {v.title_identity_match_confirmed ? (
+                    <VerifiedBadge label="Title reviewed" />
+                  ) : null}
                 </div>
               </div>
               {v.vin_verification_status === "flagged" ? (
@@ -154,8 +158,25 @@ export default async function SellerListingsPage() {
                   .
                 </p>
               ) : null}
+              {v.status === "draft" &&
+              !canSubmitForReview({
+                titlePhotoPath: v.title_photo_path,
+                notTitledOwner: v.not_titled_owner,
+                authorizationDocumentPath: v.authorization_document_path,
+              }) ? (
+                <p className="mt-3 text-sm text-copper-700">
+                  {!v.title_photo_path
+                    ? "This draft predates the title-upload requirement — it needs a title photo before it can be submitted for review."
+                    : "Missing the authorization document required for a non-owner seller before this can be submitted for review."}
+                </p>
+              ) : null}
               <div className="mt-4 flex items-center gap-3">
-                {v.status === "draft" ? (
+                {v.status === "draft" &&
+                canSubmitForReview({
+                  titlePhotoPath: v.title_photo_path,
+                  notTitledOwner: v.not_titled_owner,
+                  authorizationDocumentPath: v.authorization_document_path,
+                }) ? (
                   <form action={submitForReview}>
                     <input type="hidden" name="id" value={v.id} />
                     <SubmitForReviewButton />

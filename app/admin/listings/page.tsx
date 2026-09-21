@@ -2,6 +2,7 @@ import { type ReactNode } from "react";
 import Link from "next/link";
 import { createClient } from "@/lib/supabase/server";
 import { VEHICLE_DETAIL_COLUMNS } from "@/lib/listings";
+import { fetchVerifiedSellerName } from "@/lib/stripe-identity";
 import { cn } from "@/lib/utils";
 import { ReviewActions } from "./review-actions";
 
@@ -26,6 +27,43 @@ function Detail({ label, children }: { label: string; children: ReactNode }) {
   );
 }
 
+/** Signed-URL preview for a private document — a PDF gets a "view" link (no
+ * inline preview), an image renders directly. Shared by the title photo and
+ * the authorization document, both in the same private bucket. */
+function DocumentPreview({
+  url,
+  path,
+  alt,
+  emptyLabel,
+}: {
+  url: string | null;
+  path: string | null;
+  alt: string;
+  emptyLabel: string;
+}) {
+  if (!url) {
+    return <p className="mt-1 text-sm text-copper-700">{emptyLabel}</p>;
+  }
+  if (path?.toLowerCase().endsWith(".pdf")) {
+    return (
+      <a
+        href={url}
+        target="_blank"
+        rel="noopener noreferrer"
+        className="mt-1 inline-block text-sm text-black underline underline-offset-2"
+      >
+        View document (PDF) &rarr;
+      </a>
+    );
+  }
+  return (
+    <a href={url} target="_blank" rel="noopener noreferrer">
+      {/* eslint-disable-next-line @next/next/no-img-element */}
+      <img src={url} alt={alt} className="mt-1 h-28 w-40 rounded border border-gray-200 object-cover" />
+    </a>
+  );
+}
+
 export default async function AdminListingReviewPage() {
   const supabase = await createClient();
 
@@ -40,9 +78,21 @@ export default async function AdminListingReviewPage() {
   const sellerIds = [...new Set(rows.map((v) => v.seller_id))];
   const vehicleIds = rows.map((v) => v.id);
 
-  const [sellersRes, photosRes] = await Promise.all([
+  const [sellersRes, sellerProfilesRes, photosRes] = await Promise.all([
     sellerIds.length
       ? supabase.from("users").select("id, email, phone").in("id", sellerIds)
+      : null,
+    // The Stripe-Identity-verified legal name, for the side-by-side
+    // name-vs-title comparison below — see app/api/stripe/identity/webhook,
+    // which now captures verified_outputs' name onto this column. Also
+    // pulls id_verification_provider_ref so a seller who was already
+    // 'verified' before that webhook change existed can be backfilled below
+    // rather than showing "not captured" forever.
+    sellerIds.length
+      ? supabase
+          .from("seller_profiles")
+          .select("user_id, full_name, id_verification_status, id_verification_provider_ref")
+          .in("user_id", sellerIds)
       : null,
     vehicleIds.length
       ? supabase
@@ -54,6 +104,32 @@ export default async function AdminListingReviewPage() {
   ]);
 
   const sellerById = new Map((sellersRes?.data ?? []).map((s) => [s.id, s]));
+
+  // Backfill: a seller already 'verified' before the webhook started
+  // capturing verified_outputs' name (see lib/stripe-identity.ts) would
+  // otherwise show "not captured" forever, since Stripe never re-sends a
+  // webhook for a session that already completed. Looked up once here and
+  // persisted, so this only ever runs for a given seller until it succeeds.
+  const sellerNameById = new Map<string, string | null>();
+  for (const p of sellerProfilesRes?.data ?? []) {
+    if (
+      p.full_name === null &&
+      p.id_verification_status === "verified" &&
+      p.id_verification_provider_ref
+    ) {
+      const backfilled = await fetchVerifiedSellerName(p.id_verification_provider_ref);
+      if (backfilled) {
+        await supabase
+          .from("seller_profiles")
+          .update({ full_name: backfilled })
+          .eq("user_id", p.user_id);
+      }
+      sellerNameById.set(p.user_id, backfilled);
+    } else {
+      sellerNameById.set(p.user_id, p.full_name);
+    }
+  }
+
   const photosByVehicle = new Map<string, { url: string; is_primary: boolean }[]>();
   for (const p of photosRes?.data ?? []) {
     const list = photosByVehicle.get(p.vehicle_id) ?? [];
@@ -61,8 +137,10 @@ export default async function AdminListingReviewPage() {
     photosByVehicle.set(p.vehicle_id, list);
   }
 
-  // Signed URLs for title photos — the bucket is private (migration 0023),
-  // same signed-URL-on-review pattern as bank-transfer proofs.
+  // Signed URLs for title photos (and, since 0031, authorization documents
+  // — same private bucket, see components/ui/vehicle-document-uploader.tsx)
+  // — the bucket is private (migration 0023), same signed-URL-on-review
+  // pattern as bank-transfer proofs.
   const titlePhotoRows = rows.filter((v) => v.title_photo_path);
   const titlePhotoUrlEntries = await Promise.all(
     titlePhotoRows.map(async (v) => {
@@ -73,6 +151,17 @@ export default async function AdminListingReviewPage() {
     }),
   );
   const titlePhotoUrlByVehicle = new Map(titlePhotoUrlEntries);
+
+  const authDocRows = rows.filter((v) => v.authorization_document_path);
+  const authDocUrlEntries = await Promise.all(
+    authDocRows.map(async (v) => {
+      const { data } = await supabase.storage
+        .from("vehicle-title-photos")
+        .createSignedUrl(v.authorization_document_path!, 300);
+      return [v.id, data?.signedUrl ?? null] as const;
+    }),
+  );
+  const authDocUrlByVehicle = new Map(authDocUrlEntries);
 
   return (
     <main className="mx-auto max-w-4xl px-6 py-16">
@@ -100,10 +189,12 @@ export default async function AdminListingReviewPage() {
         <ul className="mt-8 flex flex-col gap-4">
           {rows.map((v) => {
             const seller = sellerById.get(v.seller_id);
+            const sellerVerifiedName = sellerNameById.get(v.seller_id) ?? null;
             const photos = (photosByVehicle.get(v.id) ?? [])
               .slice()
               .sort((a, b) => Number(b.is_primary) - Number(a.is_primary));
             const titlePhotoUrl = titlePhotoUrlByVehicle.get(v.id) ?? null;
+            const authDocUrl = authDocUrlByVehicle.get(v.id) ?? null;
 
             return (
               <li
@@ -184,35 +275,55 @@ export default async function AdminListingReviewPage() {
                   <p className="mt-4 text-sm text-copper-700">No photos uploaded.</p>
                 )}
 
-                <div className="mt-4">
+                <div className="mt-4 rounded border border-gray-200 p-4">
                   <p className="font-mono text-xs uppercase tracking-wider text-gray-500">
-                    Title photo
+                    Title-ownership review
                   </p>
-                  {titlePhotoUrl ? (
-                    v.title_photo_path?.toLowerCase().endsWith(".pdf") ? (
-                      <a
-                        href={titlePhotoUrl}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        className="mt-1 inline-block text-sm text-black underline underline-offset-2"
-                      >
-                        View title photo (PDF) &rarr;
-                      </a>
-                    ) : (
-                      <a href={titlePhotoUrl} target="_blank" rel="noopener noreferrer">
-                        {/* eslint-disable-next-line @next/next/no-img-element */}
-                        <img
-                          src={titlePhotoUrl}
-                          alt={`Title document for ${v.year} ${v.make} ${v.model}`}
-                          className="mt-1 h-28 w-40 rounded border border-gray-200 object-cover"
-                        />
-                      </a>
-                    )
-                  ) : (
+                  {v.not_titled_owner ? (
                     <p className="mt-1 text-sm text-copper-700">
-                      No title photo uploaded yet.
+                      Seller states they are not the titled owner, but are
+                      authorized to sell this vehicle.
                     </p>
-                  )}
+                  ) : null}
+
+                  <div className="mt-3 grid grid-cols-1 gap-4 sm:grid-cols-2">
+                    <div>
+                      <p className="text-xs text-gray-500">
+                        Seller&rsquo;s Stripe-Identity-verified legal name
+                      </p>
+                      <p className="mt-1 text-black">
+                        {sellerVerifiedName ?? (
+                          <span className="text-copper-700">
+                            Not captured — seller hasn&rsquo;t completed identity
+                            verification.
+                          </span>
+                        )}
+                      </p>
+                    </div>
+                    <div>
+                      <p className="text-xs text-gray-500">Title document</p>
+                      <DocumentPreview
+                        url={titlePhotoUrl}
+                        path={v.title_photo_path}
+                        alt={`Title document for ${v.year} ${v.make} ${v.model}`}
+                        emptyLabel="No title document uploaded yet."
+                      />
+                    </div>
+                  </div>
+
+                  {v.not_titled_owner ? (
+                    <div className="mt-3">
+                      <p className="text-xs text-gray-500">
+                        Authorization document (letter / power of attorney)
+                      </p>
+                      <DocumentPreview
+                        url={authDocUrl}
+                        path={v.authorization_document_path}
+                        alt={`Authorization document for ${v.year} ${v.make} ${v.model}`}
+                        emptyLabel="No authorization document uploaded yet."
+                      />
+                    </div>
+                  ) : null}
                 </div>
 
                 <ReviewActions
@@ -220,6 +331,8 @@ export default async function AdminListingReviewPage() {
                   vinVerificationStatus={v.vin_verification_status}
                   titlePhotoPath={v.title_photo_path}
                   titleIdentityMatchConfirmed={v.title_identity_match_confirmed}
+                  notTitledOwner={v.not_titled_owner}
+                  authorizationDocumentPath={v.authorization_document_path}
                 />
               </li>
             );

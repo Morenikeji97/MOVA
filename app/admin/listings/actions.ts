@@ -36,7 +36,7 @@ async function requireAdmin() {
     .single();
   if (profile?.role !== "admin") return null;
 
-  return supabase;
+  return { supabase, adminId: user.id };
 }
 
 /** Approve a listing: draft/pending → approved. */
@@ -44,12 +44,15 @@ export async function approveListing(formData: FormData): Promise<void> {
   const id = formData.get("id");
   if (typeof id !== "string" || id.length === 0) return;
 
-  const supabase = await requireAdmin();
-  if (!supabase) return;
+  const ctx = await requireAdmin();
+  if (!ctx) return;
+  const { supabase } = ctx;
 
   // The status filter keeps this idempotent: a double-submit updates no rows.
   // The vin_verification_status and title_identity_match_confirmed filters
-  // are a second backstop alongside the DB CHECK constraints
+  // express the same rule as lib/listings-review.ts's canApproveListing()
+  // (which drives the Approve button's disabled state), backstopped by the
+  // DB CHECK constraints themselves
   // (vehicles_flagged_not_approved, vehicles_title_identity_confirmed_before_approval)
   // — a flagged VIN or an unconfirmed title-identity match can't be
   // approved, so this matches zero rows rather than erroring.
@@ -73,8 +76,9 @@ export async function rejectListing(formData: FormData): Promise<void> {
   const reason = typeof reasonRaw === "string" ? reasonRaw.trim() : "";
   if (reason.length === 0) return;
 
-  const supabase = await requireAdmin();
-  if (!supabase) return;
+  const ctx = await requireAdmin();
+  if (!ctx) return;
+  const { supabase } = ctx;
 
   await supabase
     .from("vehicles")
@@ -100,8 +104,9 @@ export async function setVinVerificationStatus(formData: FormData): Promise<void
   const status = statusRaw as VinVerificationStatus;
   if (!VIN_VERIFICATION_STATUSES.includes(status)) return;
 
-  const supabase = await requireAdmin();
-  if (!supabase) return;
+  const ctx = await requireAdmin();
+  if (!ctx) return;
+  const { supabase } = ctx;
 
   await supabase.from("vehicles").update({ vin_verification_status: status }).eq("id", id);
 
@@ -109,24 +114,35 @@ export async function setVinVerificationStatus(formData: FormData): Promise<void
 }
 
 /**
- * Record admin's manual confirmation that the seller's uploaded title photo
- * matches their Stripe-Identity-verified name. A DB trigger
- * (vehicles_guard_admin_only_fields) additionally keeps this column
- * admin-only regardless of who calls the update, and a CHECK constraint
- * (vehicles_title_identity_confirmed_before_approval) blocks approval while
- * it's false.
+ * Record admin's manual confirmation that the seller's uploaded title (and,
+ * for a not-titled-owner seller, their authorization document) names match
+ * their Stripe-Identity-verified name. A DB trigger
+ * (vehicles_guard_admin_only_fields) additionally keeps this column and its
+ * audit pair admin-only regardless of who calls the update, and a CHECK
+ * constraint (vehicles_title_identity_confirmed_before_approval) blocks
+ * approval while it's false. confirmed_by/confirmed_at are cleared (not
+ * just left stale) when un-confirming, since a null pair unambiguously
+ * means "not currently confirmed" rather than "confirmed once, by someone,
+ * at some point" — same reasoning bank-transfer rejection clears the prior
+ * review fields (0014) rather than leaving them pointing at an outcome that
+ * no longer holds.
  */
 export async function setTitleIdentityMatchConfirmed(formData: FormData): Promise<void> {
   const id = formData.get("id");
   const confirmed = formData.get("title_identity_match_confirmed") === "true";
   if (typeof id !== "string" || id.length === 0) return;
 
-  const supabase = await requireAdmin();
-  if (!supabase) return;
+  const ctx = await requireAdmin();
+  if (!ctx) return;
+  const { supabase, adminId } = ctx;
 
   await supabase
     .from("vehicles")
-    .update({ title_identity_match_confirmed: confirmed })
+    .update({
+      title_identity_match_confirmed: confirmed,
+      title_identity_match_confirmed_by: confirmed ? adminId : null,
+      title_identity_match_confirmed_at: confirmed ? new Date().toISOString() : null,
+    })
     .eq("id", id);
 
   revalidatePath("/admin/listings");

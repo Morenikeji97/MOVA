@@ -19,6 +19,11 @@ export interface VehicleCardData {
   /** Masked (or, once entitled, full) VIN — see `vehicle_vin_display` in lib/listings.ts. */
   vehicle_vin_display: string;
   vin_verification_status: VinVerificationStatus;
+  /** Admin has confirmed the uploaded title (or authorization document) names
+   * match the seller's verified identity — see migrations 0023/0031. Not a
+   * claim that the title itself is authentic or lien-free, just that the
+   * name check was done; keep the badge copy narrow to match. */
+  title_identity_match_confirmed: boolean;
 }
 
 /**
@@ -57,9 +62,14 @@ export function VehicleCard({
             {v.year} {v.make} {v.model}
             {v.trim ? ` ${v.trim}` : ""}
           </h2>
-          {v.vin_verification_status === "verified" ? (
-            <VerifiedBadge label="VIN Verified" className="shrink-0" />
-          ) : null}
+          <div className="flex shrink-0 flex-col items-end gap-1">
+            {v.vin_verification_status === "verified" ? (
+              <VerifiedBadge label="VIN Verified" />
+            ) : null}
+            {v.title_identity_match_confirmed ? (
+              <VerifiedBadge label="Title reviewed" />
+            ) : null}
+          </div>
         </div>
         <PriceBreakdown
           price={Number(v.price_usd)}

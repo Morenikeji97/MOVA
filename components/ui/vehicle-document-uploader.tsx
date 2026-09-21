@@ -15,24 +15,33 @@ const EXT: Record<string, string> = {
 };
 
 /**
- * Optional title-photo upload on the listing creation form, alongside the
- * photo gallery and walkaround video. Same shape as
- * <BankTransferPayment>'s upload block: the file goes straight into a
- * private bucket under the seller's own session (storage RLS: migration
- * 0023), and the resulting path is handed back to the parent form to submit
- * with the rest of the listing — there's no vehicle_id yet to attach it to
- * server-side at this point, same reason the walkaround video's URL is held
- * in form state until the main insert.
+ * Title-photo (and, since 0031, authorization/POA-document) upload on the
+ * listing creation form, alongside the photo gallery and walkaround video.
+ * Same shape as <BankTransferPayment>'s upload block: the file goes
+ * straight into a private bucket under the seller's own session (storage
+ * RLS: migration 0023), and the resulting path is handed back to the parent
+ * form to submit with the rest of the listing — there's no vehicle_id yet
+ * to attach it to server-side at this point, same reason the walkaround
+ * video's URL is held in form state until the main insert.
+ *
+ * Both document kinds share the same private vehicle-title-photos bucket
+ * (renaming a live storage bucket is a disruptive operation with no
+ * functional upside here — a second document is exactly as sensitive as the
+ * first, and both already get the same owner-or-admin RLS).
  *
  * Admin reviews it later via a signed URL on /admin/listings — this bucket
- * is private (a title document is sensitive), unlike vehicle-photos/videos.
+ * is private (both document kinds are sensitive), unlike vehicle-photos/videos.
  */
-export function TitlePhotoUploader({
+export function VehicleDocumentUploader({
   value,
   onChange,
+  successMessage = "Document uploaded — MOVA will review it alongside your listing.",
+  removeAriaLabel = "Remove document",
 }: {
   value: string | null;
   onChange: (path: string | null) => void;
+  successMessage?: string;
+  removeAriaLabel?: string;
 }) {
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -88,12 +97,12 @@ export function TitlePhotoUploader({
     <div>
       {value ? (
         <div className="flex items-center justify-between gap-3 rounded border border-verified-100 bg-verified-50 p-3 text-sm text-verified-600">
-          <span>Title photo uploaded — MOVA will review it alongside your listing.</span>
+          <span>{successMessage}</span>
           <button
             type="button"
             onClick={() => void remove()}
             className="shrink-0 text-verified-600 hover:text-verified-700"
-            aria-label="Remove title photo"
+            aria-label={removeAriaLabel}
           >
             <X className="h-4 w-4" aria-hidden />
           </button>
