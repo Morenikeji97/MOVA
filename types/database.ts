@@ -202,6 +202,10 @@ export interface Database {
           title_history_check_status: "not_run" | "pending" | "clean" | "branded";
           title_photo_path: string | null;
           title_identity_match_confirmed: boolean;
+          title_identity_match_confirmed_by: string | null;
+          title_identity_match_confirmed_at: string | null;
+          not_titled_owner: boolean;
+          authorization_document_path: string | null;
           location_city: string;
           location_state: string;
           price_usd: number;
@@ -239,6 +243,10 @@ export interface Database {
           title_history_check_status?: "not_run" | "pending" | "clean" | "branded";
           title_photo_path?: string | null;
           title_identity_match_confirmed?: boolean;
+          title_identity_match_confirmed_by?: string | null;
+          title_identity_match_confirmed_at?: string | null;
+          not_titled_owner?: boolean;
+          authorization_document_path?: string | null;
           description?: string | null;
           status?: VehicleStatus;
           verification_status?: VerificationStatus;
@@ -268,6 +276,10 @@ export interface Database {
           title_history_check_status: "not_run" | "pending" | "clean" | "branded";
           title_photo_path: string | null;
           title_identity_match_confirmed: boolean;
+          title_identity_match_confirmed_by: string | null;
+          title_identity_match_confirmed_at: string | null;
+          not_titled_owner: boolean;
+          authorization_document_path: string | null;
           location_city: string;
           location_state: string;
           price_usd: number;
