@@ -1,5 +1,6 @@
 import Link from "next/link";
 import { createClient } from "@/lib/supabase/server";
+import { KycVerifyForm } from "@/components/ui/kyc-verify-form";
 import { feeBreakdown } from "@/lib/fees";
 import { bankTransferDetails, bankTransferReference } from "@/lib/bank-transfer";
 import { BuyerReviewHub } from "@/components/reviews/buyer-review-hub";
@@ -130,9 +131,24 @@ export default async function BuyerDashboard({
     <main className="mx-auto max-w-4xl px-6 py-16">
       <h1 className="text-2xl font-semibold text-black">Buyer Dashboard</h1>
       <p className="mt-2 text-gray-500">Signed in as {user?.email}</p>
-      <p className="mt-1 font-mono text-sm text-gray-500">
-        NIN verification: {profile?.nin_verification_status ?? "unverified"}
-      </p>
+      {profile?.verification_status === "verified" ? (
+        <p className="mt-1 text-sm text-verified-600">Identity verified.</p>
+      ) : (
+        <div className="mt-3 space-y-2 rounded border border-gray-200 p-4">
+          <p className="text-sm font-medium text-black">Verify your identity</p>
+          <p className="text-sm text-gray-500">
+            Verifying your NIN or BVN unlocks your MOVA referral rewards and
+            speeds up reservation review. Either one is enough — you don’t
+            need both.
+          </p>
+          {profile?.nin_verification_status !== "verified" ? (
+            <KycVerifyForm kind="nin" />
+          ) : null}
+          {profile?.bvn_verification_status !== "verified" ? (
+            <KycVerifyForm kind="bvn" />
+          ) : null}
+        </div>
+      )}
 
       {feeNotice === "paid" && awaitingSellerReveal ? (
         <p className="mt-6 rounded border border-verified-100 bg-verified-50 p-3 text-sm text-verified-600">
