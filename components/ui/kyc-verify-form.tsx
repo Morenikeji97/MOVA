@@ -46,7 +46,7 @@ export function KycVerifyForm({ kind }: { kind: "nin" | "bvn" }) {
         type="text"
         name="value"
         inputMode="numeric"
-        pattern="\\d{11}"
+        pattern="[0-9]{11}"
         maxLength={11}
         placeholder={`11-digit ${LABEL[kind]}`}
         className="w-44 rounded border border-gray-300 px-2 py-1 font-mono text-sm"
