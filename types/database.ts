@@ -207,6 +207,19 @@ export interface Database {
            * Not present on Insert/Update — it can't be written.
            */
           vehicle_vin_display: string;
+          /**
+           * Computed columns, not physical ones — see migration 0032. They
+           * expose the three facts the verification badges need without a
+           * public surface having to select private document paths
+           * (title_photo_path / authorization_document_path, keyed by the
+           * seller's uid and pointing into a private bucket) or read
+           * seller_profiles, which owner-or-admin RLS puts out of reach for
+           * a browsing buyer. Consumed via lib/listing-badges.ts.
+           * Not present on Insert/Update — they can't be written.
+           */
+          vehicle_has_title_document: boolean;
+          vehicle_has_authorization_document: boolean;
+          vehicle_seller_identity_verified: boolean;
           vehicle_size_type: VehicleSizeType;
           year: number;
           make: string;

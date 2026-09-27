@@ -2,10 +2,16 @@ import Link from "next/link";
 import { VinData } from "@/components/ui/vin-data";
 import { VerifiedBadge } from "@/components/ui/verified-badge";
 import { PriceBreakdown } from "@/components/ui/price-breakdown";
-import type { FeeResponsibility, VinVerificationStatus } from "@/types/database";
+import type { FeeResponsibility } from "@/types/database";
+import {
+  badgeFacts,
+  hasTitleReviewedBadge,
+  hasVerifiedListingBadge,
+  type ListingBadgeRow,
+} from "@/lib/listing-badges";
 
 /** The fields a vehicle card needs. Both /browse and the homepage select these. */
-export interface VehicleCardData {
+export interface VehicleCardData extends ListingBadgeRow {
   id: string;
   year: number;
   make: string;
@@ -18,12 +24,6 @@ export interface VehicleCardData {
   location_state: string;
   /** Masked (or, once entitled, full) VIN — see `vehicle_vin_display` in lib/listings.ts. */
   vehicle_vin_display: string;
-  vin_verification_status: VinVerificationStatus;
-  /** Admin has confirmed the uploaded title (or authorization document) names
-   * match the seller's verified identity — see migrations 0023/0031. Not a
-   * claim that the title itself is authentic or lien-free, just that the
-   * name check was done; keep the badge copy narrow to match. */
-  title_identity_match_confirmed: boolean;
 }
 
 /**
@@ -37,6 +37,14 @@ export function VehicleCard({
   vehicle: VehicleCardData;
   thumbnailUrl: string | null;
 }) {
+  // Badge rules live in lib/listing-badges.ts, shared with /browse/[id] and
+  // the seller's own listings so the three surfaces can't disagree about what
+  // has actually been checked. "Title reviewed" is NOT
+  // title_identity_match_confirmed on its own — see migration 0032.
+  const facts = badgeFacts(v);
+  const titleReviewed = hasTitleReviewedBadge(facts);
+  const verifiedListing = hasVerifiedListingBadge(facts);
+
   return (
     <Link
       href={`/browse/${v.id}`}
@@ -63,12 +71,11 @@ export function VehicleCard({
             {v.trim ? ` ${v.trim}` : ""}
           </h2>
           <div className="flex shrink-0 flex-col items-end gap-1">
+            {verifiedListing ? <VerifiedBadge /> : null}
             {v.vin_verification_status === "verified" ? (
               <VerifiedBadge label="VIN Verified" />
             ) : null}
-            {v.title_identity_match_confirmed ? (
-              <VerifiedBadge label="Title reviewed" />
-            ) : null}
+            {titleReviewed ? <VerifiedBadge label="Title reviewed" /> : null}
           </div>
         </div>
         <PriceBreakdown

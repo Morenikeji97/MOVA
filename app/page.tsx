@@ -50,8 +50,14 @@ export default async function Home() {
         {listings.length > 0 ? (
           <>
             <div className="mb-6 flex items-baseline justify-between gap-4">
+              {/* "Latest verified listings" until 0032: the grid is simply the
+                  most recent APPROVED listings, and approval is a moderation
+                  outcome, not a verification result — most rows here carry no
+                  verified badge at all. The per-card badges now state what was
+                  actually checked; the heading no longer overclaims on their
+                  behalf. */}
               <h2 className="font-mono text-xs uppercase tracking-wider text-gray-500">
-                Latest verified listings
+                Latest listings
               </h2>
               <Link
                 href="/browse"

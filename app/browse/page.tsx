@@ -63,7 +63,10 @@ export default async function BrowsePage({
       <main className="mx-auto max-w-6xl px-6 py-12">
         <h1 className="text-2xl font-semibold text-black">Browse vehicles</h1>
         <p className="mt-2 text-sm text-gray-500">
-          {rows.length} verified {rows.length === 1 ? "listing" : "listings"}
+          {/* Not "verified listings" — this is every approved listing, and
+              approval isn't verification. Same overclaim the homepage heading
+              had; see migration 0032 and lib/listing-badges.ts. */}
+          {rows.length} {rows.length === 1 ? "listing" : "listings"}
           {hasFilters ? " matching your filters" : " available now"}.
         </p>
 

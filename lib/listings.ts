@@ -1,5 +1,6 @@
 import type { createClient } from "@/lib/supabase/server";
 import type { VehicleCardData } from "@/components/ui/vehicle-card";
+import { LISTING_BADGE_COLUMNS } from "@/lib/listing-badges";
 
 type ServerSupabase = Awaited<ReturnType<typeof createClient>>;
 
@@ -11,9 +12,13 @@ type ServerSupabase = Awaited<ReturnType<typeof createClient>>;
  * anon/authenticated, so this is masked-by-default for anyone browsing and
  * only resolves to the full VIN for the listing's own seller, an admin, or a
  * buyer past the fee-paid reveal point.
+ *
+ * Also pulls in LISTING_BADGE_COLUMNS (lib/listing-badges.ts) so a card can
+ * evaluate the real "Title reviewed"/"Verified Listing" rules instead of
+ * trusting title_identity_match_confirmed on its own — see migration 0032.
  */
 export const LISTING_CARD_COLUMNS =
-  "id, year, make, model, trim, price_usd, fee_responsibility, mileage, location_city, location_state, vehicle_vin_display, vin_verification_status, title_identity_match_confirmed" as const;
+  `id, year, make, model, trim, price_usd, fee_responsibility, mileage, location_city, location_state, vehicle_vin_display, ${LISTING_BADGE_COLUMNS}` as const;
 
 /**
  * Full vehicle detail, for surfaces that render (almost) every column:
@@ -23,9 +28,13 @@ export const LISTING_CARD_COLUMNS =
  * `vehicle_vin_display`, which resolves to the full VIN for an admin, the
  * listing's own seller, or a buyer past the fee-paid reveal point, and a
  * masked form otherwise.
+ *
+ * The badge-relevant columns come from LISTING_BADGE_COLUMNS
+ * (lib/listing-badges.ts), shared with LISTING_CARD_COLUMNS so the detail
+ * page and the cards can't evaluate the badge rules against different data.
  */
 export const VEHICLE_DETAIL_COLUMNS =
-  "id, seller_id, vin_decode_status, vin_verification_status, vehicle_vin_display, vehicle_size_type, year, make, model, trim, mileage, exterior_color, interior_color, transmission, fuel_type, condition, accident_history, title_status, title_history_check_status, title_photo_path, title_identity_match_confirmed, title_identity_match_confirmed_by, title_identity_match_confirmed_at, not_titled_owner, authorization_document_path, location_city, location_state, price_usd, fee_responsibility, description, status, verification_status, rejection_reason, created_at, updated_at" as const;
+  `id, seller_id, vin_decode_status, vehicle_vin_display, vehicle_size_type, year, make, model, trim, mileage, exterior_color, interior_color, transmission, fuel_type, condition, accident_history, title_status, title_history_check_status, title_photo_path, title_identity_match_confirmed_by, authorization_document_path, location_city, location_state, price_usd, fee_responsibility, description, status, verification_status, rejection_reason, created_at, updated_at, ${LISTING_BADGE_COLUMNS}` as const;
 
 /**
  * Primary photo per vehicle: the first by sort_order, unless one is explicitly

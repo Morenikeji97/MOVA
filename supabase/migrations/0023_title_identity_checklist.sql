@@ -27,9 +27,25 @@ alter table public.vehicles
 -- title_identity_match_confirmed, it reverts any writer it doesn't
 -- recognize as admin/service-role (including this migration's own
 -- superuser session, which has no auth.uid()) back to the old value.
+--
+-- RETRO-CORRECTED (see 0032_title_review_badge_integrity.sql): as originally
+-- written this keyed purely off `status = 'approved'` and set the flag on
+-- listings that had no title document at all — the one approved row at the
+-- time was exactly such a listing, and it went on to advertise "Title
+-- reviewed" and "Verified Listing" on a review nobody ever performed.
+-- Amending an already-applied migration is normally wrong, but leaving it
+-- as-is would re-create the bad state on any fresh `supabase db reset`, and
+-- 0032's CHECK constraint would then abort the reset outright. The added
+-- predicate is what this statement should always have said; it changes
+-- nothing for a database that has already run it.
+--
+-- (not_titled_owner / authorization_document_path are deliberately NOT
+-- consulted here — neither column exists yet at this point in history; they
+-- arrive in 0031.)
 update public.vehicles
   set title_identity_match_confirmed = true
-  where status = 'approved';
+  where status = 'approved'
+    and title_photo_path is not null;
 
 create or replace function public.vehicles_guard_admin_only_fields()
 returns trigger

@@ -136,6 +136,25 @@ export async function setTitleIdentityMatchConfirmed(formData: FormData): Promis
   if (!ctx) return;
   const { supabase, adminId } = ctx;
 
+  // A confirmation is only meaningful against a document that exists. The
+  // admin UI already disables the checkbox until one does
+  // (documentsReady in review-actions.tsx) and the DB refuses the row outright
+  // (vehicles_title_confirmation_requires_document, 0032) — this makes a
+  // hand-crafted POST a clean no-op instead of a raw constraint error, and
+  // keeps the three layers stating the same rule.
+  if (confirmed) {
+    const { data: docs } = await supabase
+      .from("vehicles")
+      .select("title_photo_path, not_titled_owner, authorization_document_path")
+      .eq("id", id)
+      .maybeSingle();
+    if (!docs) return;
+    const hasDocument =
+      docs.title_photo_path !== null ||
+      (docs.not_titled_owner && docs.authorization_document_path !== null);
+    if (!hasDocument) return;
+  }
+
   await supabase
     .from("vehicles")
     .update({

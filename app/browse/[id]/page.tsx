@@ -5,6 +5,11 @@ import { createClient } from "@/lib/supabase/server";
 import { VEHICLE_DETAIL_COLUMNS } from "@/lib/listings";
 import { cn } from "@/lib/utils";
 import { VerifiedBadge } from "@/components/ui/verified-badge";
+import {
+  badgeFacts,
+  hasTitleReviewedBadge,
+  hasVerifiedListingBadge,
+} from "@/lib/listing-badges";
 import { PriceBreakdown } from "@/components/ui/price-breakdown";
 import { feeBreakdown } from "@/lib/fees";
 import { compareRatesForBuyer, countryName, shippingMethodLabel } from "@/lib/shipping";
@@ -215,6 +220,15 @@ export default async function VehicleDetailPage({
 
   const title = `${v.year} ${v.make} ${v.model}${v.trim ? ` ${v.trim}` : ""}`;
 
+  // "Verified Listing" used to render unconditionally here. Because this page
+  // only shows approved listings, that made the badge a synonym for
+  // status = 'approved' — a moderation outcome, not a verification result. It
+  // now goes through the shared rules in lib/listing-badges.ts, same as the
+  // browse cards and the seller's own listings. See migration 0032.
+  const facts = badgeFacts(v);
+  const titleReviewed = hasTitleReviewedBadge(facts);
+  const verifiedListing = hasVerifiedListingBadge(facts);
+
   return (
     <div className="min-h-screen bg-white">
       <main className="mx-auto max-w-4xl px-6 py-12">
@@ -228,13 +242,11 @@ export default async function VehicleDetailPage({
         <div className="mt-4 flex flex-wrap items-start justify-between gap-3">
           <h1 className="text-2xl font-semibold text-black">{title}</h1>
           <div className="flex flex-wrap items-center gap-2">
-            <VerifiedBadge />
+            {verifiedListing ? <VerifiedBadge /> : null}
             {v.vin_verification_status === "verified" ? (
               <VerifiedBadge label="VIN Verified" />
             ) : null}
-            {v.title_identity_match_confirmed ? (
-              <VerifiedBadge label="Title reviewed" />
-            ) : null}
+            {titleReviewed ? <VerifiedBadge label="Title reviewed" /> : null}
           </div>
         </div>
         <PriceBreakdown

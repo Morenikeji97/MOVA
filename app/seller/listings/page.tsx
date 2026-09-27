@@ -2,6 +2,11 @@ import Link from "next/link";
 import { createClient } from "@/lib/supabase/server";
 import { VEHICLE_DETAIL_COLUMNS } from "@/lib/listings";
 import { canSubmitForReview } from "@/lib/listings-review";
+import {
+  badgeFacts,
+  hasTitleReviewedBadge,
+  hasVerifiedListingBadge,
+} from "@/lib/listing-badges";
 import { buttonClasses } from "@/components/ui/button";
 import { VerifiedBadge } from "@/components/ui/verified-badge";
 import { cn } from "@/lib/utils";
@@ -12,10 +17,10 @@ import { SubmitForReviewButton } from "./submit-for-review-button";
 const STATUS_META: Record<VehicleStatus, { label: string; pill: string }> = {
   draft: { label: "Draft", pill: "bg-gray-100 text-gray-500" },
   pending_review: { label: "Pending review", pill: "bg-marine-50 text-marine-700" },
-  approved: { label: "Approved", pill: "" },
+  approved: { label: "Live", pill: "bg-verified-50 text-verified-600" },
   rejected: { label: "Rejected", pill: "bg-copper-50 text-copper-700" },
   sold: { label: "Sold", pill: "bg-gray-100 text-gray-700" },
-  archived: { label: "Archived", pill: "bg-gray-100 text-gray-500" },
+  archived: { label: "Removed", pill: "bg-gray-100 text-gray-500" },
 };
 
 const usd = new Intl.NumberFormat("en-US", {
@@ -29,10 +34,13 @@ const FEE_LABEL: Record<FeeResponsibility, string> = {
   split: "MOVA's 8% fee split 50/50 with the buyer",
 };
 
+/**
+ * A listing's moderation status. Deliberately NOT <VerifiedBadge> for
+ * 'approved' any more: that put a green check-mark badge — the same component
+ * the verification badges use — on what is only "an admin let this go live".
+ * Verification is stated separately below, by the real badge rules.
+ */
 function StatusBadge({ status }: { status: VehicleStatus }) {
-  if (status === "approved") {
-    return <VerifiedBadge label="Approved" />;
-  }
   const meta = STATUS_META[status];
   return (
     <span
@@ -128,10 +136,11 @@ export default async function SellerListingsPage() {
                 </div>
                 <div className="flex shrink-0 flex-col items-end gap-2">
                   <StatusBadge status={v.status} />
+                  {hasVerifiedListingBadge(badgeFacts(v)) ? <VerifiedBadge /> : null}
                   {v.vin_verification_status === "verified" ? (
                     <VerifiedBadge label="VIN Verified" />
                   ) : null}
-                  {v.title_identity_match_confirmed ? (
+                  {hasTitleReviewedBadge(badgeFacts(v)) ? (
                     <VerifiedBadge label="Title reviewed" />
                   ) : null}
                 </div>
