@@ -14,11 +14,18 @@ import { PhotoUploader, type PhotoDraft } from "@/components/ui/photo-uploader";
 import { VideoUploader, type VideoDraft } from "@/components/ui/video-uploader";
 import { VehicleDocumentUploader } from "@/components/ui/vehicle-document-uploader";
 import { VEHICLE_SIZE_TYPES } from "@/lib/shipping";
+import { isValidVin, VIN_ERROR_MESSAGE } from "@/lib/vin";
 import { US_STATES } from "@/lib/us-states";
 
 const MAX_PHOTOS = 20;
 
 const MAX_YEAR = new Date().getFullYear() + 1;
+
+// Shape-only pre-check, used to decide whether the "Decode VIN" button has
+// something worth sending to NHTSA. Acceptance is decided by isValidVin()
+// (lib/vin.ts), which also enforces the ISO 3779 check digit and the
+// sample-VIN blocklist, and is mirrored by the vehicles_vin_valid DB
+// constraint (migration 0034).
 const VIN_RE = /^[A-HJ-NPR-Z0-9]{17}$/;
 
 // NHTSA's free vPIC VIN decoder. Sends CORS headers, so it's safe to call
@@ -60,7 +67,13 @@ const schema = z.object({
     .string()
     .trim()
     .toUpperCase()
-    .regex(VIN_RE, "Enter a valid 17-character VIN (letters and numbers, no I, O or Q)."),
+    .regex(VIN_RE, "Enter a valid 17-character VIN (letters and numbers, no I, O or Q).")
+    // Length/charset first (above) so an obviously mistyped VIN gets the
+    // specific message; everything else — check digit, published sample VINs,
+    // all-same-character and sequential placeholders — shares the one
+    // seller-facing line from lib/vin.ts, the same module the DB constraint
+    // is a port of.
+    .refine(isValidVin, VIN_ERROR_MESSAGE),
   year: z
     .string()
     .trim()
@@ -494,7 +507,10 @@ export default function NewListingPage() {
                 autoCapitalize="characters"
                 autoComplete="off"
                 spellCheck={false}
-                placeholder="1HGCM82633A004352"
+                // Was "1HGCM82633A004352" — the published Honda sample VIN
+                // this whole fix exists because of, and now blocklisted.
+                // A format hint, not a copy-pasteable VIN.
+                placeholder="17-character VIN from your title"
               />
               <Button
                 type="button"
