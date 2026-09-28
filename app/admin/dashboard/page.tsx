@@ -14,6 +14,7 @@ export default async function AdminDashboard() {
     { count: reviewQueue },
     { count: openDisputes },
     { count: referralAttention },
+    { count: waitlistCount },
   ] = await Promise.all([
     supabase.from("users").select("*", { count: "exact", head: true }),
     supabase
@@ -50,6 +51,7 @@ export default async function AdminDashboard() {
       .select("*", { count: "exact", head: true })
       .eq("flag_status", "flagged")
       .is("flag_reviewed_at", null),
+    supabase.from("waitlist_signups").select("id", { count: "exact", head: true }),
   ]);
 
   return (
@@ -62,6 +64,16 @@ export default async function AdminDashboard() {
           </p>
           <p className="mt-1 text-3xl font-semibold text-black">{userCount ?? 0}</p>
         </div>
+        <Link
+          href="/admin/waitlist"
+          className="rounded-lg border border-gray-200 bg-white p-5 transition-colors hover:border-black"
+        >
+          <p className="font-mono text-xs uppercase tracking-wider text-gray-500">
+            Waitlist signups
+          </p>
+          <p className="mt-1 text-3xl font-semibold text-black">{waitlistCount ?? 0}</p>
+          <p className="mt-1 text-sm text-black">Open the waitlist &rarr;</p>
+        </Link>
         <Link
           href="/admin/listings"
           className="rounded-lg border border-gray-200 bg-white p-5 transition-colors hover:border-black"

@@ -4,6 +4,7 @@ import { revalidatePath } from "next/cache";
 import { createClient } from "@/lib/supabase/server";
 import { feeBreakdown } from "@/lib/fees";
 import { checkRateLimit, RATE_LIMIT_MESSAGE } from "@/lib/rate-limit";
+import { isPrelaunch, PRELAUNCH_REFUSAL } from "@/lib/prelaunch";
 
 /**
  * Outcome of {@link reserveVehicle}. `ok: true, created: false` means the buyer
@@ -26,11 +27,18 @@ export type ReserveResult =
  * Returns a {@link ReserveResult} so the form can tell "sent", "you already
  * have a request", and "it failed" apart — the insert error is no longer
  * swallowed.
+ *
+ * Refused outright while PRELAUNCH is on (lib/prelaunch.ts) — checked first,
+ * before anything else, so a hand-crafted request gets the same answer as
+ * the page. The database refuses the insert too
+ * (purchase_requests_prelaunch_guard, migration 0039).
  */
 export async function reserveVehicle(
   _prev: ReserveResult | null,
   formData: FormData,
 ): Promise<ReserveResult> {
+  if (isPrelaunch()) return { ok: false, error: PRELAUNCH_REFUSAL };
+
   const vehicleId = formData.get("vehicleId");
   if (typeof vehicleId !== "string" || vehicleId.length === 0) {
     return { ok: false, error: "Something went wrong. Please reload and try again." };

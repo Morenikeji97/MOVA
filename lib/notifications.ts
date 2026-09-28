@@ -107,11 +107,11 @@ export async function notifyFeePaymentConfirmed(purchaseRequestId: string): Prom
   const origin = await appUrl();
   await sendEmail({
     to: buyer.email,
-    subject: `Fee confirmed — seller contact for the ${vehicleTitle(vehicle)}`,
+    subject: `MOVA fee confirmed — ${vehicleTitle(vehicle)}`,
     html: renderEmailShell({
       heading: "Payment confirmed",
-      bodyHtml: `<p style="margin:0;">Your MOVA service fee for the ${vehicleTitle(vehicle)} is confirmed. The seller&rsquo;s contact details are ready on your dashboard.</p>`,
-      ctaLabel: "View seller contact",
+      bodyHtml: `<p style="margin:0 0 8px;">Your MOVA fee for the ${vehicleTitle(vehicle)} is confirmed. Next, the car price goes into Escrow.com &mdash; MOVA sets up the escrow transaction and it appears on your dashboard.</p><p style="margin:0;">MOVA will never send you bank details by email, WhatsApp or text, or ask you to pay a person directly. If anyone does, it&rsquo;s a scam &mdash; stop and message us.</p>`,
+      ctaLabel: "View your dashboard",
       ctaHref: `${origin}/buyer/dashboard`,
     }),
   });

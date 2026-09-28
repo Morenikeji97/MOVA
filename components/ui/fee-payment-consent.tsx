@@ -40,10 +40,13 @@ export function FeePaymentConsent({
     <div className="mt-3 rounded border border-gray-200 bg-white p-3 text-sm text-black">
       <p className="font-medium">Refund terms, in brief</p>
       <ul className="mt-1.5 list-disc space-y-1 pl-5 text-gray-500">
-        <li>Full refund if you cancel before the seller&rsquo;s contact is revealed.</li>
         <li>
-          No refund after contact is revealed — except for seller misrepresentation, a MOVA
-          error, or the seller not responding within 5 business days.
+          MOVA&rsquo;s fee is refunded if the car is materially misrepresented, the
+          seller withdraws, or the car fails inspection.
+        </li>
+        <li>
+          The car price goes into Escrow.com, never to the seller directly. The seller
+          is paid only after inspection and once your shipper has the car and title.
         </li>
         <li>
           <Link

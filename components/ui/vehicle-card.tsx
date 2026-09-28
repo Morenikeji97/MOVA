@@ -1,7 +1,7 @@
 import Link from "next/link";
 import { VinData } from "@/components/ui/vin-data";
 import { VerifiedBadge } from "@/components/ui/verified-badge";
-import { PriceBreakdown } from "@/components/ui/price-breakdown";
+import { PriceBreakdown, SellerSplitsFeeBadge } from "@/components/ui/price-breakdown";
 import type { FeeResponsibility } from "@/types/database";
 import {
   badgeFacts,
@@ -76,6 +76,7 @@ export function VehicleCard({
               <VerifiedBadge label="VIN Verified" />
             ) : null}
             {titleReviewed ? <VerifiedBadge label="Title reviewed" /> : null}
+            {v.fee_responsibility === "split" ? <SellerSplitsFeeBadge /> : null}
           </div>
         </div>
         <PriceBreakdown

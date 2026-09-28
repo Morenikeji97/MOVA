@@ -391,6 +391,37 @@ export interface Database {
         }>;
         Relationships: [];
       };
+      /** Single-row pre-launch switch (0039). Read by everyone, updated by admins. */
+      platform_settings: {
+        Row: { id: boolean; prelaunch: boolean; updated_at: string };
+        Insert: { id?: boolean; prelaunch?: boolean; updated_at?: string };
+        Update: Partial<{ prelaunch: boolean; updated_at: string }>;
+        Relationships: [];
+      };
+      /**
+       * Pre-launch waitlist (0039). anon/authenticated may only insert the
+       * five Insert columns; only admins can read rows (RLS).
+       */
+      waitlist_signups: {
+        Row: {
+          id: string;
+          email: string | null;
+          whatsapp: string | null;
+          country: "NG" | "GH" | "TG" | "BJ" | "OTHER";
+          vehicle_id: string | null;
+          source: "site" | "listing" | "dashboard";
+          created_at: string;
+        };
+        Insert: {
+          email?: string | null;
+          whatsapp?: string | null;
+          country: "NG" | "GH" | "TG" | "BJ" | "OTHER";
+          vehicle_id?: string | null;
+          source?: "site" | "listing" | "dashboard";
+        };
+        Update: Record<string, never>;
+        Relationships: [];
+      };
       terms_acceptances: {
         Row: {
           id: string;
@@ -500,11 +531,6 @@ export interface Database {
           mova_fee_stripe_session_id: string | null;
           mova_fee_checkout_url: string | null;
           fee_payment_requested_at: string | null;
-          seller_details_revealed_at: string | null;
-          seller_name: string | null;
-          seller_email: string | null;
-          seller_phone: string | null;
-          seller_whatsapp: string | null;
           payment_method: string | null;
           payment_reference: string | null;
           notes: string | null;
@@ -534,11 +560,6 @@ export interface Database {
           mova_fee_stripe_session_id?: string | null;
           mova_fee_checkout_url?: string | null;
           fee_payment_requested_at?: string | null;
-          seller_details_revealed_at?: string | null;
-          seller_name?: string | null;
-          seller_email?: string | null;
-          seller_phone?: string | null;
-          seller_whatsapp?: string | null;
           payment_method?: string | null;
           payment_reference?: string | null;
           notes?: string | null;
@@ -568,11 +589,6 @@ export interface Database {
           mova_fee_stripe_session_id: string | null;
           mova_fee_checkout_url: string | null;
           fee_payment_requested_at: string | null;
-          seller_details_revealed_at: string | null;
-          seller_name: string | null;
-          seller_email: string | null;
-          seller_phone: string | null;
-          seller_whatsapp: string | null;
           payment_method: string | null;
           payment_reference: string | null;
           notes: string | null;

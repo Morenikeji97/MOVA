@@ -33,7 +33,7 @@ const usd = new Intl.NumberFormat("en-US", {
 
 const FEE_LABEL: Record<FeeResponsibility, string> = {
   buyer_pays_full: "Buyer pays MOVA's full 8% fee",
-  split: "MOVA's 8% fee split 50/50 with the buyer",
+  split: "Seller splits the fee — your 4% comes out of your escrow payout",
 };
 
 /**
@@ -74,16 +74,16 @@ export default async function SellerListingsPage() {
     rows.map((v) => v.id),
   );
 
-  // Reservations where the buyer has already paid MOVA's service fee — the
-  // seller should now expect direct contact and a wire for the vehicle price.
+  // Reservations where the buyer has already paid MOVA's fee — next the car
+  // price goes into Escrow.com, and the seller is paid out of escrow.
   const vehicleIds = rows.map((v) => v.id);
   const { data: paidReqs } = vehicleIds.length
     ? await supabase
         .from("purchase_requests")
-        .select("vehicle_id, vehicle_price_usd, seller_details_revealed_at")
+        .select("vehicle_id, vehicle_price_usd")
         .in("vehicle_id", vehicleIds)
         .eq("mova_fee_payment_status", "paid")
-        .order("seller_details_revealed_at", { ascending: false })
+        .order("created_at", { ascending: false })
     : { data: [] };
 
   const paidByVehicle = new Map<string, { vehicle_price_usd: number | null }>();
@@ -164,13 +164,15 @@ export default async function SellerListingsPage() {
               ) : null}
               {paidByVehicle.has(v.id) ? (
                 <p className="mt-3 rounded border border-verified-100 bg-verified-50 p-3 text-sm text-verified-600">
-                  Buyer has paid MOVA&rsquo;s service fee — expect direct contact
+                  A buyer has paid MOVA&rsquo;s fee
                   {paidByVehicle.get(v.id)!.vehicle_price_usd != null
-                    ? ` for ${usd.format(
+                    ? ` at ${usd.format(
                         Number(paidByVehicle.get(v.id)!.vehicle_price_usd),
                       )}`
                     : ""}
-                  .
+                  . Next they pay the car price into Escrow.com; you&rsquo;re
+                  paid once an inspector confirms the car and a licensed
+                  shipper collects it with the title.
                 </p>
               ) : null}
               {v.status === "draft" &&

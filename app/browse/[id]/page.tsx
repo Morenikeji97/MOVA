@@ -10,7 +10,7 @@ import {
   hasTitleReviewedBadge,
   hasVerifiedListingBadge,
 } from "@/lib/listing-badges";
-import { PriceBreakdown } from "@/components/ui/price-breakdown";
+import { PriceBreakdown, SellerSplitsFeeBadge } from "@/components/ui/price-breakdown";
 import { feeBreakdown } from "@/lib/fees";
 import { compareRatesForBuyer, countryName, shippingMethodLabel } from "@/lib/shipping";
 import { RatingSummary } from "@/components/ui/rating-summary";
@@ -18,6 +18,8 @@ import { ReviewList, type PublicReview } from "@/components/ui/review-list";
 import { ReviewForm } from "@/components/ui/review-form";
 import { toAggregate } from "@/lib/reviews";
 import { ReserveVehicle, type ReserveState } from "./reserve-vehicle";
+import { WaitlistForm } from "@/components/ui/waitlist-form";
+import { isPrelaunch } from "@/lib/prelaunch";
 import { MessageSeller } from "./message-seller";
 import { ShippingRates, type PublicRate } from "./shipping-rates";
 
@@ -189,7 +191,6 @@ export default async function VehicleDetailPage({
       .eq("vehicle_id", id)
       .eq("buyer_id", user.id)
       .eq("mova_fee_payment_status", "paid")
-      .not("seller_details_revealed_at", "is", null)
       .limit(1)
       .maybeSingle();
     if (paidPr) {
@@ -250,6 +251,7 @@ export default async function VehicleDetailPage({
               <VerifiedBadge label="VIN Verified" />
             ) : null}
             {titleReviewed ? <VerifiedBadge label="Title reviewed" /> : null}
+            {v.fee_responsibility === "split" ? <SellerSplitsFeeBadge /> : null}
           </div>
         </div>
         <PriceBreakdown
@@ -337,6 +339,12 @@ export default async function VehicleDetailPage({
           </section>
         ) : null}
 
+        {/* Pre-launch: no reserving (reserveVehicle refuses it server-side too),
+            so the waitlist stands in — except for a buyer who already has a
+            request from before, who still sees its status. */}
+        {isPrelaunch() && reserveState !== "requested" ? (
+          <WaitlistForm source="listing" vehicleId={id} className="mt-10" />
+        ) : (
         <ReserveVehicle
           vehicleId={id}
           state={reserveState}
@@ -347,6 +355,7 @@ export default async function VehicleDetailPage({
           negotiatedPriceUsd={negotiatedPriceUsd}
           negotiatedPriceStatus={negotiatedPriceStatus}
         />
+        )}
 
         {user && isBuyer ? (
           <MessageSeller

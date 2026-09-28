@@ -36,8 +36,7 @@ export async function BuyerReviewHub({ userId }: { userId: string }) {
       .from("purchase_requests")
       .select("id, vehicle_id")
       .eq("buyer_id", userId)
-      .eq("mova_fee_payment_status", "paid")
-      .not("seller_details_revealed_at", "is", null),
+      .eq("mova_fee_payment_status", "paid"),
     supabase
       .from("shipment_requests")
       .select("id, shipper_id, shipper_company_name")

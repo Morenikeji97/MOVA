@@ -766,7 +766,9 @@ export default function NewListingPage() {
                 {...register("fee_responsibility")}
                 className="mt-1"
               />
-              <span className="text-sm text-black">Buyer pays full fee</span>
+              <span className="text-sm text-black">
+                Buyer pays the full fee <span className="text-gray-500">(default)</span>
+              </span>
             </label>
             <label className="flex items-start gap-2 rounded border border-gray-200 bg-white p-3">
               <input
@@ -775,11 +777,15 @@ export default function NewListingPage() {
                 {...register("fee_responsibility")}
                 className="mt-1"
               />
-              <span className="text-sm text-black">Split 50/50 with buyer</span>
+              <span className="text-sm text-black">
+                Split it 50/50 — your listing shows a &ldquo;Seller splits the
+                fee&rdquo; badge
+              </span>
             </label>
             <p className="text-xs text-gray-500">
-              This doesn&rsquo;t change what you receive for the vehicle — MOVA&rsquo;s
-              fee is charged on top of your asking price either way.
+              Nothing to pay upfront either way. If you split, your 4% is
+              deducted from your escrow payout; otherwise you receive your full
+              price.
             </p>
             {errors.fee_responsibility?.message ? (
               <span className="text-sm text-copper-700">
