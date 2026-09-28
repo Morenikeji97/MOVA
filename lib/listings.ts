@@ -7,34 +7,63 @@ type ServerSupabase = Awaited<ReturnType<typeof createClient>>;
 /**
  * Columns a vehicle card needs. Shared so /browse and the homepage grid select
  * exactly the same shape and stay aligned with <VehicleCard>. Selects
- * `vehicle_vin_display` (a computed column, see migration 0007) rather than
- * the raw `vin` column — direct column access to `vin` is revoked for
- * anon/authenticated, so this is masked-by-default for anyone browsing and
- * only resolves to the full VIN for the listing's own seller, an admin, or a
- * buyer past the fee-paid reveal point.
+ * `vin_masked` (a generated column, migration 0036) — the raw `vin` column
+ * isn't readable with the anon key (0037). A card never shows the full VIN.
  *
  * Also pulls in LISTING_BADGE_COLUMNS (lib/listing-badges.ts) so a card can
  * evaluate the real "Title reviewed"/"Verified Listing" rules instead of
  * trusting title_identity_match_confirmed on its own — see migration 0032.
  */
 export const LISTING_CARD_COLUMNS =
-  `id, year, make, model, trim, price_usd, fee_responsibility, mileage, location_city, location_state, vehicle_vin_display, ${LISTING_BADGE_COLUMNS}` as const;
+  `id, year, make, model, trim, price_usd, fee_responsibility, mileage, location_city, location_state, vin_masked, ${LISTING_BADGE_COLUMNS}` as const;
 
 /**
  * Full vehicle detail, for surfaces that render (almost) every column:
  * /browse/[id], the seller's own listings, and the admin review queues.
- * Excludes the raw `vin` column (its SELECT privilege is revoked for
- * anon/authenticated — see migration 0007) in favor of the computed
- * `vehicle_vin_display`, which resolves to the full VIN for an admin, the
- * listing's own seller, or a buyer past the fee-paid reveal point, and a
- * masked form otherwise.
+ *
+ * Leaves out `vin`, `title_photo_path` and `authorization_document_path`,
+ * which aren't readable with the anon key (0037). Use `vin_masked` plus
+ * loadFullVins() for the VIN, and the `has_*_document` flags for "is there
+ * a document"; only the admin review page needs the actual paths, and it
+ * reads them with the secret-key client.
  *
  * The badge-relevant columns come from LISTING_BADGE_COLUMNS
  * (lib/listing-badges.ts), shared with LISTING_CARD_COLUMNS so the detail
  * page and the cards can't evaluate the badge rules against different data.
  */
 export const VEHICLE_DETAIL_COLUMNS =
-  `id, seller_id, vin_decode_status, vehicle_vin_display, vehicle_size_type, year, make, model, trim, mileage, exterior_color, interior_color, transmission, fuel_type, condition, accident_history, title_status, title_history_check_status, title_photo_path, title_identity_match_confirmed_by, authorization_document_path, location_city, location_state, price_usd, fee_responsibility, description, status, verification_status, rejection_reason, created_at, updated_at, ${LISTING_BADGE_COLUMNS}` as const;
+  `id, seller_id, vin_decode_status, vin_masked, vehicle_size_type, year, make, model, trim, mileage, exterior_color, interior_color, transmission, fuel_type, condition, accident_history, title_status, title_history_check_status, title_identity_match_confirmed_by, location_city, location_state, price_usd, fee_responsibility, description, status, verification_status, rejection_reason, created_at, updated_at, ${LISTING_BADGE_COLUMNS}` as const;
+
+/**
+ * Full VINs the current user is entitled to, keyed by vehicle id. Calls the
+ * `vehicle_vin` RPC (migration 0036), which does the permission check itself
+ * — admin, the listing's own seller, or a buyer past the fee-paid reveal —
+ * and returns NULL otherwise, so ids the caller isn't entitled to are simply
+ * absent from the map. Signed-out callers get an empty map without a round
+ * trip (anon can't execute the function).
+ */
+export async function loadFullVins(
+  supabase: ServerSupabase,
+  vehicleIds: string[],
+): Promise<Map<string, string>> {
+  const vins = new Map<string, string>();
+  if (vehicleIds.length === 0) return vins;
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+  if (!user) return vins;
+
+  const results = await Promise.all(
+    vehicleIds.map(async (id) => {
+      const { data } = await supabase.rpc("vehicle_vin", { p_vehicle_id: id });
+      return [id, data] as const;
+    }),
+  );
+  for (const [id, vin] of results) {
+    if (vin) vins.set(id, vin);
+  }
+  return vins;
+}
 
 /**
  * Primary photo per vehicle: the first by sort_order, unless one is explicitly

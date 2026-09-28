@@ -194,32 +194,33 @@ export interface Database {
         Row: {
           id: string;
           seller_id: string;
+          /**
+           * Not readable with the anon key (column-level SELECT, migration
+           * 0037) — nor are title_photo_path / authorization_document_path.
+           * Read them only through the `vehicle_vin` RPC or the secret-key
+           * client (lib/supabase/admin.ts) after a server-side role check.
+           */
           vin: string;
           vin_decode_status: "pending" | "matched" | "mismatch";
           vin_verification_status: VinVerificationStatus;
           /**
-           * Computed column, not a physical one — backed by the
-           * `vehicle_vin_display(vehicles)` SECURITY DEFINER function (see
-           * migration 0007). Select it instead of `vin`; direct column
-           * access to `vin` is revoked for anon/authenticated. Returns the
-           * full VIN for admins, the listing's own seller, and a buyer past
-           * the fee-paid reveal point, and a masked (last-6) form otherwise.
-           * Not present on Insert/Update — it can't be written.
+           * Stored generated columns (migration 0036) — never written by the
+           * app, and Postgres rejects any value for them. `vin_masked` is
+           * the public form of the VIN (last 6 characters); the full VIN is
+           * only available through the `vehicle_vin` RPC. The two `has_*`
+           * flags let the verification badges and review gates check that a
+           * document exists without reading its private path.
+           * Not present on Insert/Update.
            */
-          vehicle_vin_display: string;
+          vin_masked: string | null;
+          has_title_document: boolean;
+          has_authorization_document: boolean;
           /**
-           * Computed columns, not physical ones — see migration 0032. They
-           * expose the three facts the verification badges need without a
-           * public surface having to select private document paths
-           * (title_photo_path / authorization_document_path, keyed by the
-           * seller's uid and pointing into a private bucket) or read
-           * seller_profiles, which owner-or-admin RLS puts out of reach for
-           * a browsing buyer. Consumed via lib/listing-badges.ts.
-           * Not present on Insert/Update — they can't be written.
+           * Derived from seller_profiles by vehicles_guard_admin_only_fields
+           * on every write and kept current by a seller_profiles trigger
+           * (0036). Any value the app sends is overwritten.
            */
-          vehicle_has_title_document: boolean;
-          vehicle_has_authorization_document: boolean;
-          vehicle_seller_identity_verified: boolean;
+          seller_identity_verified: boolean;
           vehicle_size_type: VehicleSizeType;
           year: number;
           make: string;
@@ -1173,6 +1174,15 @@ export interface Database {
       };
     };
     Functions: {
+      /**
+       * Full VIN for an admin, the listing's own seller, or a buyer whose
+       * MOVA fee is paid and who has had seller details revealed; NULL for
+       * everyone else. Permission-checked inside the function (0036).
+       */
+      vehicle_vin: {
+        Args: { p_vehicle_id: string };
+        Returns: string | null;
+      };
       check_rate_limit: {
         Args: {
           p_bucket_key: string;

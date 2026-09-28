@@ -4,11 +4,10 @@ import type { VinVerificationStatus } from "@/types/database";
  * The facts a listing's verification badges are allowed to be derived from.
  *
  * Deliberately booleans and enums only — no document paths, no profile row.
- * Public surfaces (the browse grid, the homepage) get `hasTitleDocument`,
- * `hasAuthorizationDocument` and `sellerIdentityVerified` from the computed
- * columns added in migration 0032 rather than selecting
- * title_photo_path/authorization_document_path (private-bucket paths keyed
- * by the seller's uid) or reading seller_profiles (owner-or-admin RLS).
+ * `hasTitleDocument`, `hasAuthorizationDocument` and `sellerIdentityVerified`
+ * come from columns added in migration 0036 (generated / trigger-maintained),
+ * because title_photo_path/authorization_document_path aren't readable with
+ * the anon key (0037) and seller_profiles is owner-or-admin under RLS.
  */
 export interface ListingBadgeFacts {
   /** Admin ticked the title/identity name match. Admin-only column (0023). */
@@ -77,7 +76,7 @@ export function hasVerifiedListingBadge(facts: ListingBadgeFacts): boolean {
  * a subset and silently evaluate the rule against `undefined`.
  */
 export const LISTING_BADGE_COLUMNS =
-  "vin_verification_status, title_identity_match_confirmed, title_identity_match_confirmed_at, not_titled_owner, vehicle_has_title_document, vehicle_has_authorization_document, vehicle_seller_identity_verified" as const;
+  "vin_verification_status, title_identity_match_confirmed, title_identity_match_confirmed_at, not_titled_owner, has_title_document, has_authorization_document, seller_identity_verified" as const;
 
 /** Row shape produced by selecting LISTING_BADGE_COLUMNS. */
 export interface ListingBadgeRow {
@@ -85,9 +84,9 @@ export interface ListingBadgeRow {
   title_identity_match_confirmed: boolean;
   title_identity_match_confirmed_at: string | null;
   not_titled_owner: boolean;
-  vehicle_has_title_document: boolean;
-  vehicle_has_authorization_document: boolean;
-  vehicle_seller_identity_verified: boolean;
+  has_title_document: boolean;
+  has_authorization_document: boolean;
+  seller_identity_verified: boolean;
 }
 
 /** Adapts a selected row to the rule input. */
@@ -95,10 +94,10 @@ export function badgeFacts(row: ListingBadgeRow): ListingBadgeFacts {
   return {
     titleIdentityMatchConfirmed: row.title_identity_match_confirmed,
     titleIdentityMatchConfirmedAt: row.title_identity_match_confirmed_at,
-    hasTitleDocument: row.vehicle_has_title_document,
+    hasTitleDocument: row.has_title_document,
     notTitledOwner: row.not_titled_owner,
-    hasAuthorizationDocument: row.vehicle_has_authorization_document,
+    hasAuthorizationDocument: row.has_authorization_document,
     vinVerificationStatus: row.vin_verification_status,
-    sellerIdentityVerified: row.vehicle_seller_identity_verified,
+    sellerIdentityVerified: row.seller_identity_verified,
   };
 }

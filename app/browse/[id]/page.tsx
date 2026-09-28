@@ -2,7 +2,7 @@ import { type ReactNode } from "react";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
-import { VEHICLE_DETAIL_COLUMNS } from "@/lib/listings";
+import { VEHICLE_DETAIL_COLUMNS, loadFullVins } from "@/lib/listings";
 import { cn } from "@/lib/utils";
 import { VerifiedBadge } from "@/components/ui/verified-badge";
 import {
@@ -226,6 +226,9 @@ export default async function VehicleDetailPage({
   // now goes through the shared rules in lib/listing-badges.ts, same as the
   // browse cards and the seller's own listings. See migration 0032.
   const facts = badgeFacts(v);
+  // Full VIN only for an admin, the seller, or a buyer past the fee-paid
+  // reveal — vehicle_vin decides; everyone else sees vin_masked.
+  const fullVin = (await loadFullVins(supabase, [v.id])).get(v.id);
   const titleReviewed = hasTitleReviewedBadge(facts);
   const verifiedListing = hasVerifiedListingBadge(facts);
 
@@ -305,7 +308,7 @@ export default async function VehicleDetailPage({
 
         <dl className="mt-8 grid grid-cols-2 gap-x-6 gap-y-4 sm:grid-cols-3">
           <Spec label="VIN">
-            <span className="font-mono">{v.vehicle_vin_display}</span>
+            <span className="font-mono">{fullVin ?? v.vin_masked}</span>
           </Spec>
           <Spec label="Year">{v.year}</Spec>
           <Spec label="Mileage">{v.mileage.toLocaleString("en-US")} mi</Spec>

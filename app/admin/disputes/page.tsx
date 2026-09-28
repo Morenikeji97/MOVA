@@ -2,6 +2,7 @@ import { type ReactNode } from "react";
 import Link from "next/link";
 import { createClient } from "@/lib/supabase/server";
 import { DISPUTE_CATEGORY_LABEL, DISPUTE_EVIDENCE_BUCKET } from "@/lib/disputes";
+import { loadFullVins } from "@/lib/listings";
 import type { DisputeStatus } from "@/types/database";
 import { DisputeActions } from "./dispute-actions";
 
@@ -62,10 +63,11 @@ export default async function AdminDisputesPage() {
   const { data: vehicleRows } = vehicleIds.length
     ? await supabase
         .from("vehicles")
-        .select("id, year, make, model, trim, price_usd, seller_id, vehicle_vin_display")
+        .select("id, year, make, model, trim, price_usd, seller_id, vin_masked")
         .in("id", vehicleIds)
     : { data: [] };
   const vehicleById = new Map((vehicleRows ?? []).map((v) => [v.id, v]));
+  const fullVinById = await loadFullVins(supabase, vehicleIds);
 
   const buyerIds = [...new Set((reservationRows ?? []).map((r) => r.buyer_id))];
   const sellerIds = [...new Set((vehicleRows ?? []).map((v) => v.seller_id))];
@@ -142,7 +144,7 @@ export default async function AdminDisputesPage() {
                         className="mt-1 block text-sm text-black hover:underline"
                       >
                         {title}
-                        {vehicle ? ` — VIN ${vehicle.vehicle_vin_display}` : ""}
+                        {vehicle ? ` — VIN ${fullVinById.get(vehicle.id) ?? vehicle.vin_masked}` : ""}
                       </Link>
                     ) : (
                       <p className="mt-1 text-sm text-gray-500">Reservation unavailable</p>

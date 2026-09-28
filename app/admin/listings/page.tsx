@@ -1,6 +1,8 @@
 import { type ReactNode } from "react";
 import Link from "next/link";
+import { notFound } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
+import { createAdminClient } from "@/lib/supabase/admin";
 import { VEHICLE_DETAIL_COLUMNS } from "@/lib/listings";
 import { fetchVerifiedSellerName } from "@/lib/stripe-identity";
 import { cn } from "@/lib/utils";
@@ -67,6 +69,21 @@ function DocumentPreview({
 export default async function AdminListingReviewPage() {
   const supabase = await createClient();
 
+  // This page reads vin / title_photo_path / authorization_document_path with
+  // the secret key below (they aren't readable with the anon key — migration
+  // 0037), so it checks the role itself rather than relying on middleware
+  // alone.
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+  if (!user) notFound();
+  const { data: me } = await supabase
+    .from("users")
+    .select("role")
+    .eq("id", user.id)
+    .maybeSingle();
+  if (me?.role !== "admin") notFound();
+
   // Oldest first — the seller who has waited longest is at the top.
   const { data: vehicles } = await supabase
     .from("vehicles")
@@ -77,6 +94,15 @@ export default async function AdminListingReviewPage() {
   const rows = vehicles ?? [];
   const sellerIds = [...new Set(rows.map((v) => v.seller_id))];
   const vehicleIds = rows.map((v) => v.id);
+
+  // The private columns, for exactly the rows RLS already returned above.
+  const { data: privateRows } = vehicleIds.length
+    ? await createAdminClient()
+        .from("vehicles")
+        .select("id, vin, title_photo_path, authorization_document_path")
+        .in("id", vehicleIds)
+    : { data: [] };
+  const privateById = new Map((privateRows ?? []).map((p) => [p.id, p]));
 
   const [sellersRes, sellerProfilesRes, photosRes] = await Promise.all([
     sellerIds.length
@@ -141,24 +167,24 @@ export default async function AdminListingReviewPage() {
   // — same private bucket, see components/ui/vehicle-document-uploader.tsx)
   // — the bucket is private (migration 0023), same signed-URL-on-review
   // pattern as bank-transfer proofs.
-  const titlePhotoRows = rows.filter((v) => v.title_photo_path);
+  const titlePhotoRows = (privateRows ?? []).filter((p) => p.title_photo_path);
   const titlePhotoUrlEntries = await Promise.all(
-    titlePhotoRows.map(async (v) => {
+    titlePhotoRows.map(async (p) => {
       const { data } = await supabase.storage
         .from("vehicle-title-photos")
-        .createSignedUrl(v.title_photo_path!, 300);
-      return [v.id, data?.signedUrl ?? null] as const;
+        .createSignedUrl(p.title_photo_path!, 300);
+      return [p.id, data?.signedUrl ?? null] as const;
     }),
   );
   const titlePhotoUrlByVehicle = new Map(titlePhotoUrlEntries);
 
-  const authDocRows = rows.filter((v) => v.authorization_document_path);
+  const authDocRows = (privateRows ?? []).filter((p) => p.authorization_document_path);
   const authDocUrlEntries = await Promise.all(
-    authDocRows.map(async (v) => {
+    authDocRows.map(async (p) => {
       const { data } = await supabase.storage
         .from("vehicle-title-photos")
-        .createSignedUrl(v.authorization_document_path!, 300);
-      return [v.id, data?.signedUrl ?? null] as const;
+        .createSignedUrl(p.authorization_document_path!, 300);
+      return [p.id, data?.signedUrl ?? null] as const;
     }),
   );
   const authDocUrlByVehicle = new Map(authDocUrlEntries);
@@ -213,7 +239,7 @@ export default async function AdminListingReviewPage() {
                       {v.location_state}
                     </p>
                     <p className="mt-1 font-mono text-xs uppercase tracking-wider text-gray-500">
-                      VIN {v.vehicle_vin_display}
+                      VIN {privateById.get(v.id)?.vin ?? v.vin_masked}
                       {v.vin_decode_status === "mismatch"
                         ? " · VIN mismatch flagged"
                         : ""}
@@ -304,7 +330,7 @@ export default async function AdminListingReviewPage() {
                       <p className="text-xs text-gray-500">Title document</p>
                       <DocumentPreview
                         url={titlePhotoUrl}
-                        path={v.title_photo_path}
+                        path={privateById.get(v.id)?.title_photo_path ?? null}
                         alt={`Title document for ${v.year} ${v.make} ${v.model}`}
                         emptyLabel="No title document uploaded yet."
                       />
@@ -318,7 +344,7 @@ export default async function AdminListingReviewPage() {
                       </p>
                       <DocumentPreview
                         url={authDocUrl}
-                        path={v.authorization_document_path}
+                        path={privateById.get(v.id)?.authorization_document_path ?? null}
                         alt={`Authorization document for ${v.year} ${v.make} ${v.model}`}
                         emptyLabel="No authorization document uploaded yet."
                       />
@@ -329,10 +355,10 @@ export default async function AdminListingReviewPage() {
                 <ReviewActions
                   vehicleId={v.id}
                   vinVerificationStatus={v.vin_verification_status}
-                  titlePhotoPath={v.title_photo_path}
+                  hasTitleDocument={v.has_title_document}
                   titleIdentityMatchConfirmed={v.title_identity_match_confirmed}
                   notTitledOwner={v.not_titled_owner}
-                  authorizationDocumentPath={v.authorization_document_path}
+                  hasAuthorizationDocument={v.has_authorization_document}
                 />
               </li>
             );

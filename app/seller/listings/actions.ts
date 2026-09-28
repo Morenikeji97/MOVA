@@ -33,7 +33,7 @@ export async function submitForReview(formData: FormData): Promise<void> {
 
   const { data: listing } = await supabase
     .from("vehicles")
-    .select("title_photo_path, not_titled_owner, authorization_document_path")
+    .select("has_title_document, not_titled_owner, has_authorization_document")
     .eq("id", id)
     .eq("seller_id", user.id)
     .eq("status", "draft")
@@ -41,9 +41,9 @@ export async function submitForReview(formData: FormData): Promise<void> {
   if (!listing) return;
   if (
     !canSubmitForReview({
-      titlePhotoPath: listing.title_photo_path,
+      hasTitleDocument: listing.has_title_document,
       notTitledOwner: listing.not_titled_owner,
-      authorizationDocumentPath: listing.authorization_document_path,
+      hasAuthorizationDocument: listing.has_authorization_document,
     })
   ) {
     return;

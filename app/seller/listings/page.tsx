@@ -1,6 +1,6 @@
 import Link from "next/link";
 import { createClient } from "@/lib/supabase/server";
-import { VEHICLE_DETAIL_COLUMNS } from "@/lib/listings";
+import { VEHICLE_DETAIL_COLUMNS, loadFullVins } from "@/lib/listings";
 import { canSubmitForReview } from "@/lib/listings-review";
 import {
   badgeFacts,
@@ -69,6 +69,10 @@ export default async function SellerListingsPage() {
     .order("created_at", { ascending: false });
 
   const rows = listings ?? [];
+  const fullVinById = await loadFullVins(
+    supabase,
+    rows.map((v) => v.id),
+  );
 
   // Reservations where the buyer has already paid MOVA's service fee — the
   // seller should now expect direct contact and a wire for the vehicle price.
@@ -129,7 +133,7 @@ export default async function SellerListingsPage() {
                     {v.location_city}, {v.location_state}
                   </p>
                   <p className="mt-1 font-mono text-xs uppercase tracking-wider text-gray-500">
-                    VIN {v.vehicle_vin_display}
+                    VIN {fullVinById.get(v.id) ?? v.vin_masked}
                     {v.vin_decode_status === "mismatch" ? " · VIN mismatch flagged" : ""}
                   </p>
                   <p className="mt-1 text-xs text-gray-500">
@@ -171,12 +175,12 @@ export default async function SellerListingsPage() {
               ) : null}
               {v.status === "draft" &&
               !canSubmitForReview({
-                titlePhotoPath: v.title_photo_path,
+                hasTitleDocument: v.has_title_document,
                 notTitledOwner: v.not_titled_owner,
-                authorizationDocumentPath: v.authorization_document_path,
+                hasAuthorizationDocument: v.has_authorization_document,
               }) ? (
                 <p className="mt-3 text-sm text-copper-700">
-                  {!v.title_photo_path
+                  {!v.has_title_document
                     ? "This draft predates the title-upload requirement — it needs a title photo before it can be submitted for review."
                     : "Missing the authorization document required for a non-owner seller before this can be submitted for review."}
                 </p>
@@ -184,9 +188,9 @@ export default async function SellerListingsPage() {
               <div className="mt-4 flex items-center gap-3">
                 {v.status === "draft" &&
                 canSubmitForReview({
-                  titlePhotoPath: v.title_photo_path,
+                  hasTitleDocument: v.has_title_document,
                   notTitledOwner: v.not_titled_owner,
-                  authorizationDocumentPath: v.authorization_document_path,
+                  hasAuthorizationDocument: v.has_authorization_document,
                 }) ? (
                   <form action={submitForReview}>
                     <input type="hidden" name="id" value={v.id} />

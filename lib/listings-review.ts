@@ -24,13 +24,17 @@ export function canApproveListing(gate: {
  * vehicles_authorization_doc_required_before_review): a title document is
  * always required, and a second (authorization/POA) document is required
  * whenever the seller has declared they aren't the titled owner.
+ *
+ * Takes presence flags rather than paths: callers read them from the
+ * has_title_document / has_authorization_document columns (0036), since the
+ * paths themselves aren't readable with the anon key (0037).
  */
 export function canSubmitForReview(gate: {
-  titlePhotoPath: string | null;
+  hasTitleDocument: boolean;
   notTitledOwner: boolean;
-  authorizationDocumentPath: string | null;
+  hasAuthorizationDocument: boolean;
 }): boolean {
-  if (!gate.titlePhotoPath) return false;
-  if (gate.notTitledOwner && !gate.authorizationDocumentPath) return false;
+  if (!gate.hasTitleDocument) return false;
+  if (gate.notTitledOwner && !gate.hasAuthorizationDocument) return false;
   return true;
 }

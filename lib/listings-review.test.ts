@@ -44,9 +44,9 @@ test("an unverified (never-checked) VIN doesn't block approval on its own", () =
 test("cannot submit for review without a title document", () => {
   assert.equal(
     canSubmitForReview({
-      titlePhotoPath: null,
+      hasTitleDocument: false,
       notTitledOwner: false,
-      authorizationDocumentPath: null,
+      hasAuthorizationDocument: false,
     }),
     false,
   );
@@ -55,9 +55,9 @@ test("cannot submit for review without a title document", () => {
 test("can submit for review with just a title document when the seller is the titled owner", () => {
   assert.equal(
     canSubmitForReview({
-      titlePhotoPath: "seller-uid/title.pdf",
+      hasTitleDocument: true,
       notTitledOwner: false,
-      authorizationDocumentPath: null,
+      hasAuthorizationDocument: false,
     }),
     true,
   );
@@ -66,9 +66,9 @@ test("can submit for review with just a title document when the seller is the ti
 test("cannot submit for review as a non-owner seller without the authorization document", () => {
   assert.equal(
     canSubmitForReview({
-      titlePhotoPath: "seller-uid/title.pdf",
+      hasTitleDocument: true,
       notTitledOwner: true,
-      authorizationDocumentPath: null,
+      hasAuthorizationDocument: false,
     }),
     false,
   );
@@ -77,9 +77,9 @@ test("cannot submit for review as a non-owner seller without the authorization d
 test("can submit for review as a non-owner seller once both documents are present", () => {
   assert.equal(
     canSubmitForReview({
-      titlePhotoPath: "seller-uid/title.pdf",
+      hasTitleDocument: true,
       notTitledOwner: true,
-      authorizationDocumentPath: "seller-uid/authorization.pdf",
+      hasAuthorizationDocument: true,
     }),
     true,
   );
@@ -88,9 +88,9 @@ test("can submit for review as a non-owner seller once both documents are presen
 test("a titled-owner seller doesn't need an authorization document even if one happens to be set", () => {
   assert.equal(
     canSubmitForReview({
-      titlePhotoPath: "seller-uid/title.pdf",
+      hasTitleDocument: true,
       notTitledOwner: false,
-      authorizationDocumentPath: null,
+      hasAuthorizationDocument: false,
     }),
     true,
   );
