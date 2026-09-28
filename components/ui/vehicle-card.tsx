@@ -22,8 +22,8 @@ export interface VehicleCardData extends ListingBadgeRow {
   mileage: number;
   location_city: string;
   location_state: string;
-  /** Masked (or, once entitled, full) VIN — see `vehicle_vin_display` in lib/listings.ts. */
-  vehicle_vin_display: string;
+  /** Masked VIN (last 6) — a card never shows the full VIN. See lib/listings.ts. */
+  vin_masked: string | null;
 }
 
 /**
@@ -91,7 +91,7 @@ export function VehicleCard({
             label="Location"
             value={`${v.location_city}, ${v.location_state}`}
           />
-          <VinData label="VIN" value={v.vehicle_vin_display} className="col-span-2" />
+          <VinData label="VIN" value={v.vin_masked ?? "—"} className="col-span-2" />
         </div>
       </div>
     </Link>

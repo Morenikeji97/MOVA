@@ -145,13 +145,13 @@ export async function setTitleIdentityMatchConfirmed(formData: FormData): Promis
   if (confirmed) {
     const { data: docs } = await supabase
       .from("vehicles")
-      .select("title_photo_path, not_titled_owner, authorization_document_path")
+      .select("has_title_document, not_titled_owner, has_authorization_document")
       .eq("id", id)
       .maybeSingle();
     if (!docs) return;
     const hasDocument =
-      docs.title_photo_path !== null ||
-      (docs.not_titled_owner && docs.authorization_document_path !== null);
+      docs.has_title_document ||
+      (docs.not_titled_owner && docs.has_authorization_document);
     if (!hasDocument) return;
   }
 

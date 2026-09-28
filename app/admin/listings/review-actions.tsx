@@ -41,17 +41,17 @@ function PendingButton({
 export function ReviewActions({
   vehicleId,
   vinVerificationStatus,
-  titlePhotoPath,
+  hasTitleDocument,
   titleIdentityMatchConfirmed,
   notTitledOwner,
-  authorizationDocumentPath,
+  hasAuthorizationDocument,
 }: {
   vehicleId: string;
   vinVerificationStatus: VinVerificationStatus;
-  titlePhotoPath: string | null;
+  hasTitleDocument: boolean;
   titleIdentityMatchConfirmed: boolean;
   notTitledOwner: boolean;
-  authorizationDocumentPath: string | null;
+  hasAuthorizationDocument: boolean;
 }) {
   const [rejecting, setRejecting] = useState(false);
   const vinFormRef = useRef<HTMLFormElement>(null);
@@ -66,9 +66,9 @@ export function ReviewActions({
   // checked anyway rather than assumed, since it's what actually gates
   // whether the confirm checkbox makes sense to enable.
   const documentsReady = canSubmitForReview({
-    titlePhotoPath,
+    hasTitleDocument,
     notTitledOwner,
-    authorizationDocumentPath,
+    hasAuthorizationDocument,
   });
 
   return (
@@ -149,7 +149,7 @@ export function ReviewActions({
       </form>
       {!documentsReady ? (
         <p className="mt-1 text-sm text-copper-700">
-          {!titlePhotoPath
+          {!hasTitleDocument
             ? "No title photo uploaded yet — can’t confirm until the seller adds one."
             : "Seller says they’re not the titled owner, but hasn’t uploaded an authorization document yet — can’t confirm until they do."}
         </p>

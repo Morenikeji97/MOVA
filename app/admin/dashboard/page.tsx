@@ -18,7 +18,9 @@ export default async function AdminDashboard() {
     supabase.from("users").select("*", { count: "exact", head: true }),
     supabase
       .from("vehicles")
-      .select("*", { count: "exact", head: true })
+      // Not "*": vin and the document paths aren't readable with the anon
+      // key (migration 0037), so a star select on vehicles is refused.
+      .select("id", { count: "exact", head: true })
       .eq("status", "pending_review"),
     supabase
       .from("purchase_requests")

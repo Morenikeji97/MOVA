@@ -4,6 +4,7 @@ import { createClient } from "@/lib/supabase/server";
 import { feeBreakdown } from "@/lib/fees";
 import { bankTransferReference } from "@/lib/bank-transfer";
 import { getAutoReleaseStatus } from "@/lib/auto-release";
+import { loadFullVins } from "@/lib/listings";
 import type { FeeResponsibility, PurchaseRequestStatus } from "@/types/database";
 import { ReservationActions } from "./reservation-actions";
 
@@ -70,7 +71,7 @@ export default async function AdminReservationsPage() {
       ? supabase
           .from("vehicles")
           .select(
-            "id, year, make, model, trim, vehicle_vin_display, price_usd, status, fee_responsibility",
+            "id, year, make, model, trim, vin_masked, price_usd, status, fee_responsibility",
           )
           .in("id", vehicleIds)
       : null,
@@ -78,6 +79,7 @@ export default async function AdminReservationsPage() {
 
   const buyerById = new Map((buyersRes?.data ?? []).map((b) => [b.id, b]));
   const vehicleById = new Map((vehiclesRes?.data ?? []).map((v) => [v.id, v]));
+  const fullVinById = await loadFullVins(supabase, vehicleIds);
 
   // Signed URLs for pending bank-transfer proofs — the bucket is private
   // (migration 0014), so admin viewing goes through a short-lived signed
@@ -186,7 +188,7 @@ export default async function AdminReservationsPage() {
                     {vehicle ? (
                       <p className="mt-1 font-mono text-sm text-gray-500">
                         {usd.format(Number(vehicle.price_usd))} · VIN{" "}
-                        {vehicle.vehicle_vin_display}
+                        {fullVinById.get(vehicle.id) ?? vehicle.vin_masked}
                         {vehicle.status !== "approved"
                           ? ` · listing now ${vehicle.status}`
                           : ""}

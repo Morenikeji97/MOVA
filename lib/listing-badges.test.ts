@@ -167,9 +167,9 @@ test("badgeFacts maps a selected row onto the rule input", () => {
       title_identity_match_confirmed: true,
       title_identity_match_confirmed_at: "2026-09-27T12:00:00.000Z",
       not_titled_owner: true,
-      vehicle_has_title_document: false,
-      vehicle_has_authorization_document: true,
-      vehicle_seller_identity_verified: true,
+      has_title_document: false,
+      has_authorization_document: true,
+      seller_identity_verified: true,
     }),
     {
       titleIdentityMatchConfirmed: true,
