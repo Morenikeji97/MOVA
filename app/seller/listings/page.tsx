@@ -13,6 +13,8 @@ import { cn } from "@/lib/utils";
 import type { FeeResponsibility, VehicleStatus } from "@/types/database";
 import { submitForReview } from "./actions";
 import { SubmitForReviewButton } from "./submit-for-review-button";
+import { RemoveListingButton } from "./remove-listing-button";
+import { SELLER_ARCHIVABLE_STATUSES } from "@/lib/listing-removal";
 
 const STATUS_META: Record<VehicleStatus, { label: string; pill: string }> = {
   draft: { label: "Draft", pill: "bg-gray-100 text-gray-500" },
@@ -197,6 +199,12 @@ export default async function SellerListingsPage() {
                 >
                   Edit photos
                 </Link>
+                {SELLER_ARCHIVABLE_STATUSES.includes(v.status) ? (
+                  <RemoveListingButton
+                    vehicleId={v.id}
+                    isLive={v.status === "approved"}
+                  />
+                ) : null}
               </div>
             </li>
           ))}

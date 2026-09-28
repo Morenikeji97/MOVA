@@ -2,6 +2,8 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
 import type { PhotoDraft } from "@/components/ui/photo-uploader";
+import { SELLER_ARCHIVABLE_STATUSES } from "@/lib/listing-removal";
+import { RemoveListingButton } from "../../remove-listing-button";
 import { EditPhotosForm } from "./edit-photos-form";
 
 /**
@@ -32,7 +34,7 @@ export default async function EditListingPhotosPage({
   // seller's own listings regardless, but a friendly 404 beats an empty page.
   const { data: vehicle } = await supabase
     .from("vehicles")
-    .select("id, seller_id, year, make, model, trim")
+    .select("id, seller_id, status, year, make, model, trim")
     .eq("id", id)
     .maybeSingle();
   if (!vehicle || vehicle.seller_id !== user!.id) notFound();
@@ -67,6 +69,21 @@ export default async function EditListingPhotosPage({
       <div className="mt-8">
         <EditPhotosForm vehicleId={vehicle.id} initialPhotos={initialPhotos} />
       </div>
+
+      {SELLER_ARCHIVABLE_STATUSES.includes(vehicle.status) ? (
+        <section className="mt-12 border-t border-gray-200 pt-8">
+          <h2 className="text-lg font-semibold text-black">Remove this listing</h2>
+          <p className="mt-1 text-sm text-gray-500">
+            Takes the car off MOVA. Use this if it&rsquo;s sold elsewhere or you
+            no longer want it listed.
+          </p>
+          <RemoveListingButton
+            vehicleId={vehicle.id}
+            isLive={vehicle.status === "approved"}
+            className="mt-4"
+          />
+        </section>
+      ) : null}
     </main>
   );
 }
