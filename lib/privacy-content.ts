@@ -4,7 +4,7 @@
  * paragraphs, "*.../_..._" italic lines, "- " bullet lists, "1. " numbered
  * lists, and inline "**bold**" spans).
  *
- * Version v1.0, effective 2026-09-18 — matches CURRENT_PRIVACY_VERSION in
+ * Version v1.1, effective 2026-09-28 — matches CURRENT_PRIVACY_VERSION in
  * lib/privacy.ts. Bump that constant (not this file's own text) whenever
  * this content changes in a way that requires re-acceptance; see
  * lib/terms.ts's doc comment for the mechanism this mirrors exactly.
@@ -16,7 +16,7 @@
 export const PRIVACY_POLICY_MARKDOWN = `
 # MOVA Privacy Policy
 
-*Last updated: 2026-09-18*
+*Last updated: 2026-09-28*
 
 ## 1. Overview & Scope
 
@@ -24,7 +24,7 @@ This Privacy Policy explains how MOVA ("MOVA," "we," "us," or "our") collects, u
 
 This Policy applies to all users of the Platform — Buyers, Sellers, and Shippers — regardless of where they access the Platform from, including Nigeria, Ghana, Togo, Benin, and the United States. It is incorporated by reference into MOVA's Terms & Conditions, and creating an account requires accepting both.
 
-MOVA is a technology platform that facilitates introductions between vehicle Buyers, Sellers, and Shippers; it does not process vehicle sale payments and is not a bank, KYC provider, or credit bureau. Some of the information described below is collected directly by MOVA, and some is collected by third-party providers MOVA relies on (see Sections 4 and 5).
+MOVA is a technology platform that connects vehicle Buyers, Sellers, and Shippers; it does not itself hold vehicle sale payments (those are held by Escrow.com) and is not a bank, escrow company, KYC provider, or credit bureau. Some of the information described below is collected directly by MOVA, and some is collected by third-party providers MOVA relies on (see Sections 4 and 5).
 
 ## 2. Information We Collect
 
@@ -78,13 +78,13 @@ A "VIN Verified" badge or a completed identity check reflects the outcome of the
 
 MOVA's own facilitation fee is processed through **Stripe**, or, where enabled, via bank transfer with manually reviewed proof of payment. When you pay through Stripe, Stripe collects and processes your payment card or bank details directly — MOVA does not receive or store your full card number or bank account credentials.
 
-Payment for the vehicle itself (between Buyer and Seller) and payment for shipping (between Buyer and Shipper) happen directly between those users, outside the Platform. MOVA is not a party to those payments and does not collect or process that payment information.
+The vehicle price is paid into an escrow transaction with **Escrow.com**, a licensed escrow company, which collects and processes that payment under its own privacy policy and terms; MOVA shares with Escrow.com the transaction details needed to set it up (such as the parties, the vehicle, and the agreed price). Payment for shipping (between Buyer and Shipper) happens directly between those users, outside the Platform; MOVA is not a party to that payment and does not collect or process that payment information.
 
 ## 6. How We Share Information
 
 MOVA shares information in the following circumstances:
 
-- **Between matched users:** once MOVA's facilitation fee is paid, a Seller's contact information is released to the Buyer. A Shipper's business profile, published service areas, and rates are visible to Buyers evaluating shipping options, and are automatically surfaced first for listings located within a Shipper's declared service area, since a nearby Shipper is typically able to offer a lower rate.
+- **Between users:** Buyers and Sellers communicate through the Platform's messaging, which filters out contact details; paying MOVA's fee does not release either party's contact information. A Shipper's business profile, published service areas, and rates are visible to Buyers evaluating shipping options, and are automatically surfaced first for listings located within a Shipper's declared service area, since a nearby Shipper is typically able to offer a lower rate.
 - **With service providers:** identity verification providers (Section 4), Stripe for payments, Resend for transactional email, and Supabase for database and file storage — each acting on MOVA's behalf to operate the Platform.
 - **For legal and safety reasons:** where required by law, to comply with sanctions or export-control obligations, to investigate suspected fraud or a Terms & Conditions violation, or to protect the rights, property, or safety of MOVA, its users, or the public.
 - **Business transfers:** if MOVA is involved in a merger, acquisition, or asset sale, user information may be transferred as part of that transaction, subject to this Policy or a successor policy.

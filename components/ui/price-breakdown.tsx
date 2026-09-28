@@ -1,4 +1,5 @@
-import { feeBreakdown } from "@/lib/fees";
+import { Handshake } from "lucide-react";
+import { feeBreakdown, SELLER_SPLITS_FEE_BADGE } from "@/lib/fees";
 import { cn } from "@/lib/utils";
 import type { FeeResponsibility } from "@/types/database";
 
@@ -9,13 +10,12 @@ const usd = new Intl.NumberFormat("en-US", {
 });
 
 /**
- * Itemised buyer-facing price: vehicle price, MOVA's service fee (8%, or 4%
- * when the seller splits it), optionally the buyer's chosen shipping cost,
- * and the total — which is the number MOVA shows as "the price" everywhere a
- * buyer sees it. `shipping` is display-only: this cost is still arranged and
- * paid directly with the shipper, not collected through MOVA's Stripe
- * Checkout (see 0018's migration comment) — it's here so the buyer sees a
- * true all-in total before committing, not a placeholder.
+ * Itemised buyer-facing price, from lib/fees.ts: car price, MOVA's fee (8%,
+ * or 4% when the seller splits it), Escrow.com's fee (estimate, its own
+ * line), and the total before shipping. With `shipping`, the buyer's chosen
+ * shipping cost is added below that and a total with shipping is shown.
+ * Shipping is display-only — it's arranged with the shipper, not collected
+ * through MOVA.
  */
 export function PriceBreakdown({
   price,
@@ -32,7 +32,8 @@ export function PriceBreakdown({
 }) {
   const b = feeBreakdown(price, feeResponsibility);
   const detail = variant === "detail";
-  const total = shipping ? b.total + shipping.cost : b.total;
+  const totalLabel =
+    b.escrowFee === null ? "Total before escrow & shipping" : "Total before shipping";
 
   return (
     <dl
@@ -42,34 +43,71 @@ export function PriceBreakdown({
         className,
       )}
     >
-      <div className="flex items-baseline justify-between gap-4 text-gray-500">
-        <dt>Vehicle price</dt>
-        <dd className="font-mono">{usd.format(b.vehiclePrice)}</dd>
-      </div>
-      <div className="flex items-baseline justify-between gap-4 text-gray-500">
-        <dt>
-          MOVA service fee ({b.buyerRatePct}%)
-          {b.split ? (
-            <span className="text-gray-500"> · seller covers the other 4%</span>
-          ) : null}
-        </dt>
-        <dd className="font-mono">{usd.format(b.buyerFee)}</dd>
-      </div>
+      <Line label="Car price" value={usd.format(b.vehiclePrice)} />
+      <Line
+        label={
+          <>
+            MOVA fee ({b.buyerRatePct}%)
+            {b.split ? (
+              <span className="text-gray-500"> · seller pays the other 4%</span>
+            ) : null}
+          </>
+        }
+        value={usd.format(b.buyerFee)}
+      />
+      <Line
+        label="Escrow.com fee (est.)"
+        value={b.escrowFee === null ? "Quoted by Escrow.com" : usd.format(b.escrowFee)}
+      />
+      <Total label={totalLabel} value={usd.format(b.totalBeforeShipping)} detail={detail} />
       {shipping ? (
-        <div className="flex items-baseline justify-between gap-4 text-gray-500">
-          <dt>Shipping ({shipping.label})</dt>
-          <dd className="font-mono">{usd.format(shipping.cost)}</dd>
-        </div>
+        <>
+          <Line label={`Shipping (${shipping.label})`} value={usd.format(shipping.cost)} />
+          <Total
+            label="Total with shipping"
+            value={usd.format(b.totalBeforeShipping + shipping.cost)}
+            detail={detail}
+          />
+        </>
       ) : null}
-      <div
-        className={cn(
-          "mt-1 flex items-baseline justify-between gap-4 border-t border-gray-200 pt-1 font-semibold text-black",
-          detail ? "text-lg" : "text-sm",
-        )}
-      >
-        <dt>Total</dt>
-        <dd className="font-mono">{usd.format(total)}</dd>
-      </div>
     </dl>
+  );
+}
+
+function Line({ label, value }: { label: React.ReactNode; value: string }) {
+  return (
+    <div className="flex items-baseline justify-between gap-4 text-gray-500">
+      <dt>{label}</dt>
+      <dd className="font-mono">{value}</dd>
+    </div>
+  );
+}
+
+function Total({ label, value, detail }: { label: string; value: string; detail: boolean }) {
+  return (
+    <div
+      className={cn(
+        "mt-1 flex items-baseline justify-between gap-4 border-t border-gray-200 pt-1 font-semibold text-black",
+        detail ? "text-lg" : "text-sm",
+      )}
+    >
+      <dt>{label}</dt>
+      <dd className="font-mono">{value}</dd>
+    </div>
+  );
+}
+
+/** "Seller splits the fee" — shown wherever a split listing's badges are. */
+export function SellerSplitsFeeBadge({ className }: { className?: string }) {
+  return (
+    <span
+      className={cn(
+        "inline-flex items-center gap-1.5 rounded-full bg-marine-50 px-2.5 py-1 text-sm font-medium text-marine-700",
+        className,
+      )}
+    >
+      <Handshake className="h-4 w-4" strokeWidth={2.5} />
+      {SELLER_SPLITS_FEE_BADGE}
+    </span>
   );
 }

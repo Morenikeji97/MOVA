@@ -32,6 +32,7 @@ export function ReservationActions({
   feeLinkSent,
   feePaid,
   awaitingBankVerification,
+  prelaunch,
 }: {
   requestId: string;
   canReview: boolean;
@@ -40,6 +41,8 @@ export function ReservationActions({
   feeLinkSent: boolean;
   feePaid: boolean;
   awaitingBankVerification: boolean;
+  /** PRELAUNCH is on: requestFeePayment refuses, so don't offer it. */
+  prelaunch: boolean;
 }) {
   // canRequestFee already requires status + shipping, so this only fires for
   // "otherwise eligible, but the buyer hasn't picked a shipper yet."
@@ -56,7 +59,12 @@ export function ReservationActions({
           </PendingButton>
         </form>
       ) : null}
-      {canRequestFee ? (
+      {canRequestFee && prelaunch ? (
+        <span className="text-sm text-copper-700">
+          Pre-launch: fee payment links are switched off until MOVA launches.
+        </span>
+      ) : null}
+      {canRequestFee && !prelaunch ? (
         <form action={requestFeePayment}>
           <input type="hidden" name="id" value={requestId} />
           <PendingButton variant="secondary" size="sm" pendingLabel="Generating…">

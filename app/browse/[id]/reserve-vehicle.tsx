@@ -137,9 +137,10 @@ export function ReserveVehicle({
         our team confirms who proceeds.
       </p>
       <p className="mt-2 text-sm text-gray-500">
-        If MOVA approves your reservation, you&rsquo;ll pay a{" "}
-        {usdCents.format(buyerFeeUsd)} MOVA service fee to unlock the seller&rsquo;s
-        contact and payment details. The rest is wired to the seller directly.
+        If MOVA approves your reservation, you&rsquo;ll pay MOVA&rsquo;s{" "}
+        {usdCents.format(buyerFeeUsd)} fee, then the car price into Escrow.com.
+        The seller is only paid once the car has passed inspection and your
+        shipper has it and the original title.
       </p>
       <form action={formAction} className="mt-4">
         <input type="hidden" name="vehicleId" value={vehicleId} />

@@ -4,14 +4,16 @@ import { headers } from "next/headers";
 import { revalidatePath } from "next/cache";
 import { createClient } from "@/lib/supabase/server";
 import { CURRENT_POLICY_VERSION } from "@/lib/policy";
+import { isPrelaunch, PRELAUNCH_REFUSAL } from "@/lib/prelaunch";
 
 export type AcceptFeePaymentPolicyResult =
   | { ok: true }
   | { ok: false; error: string };
 
 /**
- * Buyer's "I understand and agree" acceptance on the fee-payment (Invoice 1)
- * step, just before they're sent to the pre-built Stripe Checkout link. A
+ * Buyer's "I understand and agree" acceptance on the MOVA-fee payment step,
+ * just before they're sent to the pre-built Stripe Checkout link. Refused
+ * while PRELAUNCH is on (lib/prelaunch.ts). A
  * separate acceptance from the signup-time one — this one is tied to the
  * specific reservation/fee they're about to pay, so it's its own
  * policy_acceptances row (context = 'fee_payment') rather than overwriting
@@ -25,6 +27,7 @@ export type AcceptFeePaymentPolicyResult =
 export async function acceptFeePaymentPolicy(
   purchaseRequestId: string,
 ): Promise<AcceptFeePaymentPolicyResult> {
+  if (isPrelaunch()) return { ok: false, error: PRELAUNCH_REFUSAL };
   if (typeof purchaseRequestId !== "string" || purchaseRequestId.length === 0) {
     return { ok: false, error: "Something went wrong. Please reload and try again." };
   }
@@ -87,11 +90,15 @@ export type SubmitBankTransferProofResult =
  * database by purchase_requests_guard_negotiation (migration 0014), not by
  * this function; a buyer hitting the table directly (bypassing this action
  * entirely) is blocked the same way.
+ *
+ * Refused while PRELAUNCH is on (lib/prelaunch.ts), and at the database by
+ * purchase_requests_prelaunch_guard (migration 0039).
  */
 export async function submitBankTransferProof(
   purchaseRequestId: string,
   proofPath: string,
 ): Promise<SubmitBankTransferProofResult> {
+  if (isPrelaunch()) return { ok: false, error: PRELAUNCH_REFUSAL };
   if (typeof purchaseRequestId !== "string" || purchaseRequestId.length === 0) {
     return { ok: false, error: "Something went wrong. Please reload and try again." };
   }

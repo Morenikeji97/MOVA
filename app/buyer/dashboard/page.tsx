@@ -11,6 +11,8 @@ import { DisputeStatusList, type DisputeSummary } from "@/components/ui/dispute-
 import { PriceBreakdown } from "@/components/ui/price-breakdown";
 import { countryName, shippingMethodLabel } from "@/lib/shipping";
 import { FeePaymentOptions } from "@/components/ui/fee-payment-options";
+import { WaitlistForm } from "@/components/ui/waitlist-form";
+import { isPrelaunch } from "@/lib/prelaunch";
 import type { FeeResponsibility } from "@/types/database";
 
 const usdCents = new Intl.NumberFormat("en-US", {
@@ -31,18 +33,6 @@ const RESERVATION_STATUS_COPY: Record<string, string> = {
 };
 
 const OPEN_STATUSES = ["submitted", "under_review", "verified"];
-
-function Contact({ label, value }: { label: string; value: string | null }) {
-  if (!value) return null;
-  return (
-    <div>
-      <dt className="font-mono text-xs uppercase tracking-wider text-gray-500">
-        {label}
-      </dt>
-      <dd className="text-black">{value}</dd>
-    </div>
-  );
-}
 
 export default async function BuyerDashboard({
   searchParams,
@@ -67,7 +57,7 @@ export default async function BuyerDashboard({
     supabase
       .from("purchase_requests")
       .select(
-        "id, vehicle_id, status, created_at, vehicle_price_usd, mova_fee_usd, mova_fee_payment_status, mova_fee_checkout_url, seller_details_revealed_at, seller_name, seller_email, seller_phone, seller_whatsapp, negotiated_price_usd, negotiated_price_status, shipping_rate_id, bank_transfer_rejection_reason",
+        "id, vehicle_id, status, created_at, vehicle_price_usd, mova_fee_usd, mova_fee_payment_status, mova_fee_checkout_url, negotiated_price_usd, negotiated_price_status, shipping_rate_id, bank_transfer_rejection_reason",
       )
       .eq("buyer_id", user!.id)
       .order("created_at", { ascending: false }),
@@ -76,14 +66,14 @@ export default async function BuyerDashboard({
   const profile = profileData;
   const reservations = reservationRows ?? [];
   const bankDetails = bankTransferDetails();
+  const prelaunch = isPrelaunch();
 
   // The "fee is being confirmed" banner is only meaningful while a payment the
-  // buyer has made is still waiting on the webhook to reveal seller details.
-  // Once seller_details_revealed_at is set there is nothing left to confirm.
-  const awaitingSellerReveal = reservations.some(
+  // buyer has made is still waiting on the webhook to mark the fee paid.
+  const awaitingFeeConfirmation = reservations.some(
     (r) =>
       r.mova_fee_checkout_url != null &&
-      r.seller_details_revealed_at == null &&
+      r.mova_fee_payment_status !== "paid" &&
       r.status !== "cancelled" &&
       r.status !== "rejected",
   );
@@ -150,11 +140,10 @@ export default async function BuyerDashboard({
         </div>
       )}
 
-      {feeNotice === "paid" && awaitingSellerReveal ? (
+      {feeNotice === "paid" && awaitingFeeConfirmation ? (
         <p className="mt-6 rounded border border-verified-100 bg-verified-50 p-3 text-sm text-verified-600">
-          Thanks — your MOVA service fee is being confirmed. The seller&rsquo;s
-          contact and payment details appear below as soon as Stripe confirms,
-          usually within a minute.
+          Thanks — your MOVA fee is being confirmed. It shows as paid below as
+          soon as Stripe confirms, usually within a minute.
         </p>
       ) : null}
       {feeNotice === "cancelled" ? (
@@ -323,16 +312,26 @@ export default async function BuyerDashboard({
                     </p>
                   ) : null}
 
-                  {showPaymentOptions ? (
+                  {showPaymentOptions && prelaunch ? (
+                    <WaitlistForm
+                      source="dashboard"
+                      vehicleId={r.vehicle_id}
+                      heading="Payments open at launch"
+                      intro="MOVA isn't taking payments yet. Join the waitlist and we'll tell you the moment you can pay and continue."
+                      className="mt-3"
+                    />
+                  ) : null}
+
+                  {showPaymentOptions && !prelaunch ? (
                     <div className="mt-3 rounded border border-marine-100 bg-marine-50 p-4">
                       <p className="text-sm font-medium text-marine-700">
-                        Pay MOVA&rsquo;s service fee
+                        Pay MOVA&rsquo;s fee
                         {buyerFee != null ? ` — ${usdCents.format(buyerFee)}` : ""}
                       </p>
                       <p className="mt-1 text-sm text-gray-500">
-                        Paying this unlocks the seller&rsquo;s contact and payment
-                        details. You then wire the vehicle price to the seller
-                        directly.
+                        This covers MOVA&rsquo;s verification and coordination.
+                        Next, the car price goes into Escrow.com — never to the
+                        seller or MOVA directly.
                       </p>
                       {feeBankTransferRejected ? (
                         <p className="mt-3 rounded border border-copper-100 bg-copper-50 p-3 text-sm text-copper-700">
@@ -357,47 +356,27 @@ export default async function BuyerDashboard({
                     <p className="mt-3 rounded border border-marine-100 bg-marine-50 p-3 text-sm text-marine-700">
                       MOVA is verifying your bank transfer (reference{" "}
                       {bankTransferReference(r.id)}). This can take a little
-                      longer than an instant card payment — the seller&rsquo;s
-                      contact details will appear here once it&rsquo;s
-                      confirmed.
+                      longer than an instant card payment — it shows as paid
+                      here once it&rsquo;s confirmed.
                     </p>
                   ) : null}
 
                   {feePaid ? (
                     <div className="mt-3 rounded border border-verified-100 bg-verified-50 p-4">
                       <p className="text-sm font-semibold text-black">
-                        Seller contact &amp; payment details
+                        MOVA&rsquo;s fee is paid
                       </p>
                       <p className="mt-1 text-sm text-gray-500">
-                        MOVA&rsquo;s service fee is paid. Wire the vehicle price
-                        below to the seller directly — the fee is not part of that
-                        amount.
+                        Next, the car price goes into Escrow.com. MOVA sets up
+                        the escrow transaction and it appears here. The seller
+                        is only paid once the car passes inspection and your
+                        shipper has it and the original title.
                       </p>
-                      <dl className="mt-3 grid grid-cols-2 gap-x-4 gap-y-2 text-sm sm:grid-cols-3">
-                        <Contact label="Seller" value={r.seller_name} />
-                        <Contact label="Email" value={r.seller_email} />
-                        <Contact label="Phone" value={r.seller_phone} />
-                        <Contact label="WhatsApp" value={r.seller_whatsapp} />
-                        <div>
-                          <dt className="font-mono text-xs uppercase tracking-wider text-gray-500">
-                            Wire to seller
-                          </dt>
-                          <dd className="font-semibold text-black">
-                            {snapshotPrice != null
-                              ? usdCents.format(snapshotPrice)
-                              : "—"}
-                          </dd>
-                        </div>
-                      </dl>
-                      {!r.seller_name &&
-                      !r.seller_email &&
-                      !r.seller_phone &&
-                      !r.seller_whatsapp ? (
-                        <p className="mt-2 text-sm text-copper-700">
-                          The seller hasn&rsquo;t added contact details yet — MOVA
-                          will follow up with you directly.
-                        </p>
-                      ) : null}
+                      <p className="mt-2 text-sm text-copper-700">
+                        MOVA will never send you bank details on WhatsApp,
+                        email or text, or ask you to pay a person directly. If
+                        anyone does, it&rsquo;s a scam — stop and message us.
+                      </p>
                     </div>
                   ) : null}
 

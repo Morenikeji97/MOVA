@@ -5,8 +5,8 @@ import {
   Bookmark,
   Truck,
   CreditCard,
-  Phone,
-  Handshake,
+  ClipboardCheck,
+  Anchor,
   Ship,
   Star,
   ShieldCheck,
@@ -16,53 +16,54 @@ import {
 } from "lucide-react";
 import { buttonClasses } from "@/components/ui/button";
 import { BUYER_PROTECTION_POLICY_PATH } from "@/lib/policy";
+import { feeBreakdown } from "@/lib/fees";
 
 export const metadata: Metadata = {
   title: "How MOVA Works — MOVA",
   description:
-    "A plain-language walkthrough of how MOVA connects verified U.S. sellers with international buyers, from browsing a listing to the car arriving at your door.",
+    "How buying a car on MOVA works: verified U.S. sellers, your payment held by Escrow.com, and an inspection before the seller is paid.",
 };
 
 const STEPS = [
   {
     icon: Search,
-    title: "Browse verified listings",
-    body: "Every vehicle on MOVA has been reviewed by our team — VIN checked, title checked, seller identity verified — before it's ever shown to buyers.",
+    title: "Find a car.",
+    body: "Every listing shows whether it can be imported to your country and an estimated total cost.",
   },
   {
     icon: Bookmark,
-    title: "Reserve the one you want",
-    body: "Reserving costs nothing and doesn't obligate you to buy. It just tells us — and the seller — that you're seriously interested, so we can start the process.",
+    title: "Reserve it.",
+    body: "Free, no obligation.",
   },
   {
     icon: Truck,
-    title: "Choose your shipper and destination",
-    body: "Pick from vetted shipping partners and get an upfront shipping quote for your route before you pay anything to MOVA.",
+    title: "Choose a shipper and get your shipping quote upfront.",
+    body: "Each quote shows whether Nigeria clearing is included.",
   },
   {
     icon: CreditCard,
-    title: "Pay MOVA's facilitation fee",
-    body: "This is a small, disclosed fee for the verification and coordination work MOVA has done — not payment for the car itself. More on exactly what this covers below.",
+    title: "Pay MOVA's fee, then the car price into escrow.",
+    body: "",
   },
   {
-    icon: Phone,
-    title: "Get the seller's contact details",
-    body: "Once the fee is paid, we connect you directly with the seller — phone, email, WhatsApp, whichever they've provided — so you can talk the same way you would with anyone else.",
-  },
-  {
-    icon: Handshake,
-    title: "Arrange the purchase directly with the seller",
-    body: "You and the seller agree on the final details and handle the vehicle payment between yourselves, seller to buyer, just like any private car sale.",
+    icon: ClipboardCheck,
+    title: "Inspection and pickup.",
+    body: "An independent inspector checks the car; your shipper collects it with the original title.",
   },
   {
     icon: Ship,
-    title: "Your shipper handles pickup and delivery",
-    body: "Once you and the seller have a deal, your chosen shipper picks up the vehicle and takes care of the entire journey to your destination port.",
+    title: "The seller gets paid and your car ships.",
+    body: "",
+  },
+  {
+    icon: Anchor,
+    title: "Clear it at your port.",
+    body: "If your shipper includes clearing, they handle it; if not, use your own clearing agent or one we recommend.",
   },
   {
     icon: Star,
-    title: "Leave a review",
-    body: "After it's all done, you can rate the seller and the shipper — helping the next buyer make a confident decision, the same way your review of a listing helped guide you.",
+    title: "Review the seller and the shipper.",
+    body: "",
   },
 ];
 
@@ -94,6 +95,35 @@ const usd = new Intl.NumberFormat("en-US", {
   currency: "USD",
   maximumFractionDigits: 0,
 });
+
+// Worked example, computed by the same function every listing uses.
+const EXAMPLE = feeBreakdown(25_000, "buyer_pays_full");
+const EXAMPLE_SHIPPING = 2_500;
+
+function ExampleRow({
+  label,
+  value,
+  first = false,
+  strong = false,
+}: {
+  label: string;
+  value: number;
+  first?: boolean;
+  strong?: boolean;
+}) {
+  return (
+    <div
+      className={
+        (first ? "" : "border-t border-gray-200 ") +
+        "flex items-center justify-between py-2 " +
+        (strong ? "text-base font-semibold" : "text-sm")
+      }
+    >
+      <dt className={strong ? "text-black" : "text-gray-500"}>{label}</dt>
+      <dd className="font-mono text-black">{usd.format(value)}</dd>
+    </div>
+  );
+}
 
 export default function HowItWorksPage() {
   return (
@@ -130,7 +160,7 @@ export default function HowItWorksPage() {
                   Step {i + 1}
                 </p>
                 <h3 className="mt-1 font-semibold text-black">{step.title}</h3>
-                <p className="mt-1 text-sm text-gray-500">{step.body}</p>
+                {step.body ? <p className="mt-1 text-sm text-gray-500">{step.body}</p> : null}
               </div>
             </li>
           ))}
@@ -150,30 +180,27 @@ export default function HowItWorksPage() {
           </p>
 
           <dl className="mt-6 max-w-md rounded-lg border border-gray-200 bg-white p-6">
-            <div className="flex items-center justify-between py-2 text-sm">
-              <dt className="text-gray-500">Vehicle price</dt>
-              <dd className="font-mono text-black">{usd.format(25000)}</dd>
-            </div>
-            <div className="flex items-center justify-between border-t border-gray-200 py-2 text-sm">
-              <dt className="text-gray-500">MOVA facilitation fee (8%)</dt>
-              <dd className="font-mono text-black">{usd.format(2000)}</dd>
-            </div>
-            <div className="flex items-center justify-between border-t border-gray-200 py-2 text-sm">
-              <dt className="text-gray-500">Shipping (varies by route)</dt>
-              <dd className="font-mono text-black">{usd.format(2500)}</dd>
-            </div>
-            <div className="flex items-center justify-between border-t border-gray-200 pt-3 text-base font-semibold">
-              <dt className="text-black">Total shown to you upfront</dt>
-              <dd className="font-mono text-black">{usd.format(29500)}</dd>
-            </div>
+            <ExampleRow label="Car price" value={EXAMPLE.vehiclePrice} first />
+            <ExampleRow label="MOVA fee (8%)" value={EXAMPLE.buyerFee} />
+            <ExampleRow label="Escrow.com fee (est.)" value={EXAMPLE.escrowFee ?? 0} />
+            <ExampleRow label="Total before shipping" value={EXAMPLE.totalBeforeShipping} strong />
+            <ExampleRow label="Shipping (varies by route)" value={EXAMPLE_SHIPPING} />
+            <ExampleRow
+              label="Total shown to you upfront"
+              value={EXAMPLE.totalBeforeShipping + EXAMPLE_SHIPPING}
+              strong
+            />
           </dl>
 
           <p className="mt-6 max-w-2xl text-sm text-gray-500">
-            The <strong className="text-black">facilitation fee</strong> and
-            the <strong className="text-black">shipping cost</strong> are two
-            separate things, paid separately, with separate refund rules —
-            we&rsquo;re never bundling costs to hide what you&rsquo;re actually
-            paying for. Full detail in our{" "}
+            <strong className="text-black">MOVA&rsquo;s fee</strong>, the{" "}
+            <strong className="text-black">car price</strong> (held by
+            Escrow.com), Escrow.com&rsquo;s own fee and the{" "}
+            <strong className="text-black">shipping cost</strong> are separate
+            lines, paid separately, with separate refund rules — we&rsquo;re
+            never bundling costs to hide what you&rsquo;re actually paying for.
+            On listings marked &ldquo;Seller splits the fee&rdquo; you pay 4%
+            instead of 8%. Full detail in our{" "}
             <Link
               href={BUYER_PROTECTION_POLICY_PATH}
               className="text-black underline underline-offset-2"
@@ -197,8 +224,9 @@ export default function HowItWorksPage() {
         <div className="mt-6 max-w-2xl rounded-lg border border-gray-200 bg-white p-6 text-sm text-black">
           <p>
             MOVA is a <strong>technology platform</strong> — we verify
-            sellers, check listings, and give buyers and sellers the tools to
-            connect and pay safely.
+            sellers, check listings, and coordinate a protected payment: the
+            car price is held by Escrow.com, a licensed escrow company, and
+            only released to the seller after inspection and pickup.
           </p>
           <p className="mt-3">
             What MOVA is <em>not</em>: we&rsquo;re not the seller of any

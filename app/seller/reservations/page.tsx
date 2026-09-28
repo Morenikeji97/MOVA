@@ -33,9 +33,9 @@ const RESERVATION_STATUS_COPY: Record<string, string> = {
  * experience.
  *
  * No buyer identity/contact is shown — sellers never see that anywhere in
- * the app today (the buyer reaches out after the fee-paid reveal, not the
- * other way around), and the "users read own" RLS policy wouldn't let this
- * query read the buyer's row anyway.
+ * the app (buyers and sellers talk through MOVA's filtered chat), and the
+ * "users read own" RLS policy wouldn't let this query read the buyer's row
+ * anyway.
  */
 export default async function SellerReservationsPage() {
   const supabase = await createClient();
@@ -154,7 +154,9 @@ export default async function SellerReservationsPage() {
                 </p>
                 {r.mova_fee_payment_status === "paid" ? (
                   <p className="mt-2 rounded border border-verified-100 bg-verified-50 p-3 text-sm text-verified-600">
-                    Buyer has paid MOVA&rsquo;s service fee — expect direct contact.
+                    Buyer has paid MOVA&rsquo;s fee. Next they pay the car price
+                    into Escrow.com; you&rsquo;re paid once an inspector confirms
+                    the car and a licensed shipper collects it with the title.
                   </p>
                 ) : null}
 

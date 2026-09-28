@@ -5,6 +5,7 @@ import { feeBreakdown } from "@/lib/fees";
 import { bankTransferReference } from "@/lib/bank-transfer";
 import { getAutoReleaseStatus } from "@/lib/auto-release";
 import { loadFullVins } from "@/lib/listings";
+import { isPrelaunch } from "@/lib/prelaunch";
 import type { FeeResponsibility, PurchaseRequestStatus } from "@/types/database";
 import { ReservationActions } from "./reservation-actions";
 
@@ -50,6 +51,7 @@ function Detail({ label, children }: { label: string; children: ReactNode }) {
 
 export default async function AdminReservationsPage() {
   const supabase = await createClient();
+  const prelaunch = isPrelaunch();
 
   const { data: requests } = await supabase
     .from("purchase_requests")
@@ -306,6 +308,7 @@ export default async function AdminReservationsPage() {
                   feeLinkSent={Boolean(r.mova_fee_checkout_url)}
                   feePaid={r.mova_fee_payment_status === "paid"}
                   awaitingBankVerification={awaitingBankVerification}
+                  prelaunch={prelaunch}
                 />
               </li>
             );

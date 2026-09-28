@@ -12,8 +12,8 @@
  * exact version, so existing acceptances pinned to the old value stop
  * counting the moment this changes — no backfill/migration needed.
  */
-export const CURRENT_TERMS_VERSION = "v1.0";
+export const CURRENT_TERMS_VERSION = "v1.1";
 
-export const TERMS_EFFECTIVE_DATE = "2026-09-18";
+export const TERMS_EFFECTIVE_DATE = "2026-09-28";
 
 export const TERMS_ACCEPT_PATH = "/terms/accept";

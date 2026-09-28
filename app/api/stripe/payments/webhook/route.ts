@@ -19,8 +19,8 @@ type PurchaseRequestUpdate =
  * endpoint, so this reads STRIPE_PAYMENTS_WEBHOOK_SECRET.
  *
  * On `checkout.session.completed` for a paid session it marks the reservation's
- * fee paid and snapshots the seller's contact + name onto the row so the buyer
- * (whom RLS blocks from the seller's own rows) can see who to wire and how.
+ * fee paid. Paying the fee no longer reveals the seller's contact — the car
+ * price goes through Escrow.com, never directly to the seller.
  */
 export async function POST(req: Request) {
   const webhookSecret = process.env.STRIPE_PAYMENTS_WEBHOOK_SECRET;
@@ -54,8 +54,7 @@ export async function POST(req: Request) {
     // Ignore sessions that completed without actually being paid (e.g. a
     // delayed/failed async payment method).
     if (purchaseRequestId && session.payment_status === "paid") {
-      // Service-role client: the webhook has no user session, and it needs to
-      // read the seller's users / seller_profiles rows that RLS would hide.
+      // Service-role client: the webhook has no user session.
       const admin = createAdminClient();
 
       const { data: pr } = await admin
@@ -82,30 +81,6 @@ export async function POST(req: Request) {
         .eq("id", pr.vehicle_id)
         .maybeSingle();
 
-      let sellerName: string | null = null;
-      let sellerEmail: string | null = null;
-      let sellerPhone: string | null = null;
-      let sellerWhatsapp: string | null = null;
-
-      if (vehicle) {
-        const [{ data: sellerUser }, { data: sellerProfile }] = await Promise.all([
-          admin
-            .from("users")
-            .select("email, phone, whatsapp_number")
-            .eq("id", vehicle.seller_id)
-            .maybeSingle(),
-          admin
-            .from("seller_profiles")
-            .select("full_name")
-            .eq("user_id", vehicle.seller_id)
-            .maybeSingle(),
-        ]);
-        sellerEmail = sellerUser?.email ?? null;
-        sellerPhone = sellerUser?.phone ?? null;
-        sellerWhatsapp = sellerUser?.whatsapp_number ?? null;
-        sellerName = sellerProfile?.full_name ?? null;
-      }
-
       // Best-effort card fingerprint for the referral program's self-referral
       // check (lib/referrals.ts) — never blocks the actual fee confirmation
       // if Stripe can't be reached a second time or the session paid by some
@@ -129,11 +104,6 @@ export async function POST(req: Request) {
 
       const update: PurchaseRequestUpdate = {
         mova_fee_payment_status: "paid",
-        seller_details_revealed_at: new Date().toISOString(),
-        seller_name: sellerName,
-        seller_email: sellerEmail,
-        seller_phone: sellerPhone,
-        seller_whatsapp: sellerWhatsapp,
         mova_fee_payment_method_fingerprint: paymentMethodFingerprint,
       };
 

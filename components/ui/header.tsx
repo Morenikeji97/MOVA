@@ -5,7 +5,7 @@ import { createClient } from "@/lib/supabase/server";
 const BASE_NAV_LINKS = [
   { label: "Browse Vehicles", href: "/browse" },
   { label: "How It Works", href: "/how-it-works" },
-  { label: "Sell Your Car", href: "/seller/listings/new" },
+  { label: "Sell Your Car", href: "/sell" },
   { label: "Ship With Us", href: "/shipper" },
   { label: "Referrals", href: "/referrals" },
 ];

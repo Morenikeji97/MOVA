@@ -41,7 +41,6 @@ export async function SellerReviewHub({ userId }: { userId: string }) {
             .select("id, vehicle_id, buyer_id")
             .in("vehicle_id", vehicleIds)
             .eq("mova_fee_payment_status", "paid")
-            .not("seller_details_revealed_at", "is", null)
         : Promise.resolve({ data: [] as { id: string; vehicle_id: string; buyer_id: string }[] }),
       supabase
         .from("reviews")

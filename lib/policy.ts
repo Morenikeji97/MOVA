@@ -12,6 +12,6 @@
  * version, so `buyer_profiles.policy_version <> CURRENT_POLICY_VERSION` (or
  * null) is how you'd find who still needs to be prompted.
  */
-export const CURRENT_POLICY_VERSION = "v1.0";
+export const CURRENT_POLICY_VERSION = "v2.0";
 
 export const BUYER_PROTECTION_POLICY_PATH = "/policies/buyer-protection";

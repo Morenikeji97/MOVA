@@ -297,8 +297,10 @@ const INTENT_PHRASE_RES: RegExp[] = [
   /\bwhat\s+(?:other\s+)?ways?\b[^.?!]{0,40}\b(?:reach|contact|get\s+(?:in\s+touch|a?\s*hold)|message|talk\s+to)\b/i,
   /\b(?:other|another|a\s+different|some\s+other)\s+ways?\s+(?:can|could|to|for|i|we|of|that|we\s+could)\b[^.?!]{0,30}\b(?:reach|contact|get\s+(?:in\s+touch|a?\s*hold)|message|talk|close|finish|complete|handle|settle|sort|do|wrap\s+up)\s+(?:this|it|the\s+(?:deal|sale)|you)\b/i,
   /\bget\s+in\s+touch\s+with\s+you\b(?![^.?!]*\b(?:mova|support|team|here)\b)/i,
-  // deal / buy / sell directly or privately (NOT "pay directly" — that's the
-  // sanctioned MOVA flow: the buyer wires the seller for the car after the fee)
+  // deal / buy / sell directly or privately. "Pay directly" / "wire you" is
+  // deliberately NOT matched: it dates from when the buyer wired the seller
+  // after MOVA's fee. The car price now goes through Escrow.com, so whether
+  // to start blocking direct-payment talk is an open product decision.
   /\b(?:deal|deals?|dealing|transact|do\s+business|trade)\s+(?:\w+\s+){0,2}(?:directly|direct|off[-\s]?(?:app|platform|site)|privately|1\s?on\s?1|one\s+on\s+one)\b/i,
   /\b(?:buy|buying|purchase|purchasing|sell|selling)\s+(?:\w+\s+){0,3}(?:directly|direct|off[-\s]?(?:app|platform|site)|privately|outside\s+(?:of\s+)?(?:the\s+)?(?:app|platform|site|mova|here))\b/i,
   // question forms angling for another channel

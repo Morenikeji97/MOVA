@@ -135,9 +135,9 @@ export function BankTransferPayment({
       </div>
       <p className="mt-3 text-gray-500">
         After you&rsquo;ve sent the transfer, upload a screenshot or photo of
-        the confirmation. MOVA will verify it and unlock the seller&rsquo;s
-        contact details once received — this can take a little longer than
-        an instant card payment.
+        the confirmation. MOVA will verify it and mark your fee paid — this
+        can take a little longer than an instant card payment. This transfer
+        is for MOVA&rsquo;s fee only; the car price is paid into Escrow.com.
       </p>
 
       <label className="mt-3 flex flex-col gap-2">

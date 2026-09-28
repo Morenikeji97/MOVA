@@ -6,6 +6,7 @@ import { createAdminClient } from "@/lib/supabase/admin";
 import { getStripe } from "@/lib/stripe";
 import { appUrl } from "@/lib/app-url";
 import { feeBreakdown } from "@/lib/fees";
+import { isPrelaunch } from "@/lib/prelaunch";
 import {
   notifyFeePaymentConfirmed,
   notifyBankTransferRejected,
@@ -81,9 +82,12 @@ export async function releaseReservation(formData: FormData): Promise<void> {
  * The buyer pays only their portion — the full fee when the seller chose
  * "buyer pays full", half of it when the seller chose to split. On successful
  * payment the /api/stripe/payments/webhook endpoint flips
- * mova_fee_payment_status to 'paid' and reveals the seller's details.
+ * mova_fee_payment_status to 'paid'.
  *
  * The link is stored on the reservation and surfaced on the buyer's dashboard.
+ *
+ * Refused while PRELAUNCH is on (lib/prelaunch.ts): no MOVA-fee checkout is
+ * created before launch, so there is no link a buyer could pay.
  */
 export async function requestFeePayment(formData: FormData): Promise<void> {
   const id = formData.get("id");
@@ -91,6 +95,7 @@ export async function requestFeePayment(formData: FormData): Promise<void> {
 
   const supabase = await requireAdmin();
   if (!supabase) return;
+  if (isPrelaunch()) return;
 
   const { data: pr } = await supabase
     .from("purchase_requests")
@@ -155,7 +160,7 @@ export async function requestFeePayment(formData: FormData): Promise<void> {
             name: `MOVA service fee — ${title}`,
             description:
               vehicle.fee_responsibility === "split"
-                ? "Your half of MOVA's 8% service fee (the seller covers the other half)."
+                ? "Your half of MOVA's 8% service fee (the seller's half comes out of their escrow payout)."
                 : "MOVA's 8% service fee.",
           },
         },
@@ -187,11 +192,10 @@ export async function requestFeePayment(formData: FormData): Promise<void> {
 }
 
 /**
- * Confirm a buyer's bank-transfer proof: the manual equivalent of the Stripe
- * payments webhook (/api/stripe/payments/webhook) — marks the fee paid and
- * snapshots the seller's contact + name onto the row, same fields, same
- * reasoning (RLS blocks the buyer from the seller's own users/seller_profiles
- * rows, so they're copied here instead of joined).
+ * Confirm a buyer's bank-transfer proof for MOVA's fee: the manual
+ * equivalent of the Stripe payments webhook (/api/stripe/payments/webhook) —
+ * marks the fee paid. Nothing about the seller is revealed; the car price
+ * goes through Escrow.com.
  *
  * Only reachable from 'pending_manual_verification' — the status a buyer's
  * proof upload puts the row into (app/buyer/dashboard/actions.ts,
@@ -223,39 +227,10 @@ export async function confirmBankTransferPayment(formData: FormData): Promise<vo
     .eq("id", pr.vehicle_id)
     .maybeSingle();
 
-  let sellerName: string | null = null;
-  let sellerEmail: string | null = null;
-  let sellerPhone: string | null = null;
-  let sellerWhatsapp: string | null = null;
-
-  if (vehicle) {
-    const [{ data: sellerUser }, { data: sellerProfile }] = await Promise.all([
-      supabase
-        .from("users")
-        .select("email, phone, whatsapp_number")
-        .eq("id", vehicle.seller_id)
-        .maybeSingle(),
-      supabase
-        .from("seller_profiles")
-        .select("full_name")
-        .eq("user_id", vehicle.seller_id)
-        .maybeSingle(),
-    ]);
-    sellerEmail = sellerUser?.email ?? null;
-    sellerPhone = sellerUser?.phone ?? null;
-    sellerWhatsapp = sellerUser?.whatsapp_number ?? null;
-    sellerName = sellerProfile?.full_name ?? null;
-  }
-
   await supabase
     .from("purchase_requests")
     .update({
       mova_fee_payment_status: "paid",
-      seller_details_revealed_at: new Date().toISOString(),
-      seller_name: sellerName,
-      seller_email: sellerEmail,
-      seller_phone: sellerPhone,
-      seller_whatsapp: sellerWhatsapp,
       bank_transfer_reviewed_by: admin.id,
       bank_transfer_reviewed_at: new Date().toISOString(),
     })

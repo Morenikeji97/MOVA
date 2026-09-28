@@ -4,7 +4,7 @@
  * (headings, paragraphs, "*.../_..._" italic lines, "- " bullet lists,
  * "1. " numbered lists, and inline "**bold**" spans).
  *
- * Version v1.0, effective 2026-09-18 — matches CURRENT_TERMS_VERSION in
+ * Version v1.1, effective 2026-09-28 — matches CURRENT_TERMS_VERSION in
  * lib/terms.ts. Bump that constant (not this file's own text) whenever this
  * content changes in a way that requires re-acceptance; see lib/terms.ts's
  * doc comment for the mechanism.
@@ -17,7 +17,7 @@
 export const TERMS_AND_CONDITIONS_MARKDOWN = `
 # MOVA Terms & Conditions
 
-*Last updated: 2026-09-18*
+*Last updated: 2026-09-28*
 
 ## 1. Acceptance of Terms & Scope
 
@@ -39,10 +39,10 @@ MOVA is a technology platform that connects U.S.-based vehicle sellers with buye
 - A party to any sale, purchase, or shipping agreement formed between users
 - A vehicle dealer, broker, or auctioneer
 - A shipping company, freight forwarder, or customs agent
-- The recipient of any payment for a vehicle's purchase price (only MOVA's own facilitation fee is paid through the Platform; the vehicle itself is paid for directly between Buyer and Seller, and shipping is paid directly between Buyer and Shipper)
+- The holder or recipient of any payment for a vehicle's purchase price (MOVA collects only its own facilitation fee; the vehicle price is held by Escrow.com, a licensed escrow company, and shipping is paid directly between Buyer and Shipper)
 - A guarantor of any vehicle's condition, any seller's title, or any shipper's performance
 
-MOVA's role is limited to identity and listing verification, fee-gated introduction between parties, payment facilitation for its own fee, and the tools (chat, reviews, dispute reporting) that support a transaction. Once a Buyer and Seller are connected, the terms of the vehicle sale — price, condition, payment method, and delivery of title — are negotiated and agreed entirely between them, and the terms of shipping are negotiated and agreed entirely between Buyer and Shipper.
+MOVA's role is limited to identity and listing verification, coordinating the escrow payment described in Section 4, collecting its own fee, and the tools (chat, reviews, dispute reporting) that support a transaction. The vehicle price and condition are agreed between Buyer and Seller through the Platform, and the terms of shipping are negotiated and agreed entirely between Buyer and Shipper.
 
 MOVA's facilitation fee (see Section 4) compensates MOVA for verification, coordination, and platform services — it is never a commission, markup, or payment on the vehicle itself.
 
@@ -60,29 +60,31 @@ You agree to provide accurate, current, and complete information when registerin
 
 You are responsible for maintaining the confidentiality of your account credentials and for all activity that occurs under your account. Notify MOVA immediately if you suspect unauthorized use of your account.
 
-## 4. Fees, Payment & the Two-Invoice Process
+## 4. Fees, Payment & Escrow
 
-MOVA charges a facilitation fee equal to 8% of a vehicle's listed price on each completed introduction between a Buyer and Seller. The Seller chooses, per listing, whether the Buyer pays the full 8% or the fee is split 50/50 between Buyer and Seller. The applicable fee is always shown in full before payment.
+MOVA charges a facilitation fee equal to 8% of a vehicle's price on each completed sale. The Seller chooses, per listing, whether the Buyer pays the full 8% or the fee is split 50/50. Where it is split, the Buyer pays 4% to MOVA and the Seller's 4% is deducted from the Seller's escrow payout; the Seller pays nothing upfront. The applicable fee is always shown in full before payment.
 
 **How payment works:**
 
-1. **Invoice 1 — MOVA's facilitation fee.** The Buyer pays MOVA's facilitation fee through the Platform's payment processor (currently Stripe) or, where enabled, via bank transfer with uploaded proof subject to manual review. This fee is paid to MOVA, not to the Seller.
-2. **Contact release.** Once Invoice 1 is paid and confirmed, the Seller's contact information is released to the Buyer.
-3. **Invoice 2 — the vehicle itself.** The Buyer and Seller arrange payment for the vehicle directly between themselves, outside the Platform. MOVA is not a party to this payment and does not process, hold, or guarantee it.
+1. **MOVA's facilitation fee.** The Buyer pays MOVA's facilitation fee through the Platform's payment processor (currently Stripe) or, where enabled, via bank transfer with uploaded proof subject to manual review. This fee is paid to MOVA, not to the Seller.
+2. **The vehicle price, held in escrow.** The Buyer pays the vehicle price into an escrow transaction with Escrow.com, a licensed escrow company — never to the Seller or to MOVA directly. Escrow.com's own fee is paid by the Buyer and shown separately, as an estimate, before payment.
+3. **Release to the Seller.** Escrow.com releases the vehicle price to the Seller only after the vehicle has passed an independent inspection and the Buyer's chosen Shipper has taken custody of the vehicle and its original title.
 4. **Shipping.** The Buyer and their chosen Shipper arrange and pay for shipping directly between themselves, outside the Platform. MOVA is not a party to this payment and does not process, hold, or guarantee it.
+
+Paying MOVA's facilitation fee does not release either party's contact information. MOVA will never ask a Buyer to pay a Seller or any individual directly, will never send payment instructions by WhatsApp, email, or text message, and will never change payment instructions after a purchase has started.
 
 All fees charged by MOVA are quoted and charged in U.S. Dollars. MOVA is not responsible for currency conversion rates, foreign transaction fees, or charges imposed by a Buyer's or Seller's own bank or payment provider (see Section 12).
 
-MOVA's facilitation fee is generally non-refundable once the Seller's contact information has been released, except as expressly provided in MOVA's Buyer Protection & Refund Policy, which governs refund eligibility and takes precedence over any conflicting statement in these Terms on that subject.
+MOVA's facilitation fee is refundable only as provided in MOVA's Buyer Protection & Refund Policy, which governs refund eligibility and takes precedence over any conflicting statement in these Terms on that subject.
 
 ## 5. Buyer Responsibilities
 
 As a Buyer, you agree that:
 
 - You will independently review each listing, including photos, VIN status, and any disclosed history, before paying MOVA's facilitation fee.
-- You are solely responsible for negotiating, agreeing to, and paying the Seller for the vehicle, and for negotiating, agreeing to, and paying your chosen Shipper for shipping.
+- You will pay for the vehicle only into escrow as described in Section 4, never to the Seller directly, and you are solely responsible for negotiating, agreeing to, and paying your chosen Shipper for shipping.
 - You are solely responsible for complying with all import, customs, duty, tax, titling, and registration requirements of your destination country. MOVA does not handle customs clearance, import duties, or destination-country registration, and makes no representation that any vehicle can be lawfully imported, registered, or driven in your destination country.
-- You will not attempt to contact or transact with a Seller or Shipper outside the Platform to avoid MOVA's facilitation fee before that fee has been paid.
+- You will not attempt to transact with a Seller outside the Platform, or pay a Seller directly, to avoid MOVA's facilitation fee or the escrow process.
 - You are not located in, and are not a national or resident of, any country or region subject to comprehensive U.S. sanctions, and you are not listed on any U.S. government denied-parties or sanctions list, including lists maintained by the U.S. Department of the Treasury's Office of Foreign Assets Control (OFAC) (see Section 12).
 - Any information you provide for identity or payment verification is accurate and belongs to you.
 
@@ -93,8 +95,8 @@ As a Seller, you agree that:
 - You are the legal owner of any vehicle you list, or are authorized by the legal owner to sell it, and you hold or can obtain a title free of any undisclosed lien or encumbrance.
 - All information in your listing — including the VIN, mileage, price, condition, photos, and video — is accurate and not misleading. Knowingly listing a vehicle with a false VIN, undisclosed salvage or flood history, or materially misrepresented condition is a violation of these Terms and may result in immediate account termination and forfeiture of any pending facilitation fee.
 - You will cooperate with MOVA's listing review process, including providing title documentation and any information reasonably requested to verify the vehicle and your identity.
-- You are solely responsible for negotiating, agreeing to, and receiving payment from the Buyer for the vehicle, and for transferring title in accordance with the laws of the state where the vehicle is titled.
-- You will not attempt to contact or transact with a Buyer outside the Platform to avoid MOVA's facilitation fee before that fee has been paid.
+- You will accept payment for the vehicle only through the escrow process described in Section 4, will hand the vehicle's original title to the Buyer's Shipper at pickup, and are responsible for transferring title in accordance with the laws of the state where the vehicle is titled.
+- You will not ask a Buyer to pay you directly, or attempt to transact with a Buyer outside the Platform, to avoid MOVA's facilitation fee or the escrow process.
 - If a vehicle is found to be materially misrepresented under MOVA's Buyer Protection & Refund Policy, you acknowledge that MOVA may refund its facilitation fee to the affected Buyer and may take further action against your account, up to and including permanent suspension.
 
 ## 7. Shipper Responsibilities
@@ -112,7 +114,7 @@ As a Shipper, you agree that:
 
 You agree not to:
 
-- Circumvent MOVA's facilitation fee by moving a transaction off-Platform before contact information is released, including by sharing phone numbers, email addresses, WhatsApp handles, or other contact details in Platform chat before payment.
+- Circumvent MOVA's facilitation fee or the escrow process by moving a transaction off-Platform, including by sharing phone numbers, email addresses, WhatsApp handles, bank details, or other contact details in Platform chat.
 - List, attempt to buy, or attempt to ship a stolen vehicle, a vehicle with a knowingly falsified VIN or title, or a vehicle whose export or import would violate U.S. or destination-country law.
 - Provide false, misleading, or impersonated identity, business, or verification information.
 - Harass, threaten, or discriminate against another user.
@@ -181,7 +183,7 @@ MOVA provides an in-Platform process for reporting a dispute over a transaction 
 - Whether Section 13 disputes should proceed in Nassau County, New York courts (as currently drafted) or be subject to mandatory arbitration with a class-action waiver.
 - Whether the liability cap in Section 11 is enforceable against consumer buyers domiciled in Nigeria, Ghana, Togo, and Benin, and what residual exposure MOVA retains if a foreign court or regulator declines to honor it.
 - Whether the federal odometer disclosure requirement (49 CFR Part 580) is fully satisfied by the Seller certification flow elsewhere on the Platform, and whether these Terms should cross-reference it directly as a Seller obligation.
-- Confirmation that MOVA's two-invoice structure does not constitute money transmission requiring licensure in any U.S. state.
+- Confirmation that collecting MOVA's own fee and coordinating Escrow.com transactions for the vehicle price does not constitute money transmission requiring licensure in any U.S. state, and review of the terms of MOVA's arrangement with Escrow.com.
 - Whether the click-to-accept acceptance flow satisfies the U.S. ESIGN Act and UETA requirements for a valid electronic signature.
 - Whether a force majeure clause is needed to address shipping, customs, or port delays outside any party's control.
 - Whether Nigeria's NDPR, Ghana's Data Protection Act, or similar law in Togo or Benin requires disclosures beyond what is in MOVA's Privacy Policy.
