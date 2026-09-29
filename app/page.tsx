@@ -6,6 +6,8 @@ import { VinData } from "@/components/ui/vin-data";
 import { VehicleCard } from "@/components/ui/vehicle-card";
 import { loadRecentApprovedListings } from "@/lib/listings";
 import { SELLER_SPLITS_FEE_BADGE } from "@/lib/fees";
+import { isPrelaunch } from "@/lib/prelaunch";
+import { WaitlistForm } from "@/components/ui/waitlist-form";
 
 const TRUST_STRIP = [
   "Verified sellers",
@@ -49,7 +51,7 @@ const MONEY_STEPS = [
   "An inspector checks the car in person and confirms it matches the listing.",
   "Your shipper collects the car and the original title. U.S. law requires the original title for export.",
   "Only then does Escrow.com pay the seller.",
-  "Your car ships and you track it to port. Your shipper's cargo insurance covers it at sea.",
+  "Your car ships and you track it to your port. Your shipper's cargo insurance covers it at sea.",
 ];
 
 export default async function Home() {
@@ -66,7 +68,7 @@ export default async function Home() {
       <section className="bg-black text-white">
         <div className="mx-auto max-w-6xl px-6 pb-20 pt-16">
           <p className="font-mono text-sm uppercase tracking-widest text-gray-400">
-            USA → Lagos
+            USA → West Africa
           </p>
           <h1 className="mt-4 max-w-2xl text-5xl font-semibold leading-tight">
             American cars. Global buyers.
@@ -102,10 +104,18 @@ export default async function Home() {
             href="/how-it-works"
             className="mt-6 inline-block text-sm text-white underline underline-offset-4 hover:text-gray-300"
           >
-            Buying from Nigeria? See exactly how it works &rarr;
+            Buying from West Africa? See exactly how it works &rarr;
           </Link>
         </div>
       </section>
+
+      {isPrelaunch() ? (
+        <section className="border-b border-gray-200 bg-gray-100">
+          <div className="mx-auto max-w-6xl px-6 py-10">
+            <WaitlistForm source="home" className="max-w-3xl" />
+          </div>
+        </section>
+      ) : null}
 
       <section className="mx-auto max-w-6xl px-6 py-16">
         {listings.length > 0 ? (
@@ -165,7 +175,7 @@ export default async function Home() {
           <h2 className="text-2xl font-semibold text-black">What the 8% covers</h2>
           <p className="mt-3 max-w-2xl text-gray-500">
             Every car on MOVA goes through checks you can&rsquo;t easily do
-            yourself from Lagos:
+            yourself from your country:
           </p>
           <ul className="mt-6 grid grid-cols-1 gap-4 sm:grid-cols-2">
             {FEE_COVERS.map((item) => (

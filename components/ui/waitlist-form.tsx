@@ -1,38 +1,68 @@
 "use client";
 
 import { useActionState } from "react";
+import { CheckCircle2, AlertCircle } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
-import { WAITLIST_COUNTRIES } from "@/lib/prelaunch";
+import {
+  WAITLIST_COUNTRIES,
+  type WaitlistAudience,
+  type WaitlistSource,
+} from "@/lib/prelaunch";
 import { joinWaitlist } from "@/app/waitlist/actions";
 
+const COPY: Record<WaitlistAudience, { heading: string; intro: string; success: string }> = {
+  buyer: {
+    heading: "Join the waitlist",
+    intro:
+      "MOVA isn't taking reservations or payments yet. Leave an email or WhatsApp number and we'll tell you the moment we launch.",
+    success: "We'll message you as soon as MOVA launches.",
+  },
+  seller: {
+    heading: "Get notified when we launch — list your car early",
+    intro:
+      "Leave an email or WhatsApp number and we'll tell you as soon as buyers can reserve. You can list your car now.",
+    success: "We'll message you as soon as buyers can reserve on MOVA.",
+  },
+};
+
 /**
- * Pre-launch "Join the waitlist" form: an email or WhatsApp number, plus a
- * country. Stands in for Reserve on a listing and for the MOVA-fee payment
- * step on the buyer dashboard while PRELAUNCH is on.
+ * Pre-launch waitlist form: an email or WhatsApp number, plus a country.
+ * Stands in for Reserve and the MOVA-fee step, and sits on the homepage,
+ * /how-it-works, an empty /browse, and (seller version) /sell.
  */
 export function WaitlistForm({
   source,
+  audience = "buyer",
   vehicleId,
-  heading = "Join the waitlist",
-  intro = "MOVA isn't taking reservations or payments yet. Leave an email or WhatsApp number and we'll tell you the moment we launch.",
+  heading,
+  intro,
   className,
 }: {
-  source: "site" | "listing" | "dashboard";
+  source: WaitlistSource;
+  audience?: WaitlistAudience;
   vehicleId?: string;
   heading?: string;
   intro?: string;
   className?: string;
 }) {
   const [state, action, pending] = useActionState(joinWaitlist, null);
+  const copy = COPY[audience];
 
   if (state?.ok) {
     return (
-      <div className={cn("rounded-lg border border-verified-100 bg-verified-50 p-5", className)}>
-        <p className="font-semibold text-black">You&rsquo;re on the list.</p>
-        <p className="mt-1 text-sm text-gray-500">
-          We&rsquo;ll be in touch as soon as MOVA launches.
-        </p>
+      <div
+        role="status"
+        className={cn(
+          "flex items-start gap-3 rounded-lg border border-verified-100 bg-verified-50 p-5",
+          className,
+        )}
+      >
+        <CheckCircle2 className="mt-0.5 h-5 w-5 shrink-0 text-verified-600" aria-hidden />
+        <div>
+          <p className="font-semibold text-black">You&rsquo;re on the list.</p>
+          <p className="mt-1 text-sm text-gray-500">{copy.success}</p>
+        </div>
       </div>
     );
   }
@@ -40,14 +70,15 @@ export function WaitlistForm({
   return (
     <form
       action={action}
-      className={cn("rounded-lg border border-gray-200 bg-white p-5", className)}
+      className={cn("rounded-lg border border-gray-200 bg-white p-5 text-left", className)}
     >
-      <h2 className="font-semibold text-black">{heading}</h2>
-      <p className="mt-1 text-sm text-gray-500">{intro}</p>
+      <h2 className="font-semibold text-black">{heading ?? copy.heading}</h2>
+      <p className="mt-1 text-sm text-gray-500">{intro ?? copy.intro}</p>
       <input type="hidden" name="source" value={source} />
+      <input type="hidden" name="audience" value={audience} />
       {vehicleId ? <input type="hidden" name="vehicleId" value={vehicleId} /> : null}
 
-      <div className="mt-4 grid gap-3">
+      <div className="mt-4 grid gap-3 sm:grid-cols-3">
         <label className="flex flex-col gap-1 text-sm text-gray-500">
           Email
           <input
@@ -73,7 +104,7 @@ export function WaitlistForm({
             name="country"
             required
             defaultValue=""
-            className="rounded border border-gray-200 px-3 py-2 text-black"
+            className="rounded border border-gray-200 bg-white px-3 py-2 text-black"
           >
             <option value="" disabled>
               Choose your country
@@ -88,13 +119,17 @@ export function WaitlistForm({
       </div>
 
       {state && !state.ok ? (
-        <p className="mt-3 text-sm text-copper-700" role="alert">
-          {state.error}
-        </p>
+        <div
+          role="alert"
+          className="mt-3 flex items-start gap-2 rounded border border-copper-100 bg-copper-50 p-3 text-sm text-copper-700"
+        >
+          <AlertCircle className="mt-0.5 h-4 w-4 shrink-0" aria-hidden />
+          <span>{state.error}</span>
+        </div>
       ) : null}
 
       <Button type="submit" className="mt-4" disabled={pending}>
-        {pending ? "Joining…" : "Join the waitlist"}
+        {pending ? "Joining…" : audience === "seller" ? "Notify me" : "Join the waitlist"}
       </Button>
     </form>
   );

@@ -17,6 +17,10 @@ const SOURCE_LABEL: Record<string, string> = {
   site: "Site",
   listing: "Listing page",
   dashboard: "Buyer dashboard",
+  home: "Homepage",
+  how_it_works: "How it works",
+  browse: "Browse",
+  sell: "Sell page",
 };
 
 /**
@@ -35,7 +39,9 @@ export default async function AdminWaitlistPage() {
 
   const { data: rows, count } = await supabase
     .from("waitlist_signups")
-    .select("id, email, whatsapp, country, vehicle_id, source, created_at", { count: "exact" })
+    .select("id, email, whatsapp, country, vehicle_id, source, audience, created_at", {
+      count: "exact",
+    })
     .order("created_at", { ascending: false })
     .limit(500);
 
@@ -65,6 +71,10 @@ export default async function AdminWaitlistPage() {
               </div>
               <div className="text-sm text-gray-500 sm:text-right">
                 <p>
+                  <span className="font-medium text-black">
+                    {r.audience === "seller" ? "Seller" : "Buyer"}
+                  </span>
+                  {" · "}
                   {COUNTRY_NAME.get(r.country) ?? r.country} · {SOURCE_LABEL[r.source] ?? r.source}
                   {r.vehicle_id ? (
                     <>

@@ -17,6 +17,8 @@ import {
 import { buttonClasses } from "@/components/ui/button";
 import { BUYER_PROTECTION_POLICY_PATH } from "@/lib/policy";
 import { feeBreakdown } from "@/lib/fees";
+import { isPrelaunch } from "@/lib/prelaunch";
+import { WaitlistForm } from "@/components/ui/waitlist-form";
 
 export const metadata: Metadata = {
   title: "How MOVA Works — MOVA",
@@ -38,7 +40,7 @@ const STEPS = [
   {
     icon: Truck,
     title: "Choose a shipper and get your shipping quote upfront.",
-    body: "Each quote shows whether Nigeria clearing is included.",
+    body: "Each quote shows whether clearing at your port is included.",
   },
   {
     icon: CreditCard,
@@ -165,6 +167,7 @@ export default function HowItWorksPage() {
             </li>
           ))}
         </ol>
+        {isPrelaunch() ? <WaitlistForm source="how_it_works" className="mt-8" /> : null}
       </section>
 
       {/* Section 2 — fee structure */}
