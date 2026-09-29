@@ -10,10 +10,11 @@ type LinkStatus = "checking" | "ready" | "expired";
 
 /**
  * Landed on from the reset-password email link, via
- * /auth/callback?next=/reset-password — that route already exchanged the
- * recovery code for a session (same exchangeCodeForSession the signup
- * email-confirmation link uses), so by the time this page renders there
- * should be an authenticated session sitting in cookies. If there isn't
+ * /auth/confirm?type=recovery (app/auth/confirm/route.ts) — that route has
+ * already verified the one-time token and signed the user in, so by the
+ * time this page renders there should be an authenticated session sitting
+ * in cookies. (Older emails still arrive via /auth/callback, which does the
+ * same with a code exchange.) If there isn't
  * (the link was already used, expired, or someone landed here directly),
  * say so and send them back to request a new one, rather than showing a
  * form that would just fail.

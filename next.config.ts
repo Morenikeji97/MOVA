@@ -18,6 +18,17 @@ const nextConfig: NextConfig = {
         ]
       : [],
   },
+  // /media and /media-signed serve Storage files from MOVA's own address
+  // (lib/media-url.ts). On Netlify, netlify.toml's identical rules answer
+  // first at the edge; these cover local development and any other host.
+  async rewrites() {
+    if (!process.env.NEXT_PUBLIC_SUPABASE_URL) return [];
+    const storage = `${process.env.NEXT_PUBLIC_SUPABASE_URL.replace(/\/+$/, "")}/storage/v1/object`;
+    return [
+      { source: "/media/:path*", destination: `${storage}/public/:path*` },
+      { source: "/media-signed/:path*", destination: `${storage}/sign/:path*` },
+    ];
+  },
   async headers() {
     return [
       {

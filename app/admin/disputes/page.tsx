@@ -5,6 +5,7 @@ import { DISPUTE_CATEGORY_LABEL, DISPUTE_EVIDENCE_BUCKET } from "@/lib/disputes"
 import { loadFullVins } from "@/lib/listings";
 import type { DisputeStatus } from "@/types/database";
 import { DisputeActions } from "./dispute-actions";
+import { mediaUrl } from "@/lib/media-url";
 
 const usd = new Intl.NumberFormat("en-US", {
   style: "currency",
@@ -86,7 +87,7 @@ export default async function AdminDisputesPage() {
         const { data } = await supabase.storage
           .from(DISPUTE_EVIDENCE_BUCKET)
           .createSignedUrl(path, 300);
-        return [path, data?.signedUrl ?? null] as const;
+        return [path, data?.signedUrl ? mediaUrl(data.signedUrl) : null] as const;
       }),
     ),
   );

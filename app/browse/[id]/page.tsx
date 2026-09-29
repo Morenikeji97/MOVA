@@ -22,6 +22,7 @@ import { WaitlistForm } from "@/components/ui/waitlist-form";
 import { ShippingEstimate } from "@/components/ui/shipping-estimate";
 import { ImportBadge } from "@/components/ui/import-badge";
 import { modelYearFrom } from "@/lib/import-rules";
+import { mediaUrl } from "@/lib/media-url";
 import { isPrelaunch } from "@/lib/prelaunch";
 import { MessageSeller } from "./message-seller";
 import { ShippingRates, type PublicRate } from "./shipping-rates";
@@ -297,7 +298,7 @@ export default async function VehicleDetailPage({
               // eslint-disable-next-line @next/next/no-img-element
               <img
                 key={i}
-                src={p.url}
+                src={mediaUrl(p.url)}
                 alt={`${title} photo ${i + 1}`}
                 className={cn(
                   "w-full rounded-lg border border-gray-200 object-cover",
@@ -316,7 +317,7 @@ export default async function VehicleDetailPage({
           <div className="mt-3">
             {/* eslint-disable-next-line jsx-a11y/media-has-caption */}
             <video
-              src={video.url}
+              src={mediaUrl(video.url)}
               controls
               className="aspect-video w-full rounded-lg border border-gray-200 bg-black object-contain"
             />

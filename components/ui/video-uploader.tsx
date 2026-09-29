@@ -4,6 +4,7 @@ import { useCallback, useId, useRef, useState } from "react";
 import { Loader2, VideoIcon, X } from "lucide-react";
 import { createClient } from "@/lib/supabase/client";
 import { cn } from "@/lib/utils";
+import { mediaUrl } from "@/lib/media-url";
 
 export type VideoDraft = {
   /** Object key within the vehicle-videos bucket, e.g. "<uid>/<uuid>.mp4". */
@@ -189,7 +190,7 @@ export function VideoUploader({ value, onChange, disabled, error }: VideoUploade
         <div className="relative overflow-hidden rounded border border-gray-200 bg-white">
           {/* eslint-disable-next-line jsx-a11y/media-has-caption */}
           <video
-            src={value.url}
+            src={mediaUrl(value.url)}
             controls
             className="aspect-video w-full bg-black object-contain"
           />
