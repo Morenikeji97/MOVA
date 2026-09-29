@@ -13,6 +13,7 @@ const CATEGORY_LABEL: Record<ContactInfoCategory, string> = {
   circumvention_phrase: "contact exchange",
   circumvention_intent: "off-platform intent",
   address: "meetup / address",
+  payment_circumvention: "off-platform payment",
   evasion: "evasion attempt",
 };
 
@@ -167,7 +168,10 @@ export default async function AdminBlockedMessagesPage() {
             // Re-run the shared filter so admins see WHY each attempt was
             // blocked (the row itself only stores a boolean).
             const scan = scanForContactInfo(m.content);
+            // Same priority as the message the sender saw (lib/chat-filter.ts).
+            const payment = scan.categories.includes("payment_circumvention");
             const intentOnly =
+              !payment &&
               scan.categories.length > 0 &&
               !scan.categories.some((c) => STRUCTURAL_CATEGORIES.includes(c));
 
@@ -199,12 +203,16 @@ export default async function AdminBlockedMessagesPage() {
                   <div className="mt-2 flex flex-wrap items-center gap-1.5">
                     <span
                       className={`inline-flex items-center rounded-full px-2 py-0.5 text-[11px] font-semibold ${
-                        intentOnly
-                          ? "bg-marine-50 text-marine-700"
-                          : "bg-copper-50 text-copper-700"
+                        payment || !intentOnly
+                          ? "bg-copper-50 text-copper-700"
+                          : "bg-marine-50 text-marine-700"
                       }`}
                     >
-                      {intentOnly ? "Off-platform intent" : "Contact info"}
+                      {payment
+                        ? "Off-platform payment"
+                        : intentOnly
+                          ? "Off-platform intent"
+                          : "Contact info"}
                     </span>
                     {scan.categories.map((c) => (
                       <span

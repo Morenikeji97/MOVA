@@ -1,9 +1,13 @@
 "use client";
 
-import { type ComponentProps, useRef, useState } from "react";
+import { type ComponentProps, useActionState, useRef, useState } from "react";
 import { useFormStatus } from "react-dom";
 import { Button } from "@/components/ui/button";
-import { canApproveListing, canSubmitForReview } from "@/lib/listings-review";
+import {
+  canApproveListing,
+  canSubmitForReview,
+  NO_PHOTOS_APPROVAL_MESSAGE,
+} from "@/lib/listings-review";
 import type { VinVerificationStatus } from "@/types/database";
 import {
   approveListing,
@@ -45,6 +49,7 @@ export function ReviewActions({
   titleIdentityMatchConfirmed,
   notTitledOwner,
   hasAuthorizationDocument,
+  photoCount,
 }: {
   vehicleId: string;
   vinVerificationStatus: VinVerificationStatus;
@@ -52,14 +57,17 @@ export function ReviewActions({
   titleIdentityMatchConfirmed: boolean;
   notTitledOwner: boolean;
   hasAuthorizationDocument: boolean;
+  photoCount: number;
 }) {
   const [rejecting, setRejecting] = useState(false);
+  const [approveResult, approveAction] = useActionState(approveListing, null);
   const vinFormRef = useRef<HTMLFormElement>(null);
   const identityFormRef = useRef<HTMLFormElement>(null);
   const flagged = vinVerificationStatus === "flagged";
   const blockedOnApproval = !canApproveListing({
     vinVerificationStatus,
     titleIdentityMatchConfirmed,
+    photoCount,
   });
   // A listing can't reach 'pending_review' at all without these documents
   // (0031's CHECK constraints), so in practice this is always true here —
@@ -189,8 +197,8 @@ export function ReviewActions({
           </div>
         </form>
       ) : (
-        <div className="flex items-center gap-3">
-          <form action={approveListing}>
+        <div className="flex flex-wrap items-center gap-3">
+          <form action={approveAction}>
             <input type="hidden" name="id" value={vehicleId} />
             <PendingButton
               variant="primary"
@@ -209,6 +217,14 @@ export function ReviewActions({
           >
             Reject
           </Button>
+          {photoCount === 0 ? (
+            <p className="w-full text-sm text-copper-700">{NO_PHOTOS_APPROVAL_MESSAGE}</p>
+          ) : null}
+          {approveResult && !approveResult.ok ? (
+            <p role="alert" className="w-full text-sm text-copper-700">
+              {approveResult.error}
+            </p>
+          ) : null}
         </div>
       )}
     </div>

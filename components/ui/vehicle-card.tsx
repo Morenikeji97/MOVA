@@ -2,6 +2,7 @@ import Link from "next/link";
 import { VinData } from "@/components/ui/vin-data";
 import { VerifiedBadge } from "@/components/ui/verified-badge";
 import { PriceBreakdown, SellerSplitsFeeBadge } from "@/components/ui/price-breakdown";
+import { ImportBadge } from "@/components/ui/import-badge";
 import type { FeeResponsibility } from "@/types/database";
 import {
   badgeFacts,
@@ -24,6 +25,8 @@ export interface VehicleCardData extends ListingBadgeRow {
   location_state: string;
   /** Masked VIN (last 6) — a card never shows the full VIN. See lib/listings.ts. */
   vin_masked: string | null;
+  /** VIN position 10, for the Nigeria import badge (lib/import-rules.ts). */
+  vin_model_year_code: string | null;
 }
 
 /**
@@ -79,6 +82,11 @@ export function VehicleCard({
             {v.fee_responsibility === "split" ? <SellerSplitsFeeBadge /> : null}
           </div>
         </div>
+        <ImportBadge
+          vinModelYearCode={v.vin_model_year_code}
+          year={v.year}
+          className="self-start text-xs"
+        />
         <PriceBreakdown
           price={Number(v.price_usd)}
           feeResponsibility={v.fee_responsibility}

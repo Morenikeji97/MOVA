@@ -20,6 +20,8 @@ import { toAggregate } from "@/lib/reviews";
 import { ReserveVehicle, type ReserveState } from "./reserve-vehicle";
 import { WaitlistForm } from "@/components/ui/waitlist-form";
 import { ShippingEstimate } from "@/components/ui/shipping-estimate";
+import { ImportBadge } from "@/components/ui/import-badge";
+import { modelYearFrom } from "@/lib/import-rules";
 import { isPrelaunch } from "@/lib/prelaunch";
 import { MessageSeller } from "./message-seller";
 import { ShippingRates, type PublicRate } from "./shipping-rates";
@@ -258,6 +260,7 @@ export default async function VehicleDetailPage({
             ) : null}
             {titleReviewed ? <VerifiedBadge label="Title reviewed" /> : null}
             {v.fee_responsibility === "split" ? <SellerSplitsFeeBadge /> : null}
+            <ImportBadge vinModelYearCode={v.vin_model_year_code} year={v.year} />
           </div>
         </div>
         <PriceBreakdown
@@ -275,7 +278,11 @@ export default async function VehicleDetailPage({
           className="mt-3 max-w-xs"
         />
         {/* Estimate only — never added to "Total before shipping" above. */}
-        <ShippingEstimate profileCountry={profileCountry} className="mt-3 max-w-md" />
+        <ShippingEstimate
+          profileCountry={profileCountry}
+          modelYear={modelYearFrom(v.vin_model_year_code, v.year)}
+          className="mt-3 max-w-md"
+        />
         <p className="mt-2 font-mono text-sm text-gray-500">
           {v.mileage.toLocaleString("en-US")} mi · {v.location_city}, {v.location_state}
         </p>

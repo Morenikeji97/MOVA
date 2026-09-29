@@ -10,29 +10,36 @@ import { canApproveListing, canSubmitForReview } from "./listings-review.ts";
 
 test("cannot approve without the admin title-identity-match confirmation", () => {
   assert.equal(
-    canApproveListing({ vinVerificationStatus: "verified", titleIdentityMatchConfirmed: false }),
+    canApproveListing({ vinVerificationStatus: "verified", titleIdentityMatchConfirmed: false, photoCount: 3 }),
     false,
   );
 });
 
 test("can approve once the VIN is clear and the title-identity match is confirmed", () => {
   assert.equal(
-    canApproveListing({ vinVerificationStatus: "verified", titleIdentityMatchConfirmed: true }),
+    canApproveListing({ vinVerificationStatus: "verified", titleIdentityMatchConfirmed: true, photoCount: 3 }),
     true,
   );
 });
 
 test("cannot approve with a flagged VIN even if the title-identity match is confirmed", () => {
   assert.equal(
-    canApproveListing({ vinVerificationStatus: "flagged", titleIdentityMatchConfirmed: true }),
+    canApproveListing({ vinVerificationStatus: "flagged", titleIdentityMatchConfirmed: true, photoCount: 3 }),
     false,
   );
 });
 
 test("an unverified (never-checked) VIN doesn't block approval on its own", () => {
   assert.equal(
-    canApproveListing({ vinVerificationStatus: "unverified", titleIdentityMatchConfirmed: true }),
+    canApproveListing({ vinVerificationStatus: "unverified", titleIdentityMatchConfirmed: true, photoCount: 3 }),
     true,
+  );
+});
+
+test("cannot approve a listing with zero photos, even when everything else is clear", () => {
+  assert.equal(
+    canApproveListing({ vinVerificationStatus: "verified", titleIdentityMatchConfirmed: true, photoCount: 0 }),
+    false,
   );
 });
 

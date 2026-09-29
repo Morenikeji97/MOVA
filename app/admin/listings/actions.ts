@@ -3,6 +3,7 @@
 import { revalidatePath } from "next/cache";
 import { createClient } from "@/lib/supabase/server";
 import type { VinVerificationStatus } from "@/types/database";
+import { NO_PHOTOS_APPROVAL_MESSAGE } from "@/lib/listings-review";
 
 const VIN_VERIFICATION_STATUSES: VinVerificationStatus[] = [
   "unverified",
@@ -39,14 +40,33 @@ async function requireAdmin() {
   return { supabase, adminId: user.id };
 }
 
-/** Approve a listing: draft/pending → approved. */
-export async function approveListing(formData: FormData): Promise<void> {
+export type ApproveListingResult = { ok: true } | { ok: false; error: string };
+
+/**
+ * Approve a listing: pending → approved.
+ *
+ * A listing with no photos is refused here with a message for the admin
+ * page, and by the vehicles_require_photo_to_approve trigger (0044) for any
+ * request that skips this check.
+ */
+export async function approveListing(
+  _prev: ApproveListingResult | null,
+  formData: FormData,
+): Promise<ApproveListingResult> {
   const id = formData.get("id");
-  if (typeof id !== "string" || id.length === 0) return;
+  if (typeof id !== "string" || id.length === 0) {
+    return { ok: false, error: "Something went wrong. Please reload and try again." };
+  }
 
   const ctx = await requireAdmin();
-  if (!ctx) return;
+  if (!ctx) return { ok: false, error: "Admins only." };
   const { supabase } = ctx;
+
+  const { count: photoCount } = await supabase
+    .from("vehicle_photos")
+    .select("id", { count: "exact", head: true })
+    .eq("vehicle_id", id);
+  if (!photoCount) return { ok: false, error: NO_PHOTOS_APPROVAL_MESSAGE };
 
   // The status filter keeps this idempotent: a double-submit updates no rows.
   // The vin_verification_status and title_identity_match_confirmed filters
@@ -56,7 +76,7 @@ export async function approveListing(formData: FormData): Promise<void> {
   // (vehicles_flagged_not_approved, vehicles_title_identity_confirmed_before_approval)
   // — a flagged VIN or an unconfirmed title-identity match can't be
   // approved, so this matches zero rows rather than erroring.
-  await supabase
+  const { error } = await supabase
     .from("vehicles")
     .update({ status: "approved", rejection_reason: null })
     .eq("id", id)
@@ -64,7 +84,16 @@ export async function approveListing(formData: FormData): Promise<void> {
     .neq("vin_verification_status", "flagged")
     .eq("title_identity_match_confirmed", true);
 
+  if (error) {
+    if (error.message.includes("listing_has_no_photos")) {
+      return { ok: false, error: NO_PHOTOS_APPROVAL_MESSAGE };
+    }
+    console.error("approveListing: update failed", error);
+    return { ok: false, error: "Could not approve this listing. Please try again." };
+  }
+
   revalidatePath("/admin/listings");
+  return { ok: true };
 }
 
 /** Reject a listing and record why. A non-empty reason is required. */

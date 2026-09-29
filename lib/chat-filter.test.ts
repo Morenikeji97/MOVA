@@ -4,6 +4,7 @@ import {
   scanForContactInfo,
   CONTACT_INFO_BLOCK_MESSAGE,
   CIRCUMVENTION_BLOCK_MESSAGE,
+  PAYMENT_BLOCK_MESSAGE,
 } from "./chat-filter.ts";
 
 function blocked(msg: string) {
@@ -111,9 +112,123 @@ test("scan reports the matched categories", () => {
 });
 
 test("block messages are stable copy", () => {
-  assert.match(CONTACT_INFO_BLOCK_MESSAGE, /MOVA connects you directly/);
+  assert.match(CONTACT_INFO_BLOCK_MESSAGE, /can't be shared in chat/);
   assert.match(CIRCUMVENTION_BLOCK_MESSAGE, /keep this on MOVA/i);
+  assert.equal(
+    PAYMENT_BLOCK_MESSAGE,
+    "For your protection, all car payments go through Escrow.com on MOVA.",
+  );
   assert.notEqual(CONTACT_INFO_BLOCK_MESSAGE, CIRCUMVENTION_BLOCK_MESSAGE);
+});
+
+test("no block message promises a contact reveal after payment", () => {
+  for (const m of [CONTACT_INFO_BLOCK_MESSAGE, CIRCUMVENTION_BLOCK_MESSAGE, PAYMENT_BLOCK_MESSAGE]) {
+    assert.doesNotMatch(m, /connects you directly|unlocks|after (the deal|payment) is confirmed/i);
+  }
+});
+
+// ---------------------------------------------------------------------------
+// Off-platform payment -> the escrow message
+// ---------------------------------------------------------------------------
+
+test("off-platform payment attempts are blocked with the escrow message", () => {
+  for (const probe of [
+    "pay me directly",
+    "Can I pay you directly for the car?",
+    "just pay the seller directly",
+    "I'll pay you directly once MOVA confirms the deal",
+    "I'll wire the balance to the seller after the fee clears",
+    "I'll pay the seller directly for the car once MOVA releases the details.",
+    "wire it to me",
+    "transfer the money to my account",
+    "send the money to my account",
+    "send me the deposit",
+    "pay directly to me and I'll knock $500 off",
+    "can I just pay directly?",
+    "Zelle me the deposit",
+    "zelle me",
+    "CashApp me",
+    "cash app works",
+    "PayPal me the balance",
+    "paypal is easier",
+    "I take Venmo",
+    "send it by Western Union",
+    "we can do bitcoin",
+    "let's skip escrow",
+    "we don't need escrow for this",
+    "can we do it without escrow?",
+    "pay outside of escrow and save the fee",
+    "I'll give you my bank account number",
+    "what's your account number?",
+    "iban please",
+    "pay me in cash at pickup",
+    "cash on delivery is fine",
+  ]) {
+    assert.ok(blocked(probe), `expected blocked: ${probe}`);
+    assert.equal(reason(probe), PAYMENT_BLOCK_MESSAGE, `expected escrow message: ${probe}`);
+    assert.ok(cats(probe).includes("payment_circumvention"), probe);
+    assert.ok(blocked(embedded(probe)), embedded(probe));
+  }
+});
+
+test("misspellings and spacing tricks around payments are caught", () => {
+  for (const probe of [
+    "p a y  m e  d i r e c t l y",
+    "z e l l e me",
+    "z.e.l.l.e",
+    "zele me the money",
+    "cashap me",
+    "pay pal me",
+    "paypl",
+    "skip e s c r o w",
+    "skip escro",
+    "skip the escrw",
+    "pay me derectly",
+    "pay me direcly",
+    "p@y m3 d1r3ctly",
+    "w1re 1t to m3",
+    "$kip escr0w",
+  ]) {
+    assert.ok(blocked(probe), `expected blocked: ${probe}`);
+    assert.equal(reason(probe), PAYMENT_BLOCK_MESSAGE, `expected escrow message: ${probe}`);
+  }
+});
+
+test("letter-spaced and leetspeak payment attempts are flagged as evasion", () => {
+  assert.ok(cats("z e l l e me").includes("evasion"));
+  assert.ok(cats("p@y m3 d1r3ctly").includes("evasion"));
+  assert.ok(!cats("pay me directly").includes("evasion"));
+});
+
+test("Escrow.com / shipmova.com named bare are fine; links and lookalikes are not", () => {
+  assert.ok(!blocked("is escrow.com legit?"));
+  assert.ok(!blocked("I read the FAQ on shipmova.com"));
+  assert.ok(blocked("pay here: https://escrow.com/transaction/12345"));
+  assert.ok(blocked("use escrowcom.xyz instead"));
+  assert.ok(blocked("go to escrow.com.pay-now.co"));
+  assert.ok(blocked("email me at support@escrow.com"));
+  assert.ok(blocked("my site is sellerdeals.com"));
+});
+
+test("payment talk that stays on MOVA / escrow still sends", () => {
+  for (const msg of [
+    "I can wire $45,000 once MOVA confirms the deal.",
+    "Can I pay into escrow today?",
+    "When does Escrow.com release the money to you?",
+    "I paid MOVA's fee by bank transfer yesterday.",
+    "Can I pay the MOVA fee with Apple Pay?",
+    "What's the best way to pay the reservation fee?",
+    "Would you consider a different price if I pay the full fee?",
+    "Please send me more photos of the engine.",
+    "Send it to me when you get a chance — the service records, I mean.",
+    "Is the car paid off, or is there a lien?",
+    "I'll pay directly through escrow once the inspection passes.",
+    "The price is $25,000 — can you do $24,000?",
+    "Can you send the VIN again?",
+    "Is the escrow fee included in the total?",
+  ]) {
+    assert.equal(scanForContactInfo(msg).ok, true, `expected clean: ${msg}`);
+  }
 });
 
 // ---------------------------------------------------------------------------
@@ -230,8 +345,6 @@ test("legitimate deal / price / contact talk is NOT flagged as circumvention", (
     "can I buy this car?",
     "how do I contact MOVA support?",
     "can we discuss the price a bit?",
-    "I'll pay you directly once MOVA confirms the deal",
-    "I'll wire the balance to the seller after the fee clears",
     "does MOVA connect us after payment?",
     "can you deliver directly to the port in Lagos?",
     "let's do the deal this week if the inspection is clean",
@@ -344,7 +457,6 @@ test("broader false-positive guard: normal negotiation still sends", () => {
   for (const msg of [
     "Come see what I mean in the third picture — there's a small dent.",
     "Is there another way to verify the mileage besides the odometer pic?",
-    "I'll pay the seller directly for the car once MOVA releases the details.",
     "The carfax is on a different site, I'll check it myself.",
     "Would you consider a different price if I pay the full fee?",
     "Let's continue once the inspection report is back.",

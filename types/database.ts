@@ -121,7 +121,6 @@ export interface Database {
           id_verification_provider_ref: string | null;
           id_verification_status: VerificationStatus;
           id_verified_at: string | null;
-          verification_status: VerificationStatus;
           policy_accepted_at: string | null;
           policy_version: string | null;
           created_at: string;
@@ -134,7 +133,6 @@ export interface Database {
           id_verification_provider_ref?: string | null;
           id_verification_status?: VerificationStatus;
           id_verified_at?: string | null;
-          verification_status?: VerificationStatus;
           policy_accepted_at?: string | null;
           policy_version?: string | null;
           created_at?: string;
@@ -147,7 +145,6 @@ export interface Database {
           id_verification_provider_ref: string | null;
           id_verification_status: VerificationStatus;
           id_verified_at: string | null;
-          verification_status: VerificationStatus;
           policy_accepted_at: string | null;
           policy_version: string | null;
           created_at: string;
@@ -222,6 +219,8 @@ export interface Database {
            * Not present on Insert/Update.
            */
           vin_masked: string | null;
+          /** VIN position 10, the model-year code (generated, 0044). Decoded by lib/import-rules.ts. */
+          vin_model_year_code: string | null;
           has_title_document: boolean;
           has_authorization_document: boolean;
           /**

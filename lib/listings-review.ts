@@ -13,9 +13,19 @@ import type { VinVerificationStatus } from "@/types/database";
 export function canApproveListing(gate: {
   vinVerificationStatus: VinVerificationStatus;
   titleIdentityMatchConfirmed: boolean;
+  /** Photos on the listing — at least one is required (vehicles_require_photo_to_approve, 0044). */
+  photoCount: number;
 }): boolean {
-  return gate.vinVerificationStatus !== "flagged" && gate.titleIdentityMatchConfirmed;
+  return (
+    gate.vinVerificationStatus !== "flagged" &&
+    gate.titleIdentityMatchConfirmed &&
+    gate.photoCount > 0
+  );
 }
+
+/** Shown on the admin page when a listing can't be approved for lack of photos. */
+export const NO_PHOTOS_APPROVAL_MESSAGE =
+  "This listing has no photos — it can't be approved until the seller adds at least one.";
 
 /**
  * Whether a draft listing has everything it needs to move to
