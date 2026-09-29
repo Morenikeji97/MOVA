@@ -22,15 +22,24 @@ export async function checkRateLimit(
   maxCount: number,
   windowSeconds: number,
 ): Promise<boolean> {
-  const admin = createAdminClient();
-  const { data, error } = await admin.rpc("check_rate_limit", {
-    p_bucket_key: bucketKey,
-    p_max_count: maxCount,
-    p_window_seconds: windowSeconds,
-  });
-  if (error) {
-    console.error("checkRateLimit failed:", error);
+  // Everything inside the try, including building the client: a missing or
+  // malformed SUPABASE_SERVICE_ROLE_KEY throws from createAdminClient(), and
+  // that must fail open like any other limiter error rather than take the
+  // calling action down with it.
+  try {
+    const admin = createAdminClient();
+    const { data, error } = await admin.rpc("check_rate_limit", {
+      p_bucket_key: bucketKey,
+      p_max_count: maxCount,
+      p_window_seconds: windowSeconds,
+    });
+    if (error) {
+      console.error("checkRateLimit failed:", error);
+      return true;
+    }
+    return data === true;
+  } catch (err) {
+    console.error("checkRateLimit failed:", err);
     return true;
   }
-  return data === true;
 }

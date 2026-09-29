@@ -4,6 +4,8 @@ import { cn } from "@/lib/utils";
 import { buttonClasses } from "@/components/ui/button";
 import { VehicleCard, type VehicleCardData } from "@/components/ui/vehicle-card";
 import { LISTING_CARD_COLUMNS, loadListingThumbnails } from "@/lib/listings";
+import { isPrelaunch } from "@/lib/prelaunch";
+import { WaitlistForm } from "@/components/ui/waitlist-form";
 
 const inputClass =
   "h-11 rounded border border-gray-200 bg-white px-3 text-black";
@@ -128,7 +130,19 @@ export default async function BrowsePage({
           ) : null}
         </form>
 
-        {rows.length === 0 ? (
+        {rows.length === 0 && (makeRows ?? []).length === 0 ? (
+          // Nothing approved at all — not a filter problem. Offer the
+          // waitlist instead of a dead end.
+          <div className="mt-10 flex flex-col gap-6">
+            <div className="rounded-lg border border-dashed border-gray-200 bg-white p-8 text-center">
+              <p className="text-black">No cars are listed yet.</p>
+              <p className="mt-1 text-sm text-gray-500">
+                The first verified listings are on their way.
+              </p>
+            </div>
+            {isPrelaunch() ? <WaitlistForm source="browse" /> : null}
+          </div>
+        ) : rows.length === 0 ? (
           <div className="mt-10 rounded-lg border border-dashed border-gray-200 bg-white p-12 text-center">
             <p className="text-black">No vehicles match your filters yet.</p>
             <p className="mt-1 text-sm text-gray-500">

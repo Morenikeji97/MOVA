@@ -1,6 +1,6 @@
 import { test, afterEach } from "node:test";
 import assert from "node:assert/strict";
-import { isPrelaunch, validateWaitlist } from "./prelaunch.ts";
+import { isPrelaunch, normalizeWhatsapp, validateWaitlist } from "./prelaunch.ts";
 
 const original = process.env.PRELAUNCH;
 afterEach(() => {
@@ -45,9 +45,26 @@ test("waitlist: email alone is enough, and is lower-cased", () => {
   });
 });
 
-test("waitlist: WhatsApp alone is enough", () => {
-  const r = validateWaitlist({ email: "", whatsapp: "+234 803 123 4567", country: "GH" });
-  assert.equal(r.ok, true);
+test("waitlist: WhatsApp alone is enough, stored as +digits", () => {
+  assert.deepEqual(validateWaitlist({ email: "", whatsapp: "+234 803 123 4567", country: "GH" }), {
+    ok: true,
+    email: null,
+    whatsapp: "+2348031234567",
+    country: "GH",
+  });
+});
+
+test("whatsapp: phone-keyboard punctuation (NBSP, non-breaking hyphen) is accepted", () => {
+  assert.equal(normalizeWhatsapp("+1 (631) 617‑3816"), "+16316173816");
+});
+
+test("whatsapp: 00 international prefix becomes +", () => {
+  assert.equal(normalizeWhatsapp("00233 20 123 4567"), "+233201234567");
+});
+
+test("whatsapp: too short or too long is rejected", () => {
+  assert.equal(normalizeWhatsapp("+12 34"), null);
+  assert.equal(normalizeWhatsapp("+1234567890123456"), null);
 });
 
 test("waitlist: needs one of email or WhatsApp", () => {

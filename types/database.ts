@@ -5,6 +5,15 @@ export type VehicleStatus = "draft" | "pending_review" | "approved" | "rejected"
 export type VinVerificationStatus = "unverified" | "checking" | "verified" | "flagged";
 export type ShippingMethod = "roro" | "container";
 export type VehicleSizeType = "sedan" | "suv_truck";
+/** waitlist_signups.source — see waitlist_signups_source_check (0041). */
+export type WaitlistSourceColumn =
+  | "site"
+  | "listing"
+  | "dashboard"
+  | "home"
+  | "how_it_works"
+  | "browse"
+  | "sell";
 export type PurchaseRequestStatus =
   | "submitted"
   | "under_review"
@@ -409,7 +418,8 @@ export interface Database {
           whatsapp: string | null;
           country: "NG" | "GH" | "TG" | "BJ" | "OTHER";
           vehicle_id: string | null;
-          source: "site" | "listing" | "dashboard";
+          source: WaitlistSourceColumn;
+          audience: "buyer" | "seller";
           created_at: string;
         };
         Insert: {
@@ -417,7 +427,8 @@ export interface Database {
           whatsapp?: string | null;
           country: "NG" | "GH" | "TG" | "BJ" | "OTHER";
           vehicle_id?: string | null;
-          source?: "site" | "listing" | "dashboard";
+          source?: WaitlistSourceColumn;
+          audience?: "buyer" | "seller";
         };
         Update: Record<string, never>;
         Relationships: [];

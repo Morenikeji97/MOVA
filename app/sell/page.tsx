@@ -1,6 +1,8 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { buttonClasses } from "@/components/ui/button";
+import { WaitlistForm } from "@/components/ui/waitlist-form";
+import { isPrelaunch } from "@/lib/prelaunch";
 
 export const metadata: Metadata = {
   title: "Sell your car — MOVA",
@@ -64,6 +66,14 @@ export default function SellPage() {
           </Link>
         </div>
       </section>
+
+      {isPrelaunch() ? (
+        <section className="border-b border-gray-200 bg-gray-100">
+          <div className="mx-auto max-w-4xl px-6 py-10">
+            <WaitlistForm source="sell" audience="seller" />
+          </div>
+        </section>
+      ) : null}
 
       <section className="mx-auto max-w-4xl px-6 py-16">
         <h2 className="text-2xl font-semibold text-black">How you get paid</h2>

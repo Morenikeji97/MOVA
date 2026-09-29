@@ -39,6 +39,21 @@ export const WAITLIST_COUNTRIES = [
 
 export type WaitlistCountryCode = (typeof WAITLIST_COUNTRIES)[number]["code"];
 
+/** Where a signup came from — mirrors waitlist_signups_source_check (0041). */
+export const WAITLIST_SOURCES = [
+  "site",
+  "listing",
+  "dashboard",
+  "home",
+  "how_it_works",
+  "browse",
+  "sell",
+] as const;
+export type WaitlistSource = (typeof WAITLIST_SOURCES)[number];
+
+/** Buyers waiting to buy, or sellers waiting to list (0041). */
+export type WaitlistAudience = "buyer" | "seller";
+
 export type WaitlistInput = {
   email: string;
   whatsapp: string;
@@ -50,25 +65,41 @@ export type WaitlistValidation =
   | { ok: false; error: string };
 
 const EMAIL_RE = /^[^@\s]+@[^@\s]+\.[^@\s]+$/;
-const WHATSAPP_RE = /^\+?[0-9][0-9 ()-]{6,19}$/;
+
+/**
+ * "+234 803-123 4567", "+1 (631) 617‑3816" (non-breaking hyphen/space, as
+ * phone keyboards and copy-paste often produce), "00234…" -> "+2348031234567".
+ * Keeps digits only, with a leading "+" when the number had one (or "00").
+ * Returns null if what's left isn't 7-15 digits (the E.164 range).
+ */
+export function normalizeWhatsapp(raw: string): string | null {
+  const trimmed = raw.trim();
+  const international = trimmed.startsWith("+") || trimmed.startsWith("00");
+  let digits = trimmed.replace(/\D/g, "");
+  if (trimmed.startsWith("00")) digits = digits.slice(2);
+  if (digits.length < 7 || digits.length > 15) return null;
+  return international ? `+${digits}` : digits;
+}
 
 /**
  * Validates a waitlist signup: an email or a WhatsApp number (or both), plus
- * a country. Mirrors the CHECK constraints on public.waitlist_signups, so the
- * form gives a friendly error instead of a raw constraint violation.
+ * a country. The normalized values always satisfy the CHECK constraints on
+ * public.waitlist_signups, so the form gives a friendly error instead of a
+ * raw constraint violation.
  */
 export function validateWaitlist(input: WaitlistInput): WaitlistValidation {
   const email = input.email.trim();
-  const whatsapp = input.whatsapp.trim();
+  const whatsappRaw = input.whatsapp.trim();
   const country = input.country.trim();
 
-  if (!email && !whatsapp) {
+  if (!email && !whatsappRaw) {
     return { ok: false, error: "Enter an email address or a WhatsApp number." };
   }
   if (email && (email.length > 254 || !EMAIL_RE.test(email))) {
     return { ok: false, error: "That email address doesn't look right." };
   }
-  if (whatsapp && !WHATSAPP_RE.test(whatsapp)) {
+  const whatsapp = whatsappRaw ? normalizeWhatsapp(whatsappRaw) : null;
+  if (whatsappRaw && !whatsapp) {
     return {
       ok: false,
       error: "Enter your WhatsApp number with its country code, e.g. +234 803 123 4567.",
@@ -81,7 +112,7 @@ export function validateWaitlist(input: WaitlistInput): WaitlistValidation {
   return {
     ok: true,
     email: email ? email.toLowerCase() : null,
-    whatsapp: whatsapp || null,
+    whatsapp,
     country: known.code,
   };
 }
