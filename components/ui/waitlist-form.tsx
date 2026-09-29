@@ -97,6 +97,9 @@ export function WaitlistForm({
             placeholder="+234 803 123 4567"
             className="rounded border border-gray-200 px-3 py-2 text-black"
           />
+          <span className="text-xs text-gray-500">
+            With or without the country code — we&rsquo;ll add it from your country.
+          </span>
         </label>
         <label className="flex flex-col gap-1 text-sm text-gray-500">
           Country

@@ -416,7 +416,7 @@ export interface Database {
           id: string;
           email: string | null;
           whatsapp: string | null;
-          country: "NG" | "GH" | "TG" | "BJ" | "OTHER";
+          country: "NG" | "GH" | "TG" | "BJ" | "US" | "OTHER";
           vehicle_id: string | null;
           source: WaitlistSourceColumn;
           audience: "buyer" | "seller";
@@ -425,7 +425,7 @@ export interface Database {
         Insert: {
           email?: string | null;
           whatsapp?: string | null;
-          country: "NG" | "GH" | "TG" | "BJ" | "OTHER";
+          country: "NG" | "GH" | "TG" | "BJ" | "US" | "OTHER";
           vehicle_id?: string | null;
           source?: WaitlistSourceColumn;
           audience?: "buyer" | "seller";
