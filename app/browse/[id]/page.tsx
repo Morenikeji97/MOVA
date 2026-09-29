@@ -19,6 +19,7 @@ import { ReviewForm } from "@/components/ui/review-form";
 import { toAggregate } from "@/lib/reviews";
 import { ReserveVehicle, type ReserveState } from "./reserve-vehicle";
 import { WaitlistForm } from "@/components/ui/waitlist-form";
+import { ShippingEstimate } from "@/components/ui/shipping-estimate";
 import { isPrelaunch } from "@/lib/prelaunch";
 import { MessageSeller } from "./message-seller";
 import { ShippingRates, type PublicRate } from "./shipping-rates";
@@ -120,6 +121,10 @@ export default async function VehicleDetailPage({
 
   let shippingRates: PublicRate[] = [];
   let destinationCode = "NG";
+  // The buyer's own profile country, unfilled — the shipping estimate
+  // prefers it over the browser's last choice, but shouldn't be handed the
+  // "NG" fallback as if the buyer had chosen it.
+  let profileCountry: string | null = null;
 
   if (user && isBuyer) {
     const { data: buyerProfile } = await supabase
@@ -127,6 +132,7 @@ export default async function VehicleDetailPage({
       .select("country")
       .eq("user_id", user.id)
       .maybeSingle();
+    profileCountry = buyerProfile?.country ?? null;
     destinationCode = buyerProfile?.country || "NG";
 
     // Every active rate for this vehicle's size class, across all
@@ -268,6 +274,8 @@ export default async function VehicleDetailPage({
           variant="detail"
           className="mt-3 max-w-xs"
         />
+        {/* Estimate only — never added to "Total before shipping" above. */}
+        <ShippingEstimate profileCountry={profileCountry} className="mt-3 max-w-md" />
         <p className="mt-2 font-mono text-sm text-gray-500">
           {v.mileage.toLocaleString("en-US")} mi · {v.location_city}, {v.location_state}
         </p>
