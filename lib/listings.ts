@@ -15,7 +15,7 @@ type ServerSupabase = Awaited<ReturnType<typeof createClient>>;
  * trusting title_identity_match_confirmed on its own — see migration 0032.
  */
 export const LISTING_CARD_COLUMNS =
-  `id, year, make, model, trim, price_usd, fee_responsibility, mileage, location_city, location_state, vin_masked, ${LISTING_BADGE_COLUMNS}` as const;
+  `id, year, make, model, trim, price_usd, fee_responsibility, mileage, location_city, location_state, vin_masked, vin_model_year_code, ${LISTING_BADGE_COLUMNS}` as const;
 
 /**
  * Full vehicle detail, for surfaces that render (almost) every column:
@@ -32,7 +32,7 @@ export const LISTING_CARD_COLUMNS =
  * page and the cards can't evaluate the badge rules against different data.
  */
 export const VEHICLE_DETAIL_COLUMNS =
-  `id, seller_id, vin_decode_status, vin_masked, vehicle_size_type, year, make, model, trim, mileage, exterior_color, interior_color, transmission, fuel_type, condition, accident_history, title_status, title_history_check_status, title_identity_match_confirmed_by, location_city, location_state, price_usd, fee_responsibility, description, status, verification_status, rejection_reason, created_at, updated_at, ${LISTING_BADGE_COLUMNS}` as const;
+  `id, seller_id, vin_decode_status, vin_masked, vin_model_year_code, vehicle_size_type, year, make, model, trim, mileage, exterior_color, interior_color, transmission, fuel_type, condition, accident_history, title_status, title_history_check_status, title_identity_match_confirmed_by, location_city, location_state, price_usd, fee_responsibility, description, status, verification_status, rejection_reason, created_at, updated_at, ${LISTING_BADGE_COLUMNS}` as const;
 
 /**
  * Full VINs the current user is entitled to, keyed by vehicle id. Calls the

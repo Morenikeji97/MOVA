@@ -15,6 +15,10 @@ import { VideoUploader, type VideoDraft } from "@/components/ui/video-uploader";
 import { VehicleDocumentUploader } from "@/components/ui/vehicle-document-uploader";
 import { VEHICLE_SIZE_TYPES } from "@/lib/shipping";
 import { isValidVin, VIN_ERROR_MESSAGE } from "@/lib/vin";
+import { modelYearFrom, nigeriaImportStatus, vinYearCode } from "@/lib/import-rules";
+
+/** Seller-form error for vehicles_vin_active_unique (0044). */
+const DUPLICATE_VIN_MESSAGE = "This VIN is already listed on MOVA";
 import { US_STATES } from "@/lib/us-states";
 
 const MAX_PHOTOS = 20;
@@ -279,6 +283,21 @@ export default function NewListingPage() {
   const notTitledOwner = watch("not_titled_owner");
   const authorizationDocumentPath = watch("authorization_document_path");
 
+  // Nigeria's age limit (lib/import-rules.ts), from the VIN's model-year
+  // character when the VIN looks complete, else the year field. A warning
+  // only — the listing can still be saved.
+  const importWarning = useMemo(() => {
+    const vin = (vinValue ?? "").trim().toUpperCase();
+    const year = /^\d{4}$/.test(String(enteredYear ?? "")) ? Number(enteredYear) : null;
+    const modelYear = modelYearFrom(VIN_RE.test(vin) ? vinYearCode(vin) : null, year);
+    const status = nigeriaImportStatus(modelYear);
+    if (status.kind === "too_old") {
+      return `${status.label}. You can still list it — Nigerian buyers just won't be able to import it.`;
+    }
+    if (status.kind === "borderline") return status.label;
+    return null;
+  }, [vinValue, enteredYear]);
+
   // A decoded result only describes the VIN it was fetched for; drop it as
   // soon as the seller edits the VIN field again.
   useEffect(() => {
@@ -435,7 +454,13 @@ export default function NewListingPage() {
       .single();
 
     if (error || !created) {
-      fail(error?.message ?? "Could not save the listing.");
+      // One non-archived listing per VIN (vehicles_vin_active_unique, 0044).
+      // Checked here rather than before the insert: RLS hides other sellers'
+      // drafts, so only the database can see every active listing.
+      const duplicateVin =
+        error?.code === "23505" && error.message.includes("vehicles_vin_active_unique");
+      if (duplicateVin) setError("vin", { type: "manual", message: DUPLICATE_VIN_MESSAGE });
+      fail(duplicateVin ? DUPLICATE_VIN_MESSAGE : (error?.message ?? "Could not save the listing."));
       return;
     }
 
@@ -583,6 +608,14 @@ export default function NewListingPage() {
               {...register("year")}
               className={inputClass}
             />
+            {importWarning ? (
+              <span
+                role="status"
+                className="rounded border border-copper-100 bg-copper-50 p-2 text-sm text-copper-700"
+              >
+                {importWarning}
+              </span>
+            ) : null}
           </Field>
           <Field label="Mileage" error={errors.mileage?.message}>
             <input

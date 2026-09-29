@@ -29,15 +29,22 @@
 
 /** Shown when the message contained (or structurally implied) literal contact info. */
 export const CONTACT_INFO_BLOCK_MESSAGE =
-  "Contact info can't be shared in chat — MOVA connects you directly after the deal is confirmed.";
+  "Contact info can't be shared in chat — keep the conversation on MOVA so your purchase stays protected.";
 
 /**
  * Shown when the message had no literal contact info but was angling to move
- * the deal off-platform / around the fee. Kept short, polite, and explains
- * *why* there is no need to arrange it here.
+ * the deal off-platform / around the fee. Kept short and polite.
  */
 export const CIRCUMVENTION_BLOCK_MESSAGE =
-  "Let's keep this on MOVA — direct contact unlocks automatically once payment is confirmed, so there's no need to arrange it here.";
+  "Let's keep this on MOVA — your purchase is only protected while it stays on the platform.";
+
+/**
+ * Shown when the message tries to take the car payment off MOVA: paying a
+ * person directly, bank details, payment apps, skipping escrow. Takes
+ * priority over the other two reasons.
+ */
+export const PAYMENT_BLOCK_MESSAGE =
+  "For your protection, all car payments go through Escrow.com on MOVA.";
 
 /** Machine-readable categories, handy for logging / spotting repeat patterns. */
 export type ContactInfoCategory =
@@ -48,7 +55,8 @@ export type ContactInfoCategory =
   | "circumvention_phrase" // literal "call me" / "my number is" / "dm me"
   | "circumvention_intent" // asking HOW to go off-platform / proposing it
   | "address" // physical meetup / street address
-  | "evasion"; // a match only surfaced after de-leet / homoglyph folding
+  | "payment_circumvention" // paying a person directly, bank details, payment apps, skipping escrow
+  | "evasion"; // a match only surfaced after de-leet / homoglyph folding / letter-spacing
 
 export interface ContactInfoScan {
   /** true when the message is clean and may be delivered. */
@@ -140,6 +148,20 @@ const URL_RE = /\b(?:https?:\/\/|www\.)[^\s]+/i;
 // strings like "v2.0" from matching.
 const BARE_DOMAIN_RE =
   /\b[a-z0-9](?:[a-z0-9-]*[a-z0-9])?\.(?:com|net|org|io|co|app|dev|xyz|info|biz|link|site|online|store|shop|me|tv|gg|ng|uk|us|ca|de|fr|ru|ly|to|tel)\b/i;
+
+/**
+ * "Escrow.com" and "shipmova.com" written bare are how people name MOVA's
+ * own payment partner and site, not an attempt to share a link — strip them
+ * before the bare-domain check. Only the exact bare names: a real link
+ * ("https://escrow.com/…", a fake-transaction phishing classic), a lookalike
+ * ("escrowcom.xyz", "escrow.com.pay-now.co") or an address "@escrow.com"
+ * still trips the URL / e-mail rules.
+ */
+const ALLOWED_BARE_DOMAINS_RE = /(?<![@\w.-])(?:escrow|shipmova)\.com(?![\w.\/-])/gi;
+
+function withoutAllowedDomains(s: string): string {
+  return s.replace(ALLOWED_BARE_DOMAINS_RE, " ");
+}
 
 /** Spelled-out digit words: "four one five ...". */
 const NUMBER_WORDS: Record<string, string> = {
@@ -298,9 +320,8 @@ const INTENT_PHRASE_RES: RegExp[] = [
   /\b(?:other|another|a\s+different|some\s+other)\s+ways?\s+(?:can|could|to|for|i|we|of|that|we\s+could)\b[^.?!]{0,30}\b(?:reach|contact|get\s+(?:in\s+touch|a?\s*hold)|message|talk|close|finish|complete|handle|settle|sort|do|wrap\s+up)\s+(?:this|it|the\s+(?:deal|sale)|you)\b/i,
   /\bget\s+in\s+touch\s+with\s+you\b(?![^.?!]*\b(?:mova|support|team|here)\b)/i,
   // deal / buy / sell directly or privately. "Pay directly" / "wire you" is
-  // deliberately NOT matched: it dates from when the buyer wired the seller
-  // after MOVA's fee. The car price now goes through Escrow.com, so whether
-  // to start blocking direct-payment talk is an open product decision.
+  // handled separately, by the payment rules below (PAYMENT_RES), so it gets
+  // the escrow message rather than this one.
   /\b(?:deal|deals?|dealing|transact|do\s+business|trade)\s+(?:\w+\s+){0,2}(?:directly|direct|off[-\s]?(?:app|platform|site)|privately|1\s?on\s?1|one\s+on\s+one)\b/i,
   /\b(?:buy|buying|purchase|purchasing|sell|selling)\s+(?:\w+\s+){0,3}(?:directly|direct|off[-\s]?(?:app|platform|site)|privately|outside\s+(?:of\s+)?(?:the\s+)?(?:app|platform|site|mova|here))\b/i,
   // question forms angling for another channel
@@ -380,8 +401,64 @@ const STRUCTURAL: ContactInfoCategory[] = [
   "circumvention_phrase",
 ];
 
+// ---------------------------------------------------------------------------
+// Off-platform payment  ->  payment_circumvention
+// ---------------------------------------------------------------------------
+//
+// The car price only ever goes into Escrow.com. Anything steering the money
+// to a person, an account, a payment app, or around escrow is blocked.
+// Deliberately NOT matched: "bank transfer" (MOVA's own fee can be paid by
+// bank transfer), Apple Pay / Google Pay (Stripe takes them for the fee),
+// and "send" without a money word ("send me more photos").
+
+const PAY_VERB =
+  String.raw`(?:pay|paid|paying|payin|wire|wired|wiring|wyre|transfer|transfered|transferred|transfering|transferring|deposit|deposited|remit)`;
+const MONEY =
+  String.raw`(?:money|mony|funds?|payment|paymnt|balance|cash|deposit|amount|full\s*price|the\s*rest|rest\s*of\s*(?:it|the\s*money))`;
+const DIRECTLY =
+  String.raw`(?:directly|direct|dirctly|directely|direclty|direcly|drectly|derectly|dirrectly|diretly|straight|privately|personally|in\s*cash)`;
+const PERSON = String.raw`(?:me|you|u|him|her|them|the\s*seller|seller|the\s*buyer|buyer)`;
+const TO_PERSON_OR_ACCOUNT = String.raw`(?:in)?to\s*(?:me|my|you|your|u|him|his|her|the\s*seller'?s?|seller'?s?)\b`;
+
+const PAYMENT_RES: RegExp[] = [
+  // "pay me directly", "wire the seller direct", "pay you privately"
+  new RegExp(String.raw`\b${PAY_VERB}\s*(?:it|that|this|the\s*${MONEY}|${MONEY})?\s*(?:to\s*)?${PERSON}\s*${DIRECTLY}\b`),
+  // "pay directly to me", "wire it straight to you"
+  new RegExp(String.raw`\b${PAY_VERB}\s*(?:it|that|this|the\s*${MONEY}|${MONEY})?\s*${DIRECTLY}\s*(?:in)?to\s*${PERSON}\b`),
+  // "can I just pay directly?" — unless it's directly to MOVA / escrow
+  new RegExp(String.raw`\bpay\w*\s*(?:for\s*(?:it|the\s*car)\s*)?${DIRECTLY}\b(?!\s*(?:to|into|through|via|with)\s*(?:mova|escrow))`),
+  // "wire it to me", "transfer the balance to the seller", "deposit it into my account"
+  new RegExp(String.raw`\b(?:wire|wired|wiring|wyre|transfer\w*|deposit\w*|remit)\s*(?:it|that|this|the\s*${MONEY}|${MONEY})\s*${TO_PERSON_OR_ACCOUNT}`),
+  // "send the money to my account", "pay the balance to you"
+  new RegExp(String.raw`\b(?:send|sent|sending|pay|paying|move)\s*(?:the\s*)?${MONEY}\s*${TO_PERSON_OR_ACCOUNT}`),
+  // "wire me the deposit", "send me the money"
+  new RegExp(String.raw`\b(?:send|sent|wire|wired|transfer)\s*(?:me|you|him|her)\s*(?:the\s*)?${MONEY}\b`),
+  // bank-account details (not "bank transfer" — see above)
+  /\b(?:bank\s*(?:account|acct|acount|details?|info|number|no\b)|account\s*(?:number|no\b|num\b|#|details)|acct\s*(?:no\b|number|num\b|#)|routing\s*(?:number|no\b|#)|iban|swift\s*code|sort\s*code)/,
+  // payment apps / channels MOVA never uses for the car
+  /\b(?:zelle|zele|zell|cash\s*app|cashap+|cash\s*ap\b|pay\s*pal+|paypl|venmo|vemno|western\s*union|money\s*gram|moneygram|remitly|world\s*remit|worldremit|wise\s*transfer|bitcoin|btc|usdt|crypto|gift\s*cards?)\b/,
+  // skipping / going around escrow
+  /\b(?:skip|skipping|avoid|avoiding|bypass|without|w\/o|no\s*need\s*(?:for|of)|dont\s*need|don'?t\s*need|do\s*not\s*need|don'?t\s*use|do\s*not\s*use|forget|cut\s*out|outside(?:\s*of)?|instead\s*of|around|not\s*(?:through|via|using|use))\s*(?:the\s*|using\s*|of\s*)?(?:escrow\w*|escro\w*|escrw\w*|ecrow\w*|escrew\w*)\b/,
+  // cash in hand
+  new RegExp(String.raw`\b${PAY_VERB}\s*(?:${PERSON}\s*)?(?:in|with)\s*cash\b`),
+  /\bcash\s*(?:on|at|upon)\s*(?:pick\s*up|pickup|delivery|collection)\b/,
+];
+
+/**
+ * "z e l l e", "p.a.y m.e", "e-s-c-r-o-w" -> joined, so letter-spacing can't
+ * slip a payment phrase through. Only ever used for matching.
+ */
+function collapseSpacedLetters(s: string): string {
+  return s.replace(/\b(?:[a-z0-9$@][\s._*\-]+){2,}[a-z0-9$@]\b/g, (m) => m.replace(/[\s._*\-]+/g, ""));
+}
+
+function hasPaymentCircumvention(text: string): boolean {
+  return PAYMENT_RES.some((re) => re.test(text));
+}
+
 function blockMessageFor(categories: ContactInfoCategory[]): string | null {
   if (categories.length === 0) return null;
+  if (categories.includes("payment_circumvention")) return PAYMENT_BLOCK_MESSAGE;
   if (categories.some((c) => STRUCTURAL.includes(c))) {
     return CONTACT_INFO_BLOCK_MESSAGE;
   }
@@ -439,12 +516,14 @@ export function scanForContactInfo(message: string): ContactInfoScan {
   }
 
   // --- url / bare domain ---
+  const rawSite = withoutAllowedDomains(raw);
+  const normSite = withoutAllowedDomains(norm);
   if (
     URL_RE.test(raw) ||
     URL_RE.test(norm) ||
-    BARE_DOMAIN_RE.test(deobfuscate(raw)) ||
-    BARE_DOMAIN_RE.test(deobfuscate(norm)) ||
-    ((BARE_DOMAIN_RE.test(raw) || BARE_DOMAIN_RE.test(norm)) && !categories.has("email"))
+    BARE_DOMAIN_RE.test(deobfuscate(rawSite)) ||
+    BARE_DOMAIN_RE.test(deobfuscate(normSite)) ||
+    ((BARE_DOMAIN_RE.test(rawSite) || BARE_DOMAIN_RE.test(normSite)) && !categories.has("email"))
   ) {
     categories.add("url");
   }
@@ -459,6 +538,16 @@ export function scanForContactInfo(message: string): ContactInfoScan {
       if (!categories.has(c)) categories.add(c);
       if (!baseline.has(c)) evaded = true;
     }
+  }
+
+  // --- off-platform payment ---
+  // Same baseline-vs-derived split, plus a letter-spacing collapse of each.
+  const paymentPlain = hasPaymentCircumvention(lower);
+  const paymentDerived = [norm, ...leetTexts, collapseSpacedLetters(lower), collapseSpacedLetters(norm), ...leetTexts.map(collapseSpacedLetters)]
+    .some(hasPaymentCircumvention);
+  if (paymentPlain || paymentDerived) {
+    categories.add("payment_circumvention");
+    if (!paymentPlain) evaded = true;
   }
 
   if (evaded && categories.size > 0) categories.add("evasion");

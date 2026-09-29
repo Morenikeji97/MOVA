@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { cn } from "@/lib/utils";
+import { importStatus } from "@/lib/import-rules";
 import {
   EXPORT_PAPERWORK,
   initialEstimateCountry,
@@ -49,9 +50,12 @@ function saveLastChoice(code: EstimateCountry) {
  */
 export function ShippingEstimate({
   profileCountry,
+  modelYear,
   className,
 }: {
   profileCountry: string | null;
+  /** From lib/import-rules.ts modelYearFrom — for the per-country import line. */
+  modelYear: number | null;
   className?: string;
 }) {
   const [country, setCountry] = useState<EstimateCountry | null>(() =>
@@ -102,6 +106,9 @@ export function ShippingEstimate({
 
       {estimate ? (
         <>
+          <p className="mt-3 text-sm text-black">
+            {importStatus(estimate.code, modelYear).label}
+          </p>
           <dl className="mt-3 flex flex-col gap-1">
             <Line
               label={`Freight to ${estimate.port} (port-to-port)`}

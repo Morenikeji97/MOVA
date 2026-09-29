@@ -7,6 +7,7 @@ import { VEHICLE_DETAIL_COLUMNS } from "@/lib/listings";
 import { fetchVerifiedSellerName } from "@/lib/stripe-identity";
 import { cn } from "@/lib/utils";
 import { ReviewActions } from "./review-actions";
+import { ImportBadge } from "@/components/ui/import-badge";
 
 const usd = new Intl.NumberFormat("en-US", {
   style: "currency",
@@ -244,6 +245,11 @@ export default async function AdminListingReviewPage() {
                         ? " · VIN mismatch flagged"
                         : ""}
                     </p>
+                    <ImportBadge
+                      vinModelYearCode={v.vin_model_year_code}
+                      year={v.year}
+                      className="mt-2"
+                    />
                   </div>
                   <span className="inline-flex shrink-0 items-center rounded-full bg-marine-50 px-2.5 py-1 text-sm font-medium text-marine-700">
                     Pending review
@@ -359,6 +365,7 @@ export default async function AdminListingReviewPage() {
                   titleIdentityMatchConfirmed={v.title_identity_match_confirmed}
                   notTitledOwner={v.not_titled_owner}
                   hasAuthorizationDocument={v.has_authorization_document}
+                  photoCount={(photosByVehicle.get(v.id) ?? []).length}
                 />
               </li>
             );
