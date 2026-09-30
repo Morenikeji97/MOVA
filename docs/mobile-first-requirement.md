@@ -97,9 +97,9 @@ that led to it, and the current gaps against it, are in
 Treat every byte as the buyer's money.
 
 - **Images:** never send an original upload to a listing card or gallery.
-  Serve resized variants (card thumbnail ≈ 480px wide, gallery ≈ 1080px wide,
-  WebP/AVIF). Use `next/image` with `sizes`, or Supabase Storage image
-  transformations behind the `/media` proxy.
+  Resize in the browser before upload and store the variants (card thumbnail
+  ≈ 480px, gallery ≈ 1600px long edge, WebP). Supabase image transformations
+  need the Pro plan, so don't depend on them.
 - Every image below the first screen gets `loading="lazy"` and
   `decoding="async"`, plus explicit `width`/`height` or an `aspect-*` box so
   the layout doesn't shift.
