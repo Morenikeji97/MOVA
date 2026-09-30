@@ -14,7 +14,11 @@
  * The same rule is enforced in the database for callers that skip the app
  * entirely (a buyer hitting the REST API with their own session):
  * public.platform_settings.prelaunch + the purchase_requests_prelaunch_guard
- * trigger (migration 0039). Going live means flipping BOTH:
+ * trigger (migration 0039).
+ *
+ * BEFORE going live, every box in docs/LAUNCH-BLOCKERS.md must be ticked:
+ * the public copy describes features (escrow, inspection, shipper insurance
+ * checks, partner rewards) that aren't built yet. Going live means flipping BOTH:
  *   1. PRELAUNCH=false in Netlify (then redeploy), and
  *   2. `update public.platform_settings set prelaunch = false;`
  */

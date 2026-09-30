@@ -41,7 +41,7 @@ const SELLER_BENEFITS: Benefit[] = [
   {
     icon: SlidersHorizontal,
     title: "You stay in control",
-    body: "Set your price, accept or decline offers, and remove your listing anytime before a buyer commits.",
+    body: "Set your price, offer a buyer a lower price, and remove your listing anytime before a buyer commits.",
   },
 ];
 

@@ -27,7 +27,7 @@ const BUYER_BENEFITS: Benefit[] = [
   {
     icon: Home,
     title: "Know it can come home",
-    body: "Every listing shows whether the car can legally be imported to your country, before you pay anything.",
+    body: "Every listing shows whether the car can legally be imported to Nigeria (more countries coming)",
   },
   {
     icon: Receipt,
@@ -42,7 +42,7 @@ const BUYER_BENEFITS: Benefit[] = [
   {
     icon: MessageCircle,
     title: "Buy direct from the owner",
-    body: "U.S. owner prices, one clear fee, and a real person on WhatsApp in both U.S. and West Africa hours.",
+    body: "U.S. owner prices, one clear fee, and a real person on WhatsApp.",
   },
 ];
 
@@ -53,7 +53,7 @@ const COMPARISON: { label: string; shipmova: Mark; alone: Mark }[] = [
   { label: "Seller identity verified", shipmova: "yes", alone: "unsure" },
   { label: "Title matched to seller", shipmova: "yes", alone: "unsure" },
   { label: "Car inspected in person before shipping", shipmova: "yes", alone: "no" },
-  { label: "Import eligibility checked", shipmova: "yes", alone: "unsure" },
+  { label: "Import eligibility checked (Nigeria)", shipmova: "yes", alone: "unsure" },
   { label: "Full cost shown upfront", shipmova: "yes", alone: "no" },
 ];
 
