@@ -75,7 +75,7 @@ function SignupForm() {
         <h1 className="text-2xl font-semibold text-black">Check your email</h1>
         <p className="mt-2 text-gray-500">
           We&apos;ve sent a verification link to {email}. Confirm your email to
-          finish creating your MOVA account.
+          finish creating your ShipMova account.
         </p>
       </main>
     );
@@ -83,7 +83,7 @@ function SignupForm() {
 
   return (
     <main className="mx-auto flex min-h-screen max-w-md flex-col justify-center px-6">
-      <h1 className="mb-6 text-2xl font-semibold text-black">Create your MOVA account</h1>
+      <h1 className="mb-6 text-2xl font-semibold text-black">Create your ShipMova account</h1>
       {referralCode ? (
         <p className="mb-4 rounded border border-gray-200 bg-gray-50 px-3 py-2 text-sm text-gray-500">
           Signing up with referral code <strong className="text-black">{referralCode}</strong>.
@@ -144,7 +144,7 @@ function SignupForm() {
             className="mt-0.5"
           />
           <span>
-            I have read and agree to MOVA&rsquo;s{" "}
+            I have read and agree to ShipMova&rsquo;s{" "}
             <Link
               href={BUYER_PROTECTION_POLICY_PATH}
               target="_blank"

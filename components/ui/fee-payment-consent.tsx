@@ -41,7 +41,7 @@ export function FeePaymentConsent({
       <p className="font-medium">Refund terms, in brief</p>
       <ul className="mt-1.5 list-disc space-y-1 pl-5 text-gray-500">
         <li>
-          MOVA&rsquo;s fee is refunded if the car is materially misrepresented, the
+          ShipMova&rsquo;s fee is refunded if the car is materially misrepresented, the
           seller withdraws, or the car fails inspection.
         </li>
         <li>

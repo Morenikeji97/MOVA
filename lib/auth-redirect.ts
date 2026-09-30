@@ -1,5 +1,5 @@
 /**
- * MOVA — where an emailed auth link lands after /auth/confirm verifies it.
+ * ShipMova — where an emailed auth link lands after /auth/confirm verifies it.
  *
  * Every auth email links to
  *   {{ .RedirectTo }}/auth/confirm?token_hash=…&type=<type>&next=<path>

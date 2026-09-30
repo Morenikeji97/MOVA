@@ -1,5 +1,5 @@
 /**
- * MOVA Terms & Conditions — central version constant.
+ * ShipMova Terms & Conditions — central version constant.
  *
  * Independent from lib/policy.ts's CURRENT_POLICY_VERSION (the Buyer
  * Protection & Refund Policy) — a user must accept both, not one instead of
@@ -12,8 +12,8 @@
  * exact version, so existing acceptances pinned to the old value stop
  * counting the moment this changes — no backfill/migration needed.
  */
-export const CURRENT_TERMS_VERSION = "v1.1";
+export const CURRENT_TERMS_VERSION = "v1.2";
 
-export const TERMS_EFFECTIVE_DATE = "2026-09-28";
+export const TERMS_EFFECTIVE_DATE = "2026-09-30";
 
 export const TERMS_ACCEPT_PATH = "/terms/accept";

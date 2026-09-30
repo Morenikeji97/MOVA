@@ -1,5 +1,5 @@
 /**
- * MOVA Buyer Protection & Refund Policy — central version constant.
+ * ShipMova Buyer Protection & Refund Policy — central version constant.
  *
  * Bump this whenever the policy content at /policies/buyer-protection
  * changes in a way that requires buyers/sellers to re-acknowledge it.
@@ -12,6 +12,6 @@
  * version, so `buyer_profiles.policy_version <> CURRENT_POLICY_VERSION` (or
  * null) is how you'd find who still needs to be prompted.
  */
-export const CURRENT_POLICY_VERSION = "v2.0";
+export const CURRENT_POLICY_VERSION = "v2.1";
 
 export const BUYER_PROTECTION_POLICY_PATH = "/policies/buyer-protection";

@@ -32,8 +32,8 @@ function Field({ label, value }: { label: string; value: string }) {
 }
 
 /**
- * Bank-transfer fallback for the buyer's MOVA service fee, alongside
- * FeePaymentConsent (card). Two steps in one panel: view MOVA's wire
+ * Bank-transfer fallback for the buyer's ShipMova service fee, alongside
+ * FeePaymentConsent (card). Two steps in one panel: view ShipMova's wire
  * details + this reservation's reference code, then upload proof of the
  * transfer.
  *
@@ -108,14 +108,14 @@ export function BankTransferPayment({
   if (done) {
     return (
       <p className="mt-3 rounded border border-verified-100 bg-verified-50 p-3 text-sm text-verified-600">
-        Transfer proof submitted — MOVA will confirm it shortly.
+        Transfer proof submitted — ShipMova will confirm it shortly.
       </p>
     );
   }
 
   return (
     <div className="mt-3 rounded border border-gray-200 bg-white p-3 text-sm text-black">
-      <p className="font-medium">Wire the fee to MOVA</p>
+      <p className="font-medium">Wire the fee to ShipMova</p>
       <dl className="mt-2 grid grid-cols-1 gap-y-2 sm:grid-cols-2 sm:gap-x-4">
         <Field label="Bank" value={bankDetails.name} />
         <Field label="Address" value={bankDetails.address} />
@@ -135,9 +135,9 @@ export function BankTransferPayment({
       </div>
       <p className="mt-3 text-gray-500">
         After you&rsquo;ve sent the transfer, upload a screenshot or photo of
-        the confirmation. MOVA will verify it and mark your fee paid — this
+        the confirmation. ShipMova will verify it and mark your fee paid — this
         can take a little longer than an instant card payment. This transfer
-        is for MOVA&rsquo;s fee only; the car price is paid into Escrow.com.
+        is for ShipMova&rsquo;s fee only; the car price is paid into Escrow.com.
       </p>
 
       <label className="mt-3 flex flex-col gap-2">

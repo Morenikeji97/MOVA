@@ -5,7 +5,9 @@ export type VehicleStatus = "draft" | "pending_review" | "approved" | "rejected"
 export type VinVerificationStatus = "unverified" | "checking" | "verified" | "flagged";
 export type ShippingMethod = "roro" | "container";
 export type VehicleSizeType = "sedan" | "suv_truck";
-/** waitlist_signups.source — see waitlist_signups_source_check (0041). */
+/** waitlist_signups.audience — see waitlist_signups_audience_check (0046). */
+export type WaitlistAudienceColumn = "buyer" | "seller" | "shipper" | "inspector" | "clearing_agent";
+/** waitlist_signups.source — see waitlist_signups_source_check (0046). */
 export type WaitlistSourceColumn =
   | "site"
   | "listing"
@@ -13,7 +15,10 @@ export type WaitlistSourceColumn =
   | "home"
   | "how_it_works"
   | "browse"
-  | "sell";
+  | "sell"
+  | "shipper"
+  | "inspectors"
+  | "clearing_agents";
 export type PurchaseRequestStatus =
   | "submitted"
   | "under_review"
@@ -418,7 +423,13 @@ export interface Database {
           country: "NG" | "GH" | "TG" | "BJ" | "US" | "OTHER";
           vehicle_id: string | null;
           source: WaitlistSourceColumn;
-          audience: "buyer" | "seller";
+          audience: WaitlistAudienceColumn;
+          full_name: string | null;
+          company: string | null;
+          city_state: string | null;
+          experience: string | null;
+          ports_served: string[] | null;
+          license_number: string | null;
           created_at: string;
         };
         Insert: {
@@ -427,7 +438,13 @@ export interface Database {
           country: "NG" | "GH" | "TG" | "BJ" | "US" | "OTHER";
           vehicle_id?: string | null;
           source?: WaitlistSourceColumn;
-          audience?: "buyer" | "seller";
+          audience?: WaitlistAudienceColumn;
+          full_name?: string | null;
+          company?: string | null;
+          city_state?: string | null;
+          experience?: string | null;
+          ports_served?: string[] | null;
+          license_number?: string | null;
         };
         Update: Record<string, never>;
         Relationships: [];

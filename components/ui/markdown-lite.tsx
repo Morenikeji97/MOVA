@@ -49,7 +49,7 @@ export function MarkdownLite({ source }: { source: string }) {
         if (
           lines.length === 1 &&
           // Single-asterisk/underscore only — a standalone "**bold**" line
-          // (e.g. "**MOVA is not:**") also starts and ends with "*" and must
+          // (e.g. "**ShipMova is not:**") also starts and ends with "*" and must
           // fall through to the bold-paragraph case below, not render here
           // with one layer of asterisk stripped off and the other left in.
           ((lines[0].startsWith("_") && lines[0].endsWith("_") && !lines[0].startsWith("__")) ||

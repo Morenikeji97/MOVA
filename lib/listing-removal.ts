@@ -1,7 +1,7 @@
 import type { MovaFeePaymentStatus, PurchaseRequestStatus, VehicleStatus } from "@/types/database";
 
 /**
- * MOVA — the rule for "may this seller take their own listing down?".
+ * ShipMova — the rule for "may this seller take their own listing down?".
  *
  * Mirrors the DB guard added in migration 0035
  * (vehicles_guard_admin_only_fields + vehicle_has_active_buyer), which is the
@@ -52,7 +52,7 @@ export interface PurchaseRequestSnapshot {
  * separate from the status clause on purpose: today any paid fee sits on a
  * request in one of the open statuses, but stating it outright means a later
  * change to the status flow can't quietly make it possible to withdraw a car
- * someone has already paid MOVA for.
+ * someone has already paid ShipMova for.
  */
 export function hasActiveBuyer(requests: PurchaseRequestSnapshot[]): boolean {
   return requests.some(
@@ -71,7 +71,7 @@ export type RemovalCheck =
 
 /** The buyer-in-progress message, specified verbatim. */
 export const ACTIVE_BUYER_MESSAGE =
-  "This car has an active buyer, contact MOVA on WhatsApp to cancel.";
+  "This car has an active buyer, contact ShipMova on WhatsApp to cancel.";
 
 export function canSellerArchive(listing: {
   status: VehicleStatus;

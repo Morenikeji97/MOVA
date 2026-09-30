@@ -35,7 +35,7 @@ const EXT: Record<string, string> = {
 export function VehicleDocumentUploader({
   value,
   onChange,
-  successMessage = "Document uploaded — MOVA will review it alongside your listing.",
+  successMessage = "Document uploaded — ShipMova will review it alongside your listing.",
   removeAriaLabel = "Remove document",
 }: {
   value: string | null;

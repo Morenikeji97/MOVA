@@ -41,7 +41,7 @@ function Tab({
 }
 
 /**
- * Lets the buyer choose between the two ways to pay MOVA's service fee:
+ * Lets the buyer choose between the two ways to pay ShipMova's service fee:
  * card (FeePaymentConsent → Stripe Checkout, unchanged) or bank transfer
  * (BankTransferPayment). Bank transfer is disabled — not hidden — when
  * bankDetails is null (an env var is missing), so the buyer isn't left

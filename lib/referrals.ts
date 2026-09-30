@@ -1,5 +1,5 @@
 /**
- * MOVA referral program — pure decision logic (no DB access). The
+ * ShipMova referral program — pure decision logic (no DB access). The
  * DB-orchestration side (loading rows, inserting credits, creating payout
  * batches) lives in lib/referral-credit.ts, same split as
  * lib/shipping.ts (pure) vs lib/shipper-billing.ts (DB-touching).
@@ -151,7 +151,7 @@ export type ReferralPayoutMethod = "stripe_transfer" | "bank_transfer";
 
 /**
  * Which rail a referrer's payout goes out on. Sellers are US-based by this
- * platform's own business model (Terms & Conditions §2 — MOVA connects
+ * platform's own business model (Terms & Conditions §2 — ShipMova connects
  * US-based sellers with Nigerian/Ghanaian/Togolese/Beninese buyers) and
  * seller_profiles.country has no edit UI yet (always null in practice
  * today), so an unset country falls back to that role default; an

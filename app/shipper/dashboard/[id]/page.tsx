@@ -67,7 +67,7 @@ export default async function ShipmentDetailPage({
     .select("id")
     .eq("user_id", user.id)
     .maybeSingle();
-  if (!shipper) redirect("/shipper");
+  if (!shipper) redirect("/shipper/portal");
 
   const { data: shipment } = await supabase
     .from("shipment_requests")

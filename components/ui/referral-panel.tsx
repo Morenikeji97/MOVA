@@ -54,14 +54,14 @@ export async function ReferralPanel({ userId }: { userId: string }) {
       </h2>
       <p className="mt-2 text-sm text-gray-500">
         Earn ${REFERRAL_PAYOUT_AMOUNT_USD.toLocaleString()} for every{" "}
-        {REFERRAL_BATCH_SIZE} people you refer who complete a transaction on MOVA.
+        {REFERRAL_BATCH_SIZE} people you refer who complete a transaction on ShipMova.
       </p>
 
       <div className="mt-4 flex flex-col gap-4 sm:flex-row sm:items-start">
         {/* eslint-disable-next-line @next/next/no-img-element -- data: URI, not an optimizable asset */}
         <img
           src={qrDataUrl}
-          alt="QR code linking to your MOVA referral signup page"
+          alt="QR code linking to your ShipMova referral signup page"
           className="h-32 w-32 rounded border border-gray-200"
         />
         <div className="min-w-0 flex-1">
@@ -74,7 +74,7 @@ export async function ReferralPanel({ userId }: { userId: string }) {
             <CopyLinkButton link={link} />
             <a
               href={qrDataUrl}
-              download="mova-referral-qr.png"
+              download="shipmova-referral-qr.png"
               className={buttonClasses({ size: "sm", variant: "secondary" })}
             >
               Download QR code

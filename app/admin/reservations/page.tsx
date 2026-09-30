@@ -223,7 +223,7 @@ export default async function AdminReservationsPage() {
                   <Detail label="Requested">
                     {submitted.format(new Date(r.created_at))}
                   </Detail>
-                  <Detail label="MOVA fee">
+                  <Detail label="ShipMova fee">
                     {r.mova_fee_payment_status === "paid"
                       ? "Paid"
                       : awaitingBankVerification

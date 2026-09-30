@@ -43,10 +43,10 @@ function ShipperSignupForm() {
         href="/"
         className="font-mono text-xs uppercase tracking-wider text-gray-500 hover:text-black"
       >
-        &larr; MOVA
+        &larr; ShipMova
       </Link>
       <h1 className="mt-4 text-2xl font-semibold text-black">
-        Become a MOVA shipper
+        Become a ShipMova shipper
       </h1>
       <p className="mt-2 text-sm text-gray-500">
         List your shipping rates to reach international buyers. Applications are
@@ -149,21 +149,21 @@ function ShipperSignupForm() {
             className="mt-0.5 h-4 w-4"
           />
           <span className="text-sm text-black">
-            I agree to pay MOVA an 8% commission on completed shipments arranged
+            I agree to pay ShipMova an 8% commission on completed shipments arranged
             through the platform.
           </span>
         </label>
 
         <p className="text-sm text-gray-500">
           Next you&rsquo;ll add a card on Stripe&rsquo;s secure page. Nothing is
-          charged now — it&rsquo;s kept on file so MOVA can collect the 8%
+          charged now — it&rsquo;s kept on file so ShipMova can collect the 8%
           commission after a shipment is completed.
         </p>
 
         <div className="flex items-center gap-4">
           <SubmitButton disabled={!termsAccepted} />
           <Link
-            href="/shipper"
+            href="/shipper/portal"
             className="text-sm text-gray-500 hover:text-black"
           >
             Already approved? Go to the shipper portal

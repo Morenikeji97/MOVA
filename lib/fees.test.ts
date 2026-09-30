@@ -46,7 +46,7 @@ test("escrow: above $200,000 there is no published estimate", () => {
 // feeBreakdown
 // ---------------------------------------------------------------------------
 
-test("MOVA fee is 8%", () => {
+test("ShipMova fee is 8%", () => {
   assert.equal(MOVA_FEE_RATE, 0.08);
 });
 

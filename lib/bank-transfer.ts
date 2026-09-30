@@ -5,7 +5,7 @@
  * both the buyer and admin side.
  */
 export function bankTransferReference(purchaseRequestId: string): string {
-  return `MOVA-${purchaseRequestId.replace(/-/g, "").slice(0, 8).toUpperCase()}`;
+  return `ShipMova-${purchaseRequestId.replace(/-/g, "").slice(0, 8).toUpperCase()}`;
 }
 
 export interface BankTransferDetails {
@@ -17,7 +17,7 @@ export interface BankTransferDetails {
 }
 
 /**
- * Reads MOVA's wire-transfer details from env vars — never hardcoded, since
+ * Reads ShipMova's wire-transfer details from env vars — never hardcoded, since
  * these change once the LLC / business bank account exists. Server-only.
  * Returns null if any are unset, so callers can hide the bank-transfer
  * option instead of rendering incomplete/blank details.

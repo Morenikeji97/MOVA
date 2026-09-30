@@ -21,9 +21,23 @@ const jetbrainsMono = JetBrains_Mono({
 export const metadata: Metadata = {
   // Absolute URLs in metadata (Open Graph etc.) always point at shipmova.com.
   metadataBase: new URL("https://shipmova.com"),
-  title: "MOVA — American cars. Global buyers.",
+  title: "ShipMova — American cars. Global buyers.",
   description:
     "Buy directly from verified U.S. sellers. Your payment is held by Escrow.com, and the seller isn't paid until the car is inspected and in your shipper's hands.",
+  applicationName: "ShipMova",
+  // Image comes from app/opengraph-image.png (logo on black, 1200x630).
+  openGraph: {
+    type: "website",
+    siteName: "ShipMova",
+    title: "ShipMova — American cars. Global buyers.",
+    description:
+      "Buy directly from verified U.S. sellers, with your payment held by Escrow.com until the car is inspected and with your shipper.",
+    url: "/",
+  },
+  twitter: {
+    card: "summary_large_image",
+    title: "ShipMova — American cars. Global buyers.",
+  },
 };
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {

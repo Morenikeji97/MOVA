@@ -10,7 +10,7 @@
  * Set NEXT_PUBLIC_WHATSAPP_NUMBER to an empty string to hide the button.
  */
 const DEFAULT_WHATSAPP_NUMBER = "16316173816";
-const DEFAULT_WHATSAPP_MESSAGE = "Hi, I have a question about MOVA";
+const DEFAULT_WHATSAPP_MESSAGE = "Hi, I have a question about ShipMova";
 
 /** Digits only — wa.me rejects "+", spaces and dashes. */
 export const WHATSAPP_NUMBER = (

@@ -31,7 +31,7 @@ export function ReviewForm({
     return (
       <div className="rounded-lg border border-verified-100 bg-verified-50 p-4 text-sm text-verified-600">
         Thanks — your review of {counterpartyLabel} was submitted and will appear
-        once MOVA has checked it.
+        once ShipMova has checked it.
       </div>
     );
   }

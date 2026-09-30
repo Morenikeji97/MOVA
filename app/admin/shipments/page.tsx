@@ -123,7 +123,7 @@ export default async function AdminShipmentsPage() {
       </h1>
       <p className="mt-2 text-sm text-gray-500">
         Every buyer&rarr;shipper shipment request, and what each shipper owes
-        MOVA in commission.
+        ShipMova in commission.
       </p>
 
       {/* Per-shipper commission summary */}

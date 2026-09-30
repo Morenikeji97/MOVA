@@ -4,7 +4,7 @@ import { buttonClasses } from "@/components/ui/button";
 import { ResendConfirmation } from "./resend-confirmation";
 
 export const metadata: Metadata = {
-  title: "This link has expired — MOVA",
+  title: "This link has expired — ShipMova",
 };
 
 /**
@@ -25,7 +25,7 @@ export default async function LinkExpiredPage({
     <main className="mx-auto flex min-h-[70vh] max-w-md flex-col justify-center px-6">
       <h1 className="text-2xl font-semibold text-black">This link has expired</h1>
       <p className="mt-2 text-gray-500">
-        Links in MOVA emails can only be used once and stop working after a
+        Links in ShipMova emails can only be used once and stop working after a
         while. {isReset ? "Request a new password-reset link below." : null}
         {isSignup ? "If you've already confirmed your email, just sign in." : null}
       </p>
@@ -41,7 +41,7 @@ export default async function LinkExpiredPage({
           </Link>
         )}
         <Link href="/" className={buttonClasses({ size: "md", variant: "secondary" })}>
-          Back to MOVA
+          Back to ShipMova
         </Link>
       </div>
 

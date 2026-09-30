@@ -16,7 +16,7 @@
  *     leetspeak digits), URLs / bare domains, social handles (with or without
  *     an "@")
  *   - physical meetups / street addresses
- *   - intent to move the deal off MOVA even with NO literal contact info —
+ *   - intent to move the deal off ShipMova even with NO literal contact info —
  *     "can we talk somewhere else?", "can we skip the fee and deal directly?"
  *
  * Everything here is a HARD block. The only user-visible difference is which
@@ -29,22 +29,22 @@
 
 /** Shown when the message contained (or structurally implied) literal contact info. */
 export const CONTACT_INFO_BLOCK_MESSAGE =
-  "Contact info can't be shared in chat — keep the conversation on MOVA so your purchase stays protected.";
+  "Contact info can't be shared in chat — keep the conversation on ShipMova so your purchase stays protected.";
 
 /**
  * Shown when the message had no literal contact info but was angling to move
  * the deal off-platform / around the fee. Kept short and polite.
  */
 export const CIRCUMVENTION_BLOCK_MESSAGE =
-  "Let's keep this on MOVA — your purchase is only protected while it stays on the platform.";
+  "Let's keep this on ShipMova — your purchase is only protected while it stays on the platform.";
 
 /**
- * Shown when the message tries to take the car payment off MOVA: paying a
+ * Shown when the message tries to take the car payment off ShipMova: paying a
  * person directly, bank details, payment apps, skipping escrow. Takes
  * priority over the other two reasons.
  */
 export const PAYMENT_BLOCK_MESSAGE =
-  "For your protection, all car payments go through Escrow.com on MOVA.";
+  "For your protection, all car payments go through Escrow.com on ShipMova.";
 
 /** Machine-readable categories, handy for logging / spotting repeat patterns. */
 export type ContactInfoCategory =
@@ -150,7 +150,7 @@ const BARE_DOMAIN_RE =
   /\b[a-z0-9](?:[a-z0-9-]*[a-z0-9])?\.(?:com|net|org|io|co|app|dev|xyz|info|biz|link|site|online|store|shop|me|tv|gg|ng|uk|us|ca|de|fr|ru|ly|to|tel)\b/i;
 
 /**
- * "Escrow.com" and "shipmova.com" written bare are how people name MOVA's
+ * "Escrow.com" and "shipmova.com" written bare are how people name ShipMova's
  * own payment partner and site, not an attempt to share a link — strip them
  * before the bare-domain check. Only the exact bare names: a real link
  * ("https://escrow.com/…", a fake-transaction phishing classic), a lookalike
@@ -288,48 +288,48 @@ const INTENT_PHRASE_RES: RegExp[] = [
   // middleman / fee dodging
   /\bcut(?:ting)?\s+out\s+(?:the\s+)?middle\s?man\b/i,
   /\b(?:cut|skip|lose|drop|remove)\s+(?:the\s+)?middle\s?man\b/i,
-  /\b(?:skip|avoid|dodge|bypass|save\s+on|get\s+around|get\s+past|beat|duck|escape)\s+(?:the\s+|mova'?s?\s+|that\s+|this\s+|your\s+|any\s+)?(?:fee|fees|commission|charge|charges|cut|markup|surcharge)\b/i,
-  /\bwithout\s+(?:going\s+through\s+|dealing\s+with\s+|using\s+)?(?:mova|the\s+(?:app|platform|site|middleman|fee|commission))\b/i,
-  /\bbehind\s+mova'?s?\s+back\b/i,
+  /\b(?:skip|avoid|dodge|bypass|save\s+on|get\s+around|get\s+past|beat|duck|escape)\s+(?:the\s+|(?:ship\s?)?mova'?s?\s+|that\s+|this\s+|your\s+|any\s+)?(?:fee|fees|commission|charge|charges|cut|markup|surcharge)\b/i,
+  /\bwithout\s+(?:going\s+through\s+|dealing\s+with\s+|using\s+)?(?:(?:ship\s?)?mova|the\s+(?:app|platform|site|middleman|fee|commission))\b/i,
+  /\bbehind\s+(?:ship\s?)?mova'?s?\s+back\b/i,
   /\bunder\s+the\s+table\b/i,
   /\bon\s+the\s+side\b/i,
   /\bkeep\s+it\s+between\s+us\b/i,
   /\bbetween\s+(?:you\s+and\s+me|just\s+us|us)\b/i,
-  /\bany\s+chance\s+(?:we|you|i)\b[^.?!]{0,40}\b(?:directly|privately|between\s+us|off[-\s]?(?:app|platform|mova)|without\s+mova|outside)\b/i,
+  /\bany\s+chance\s+(?:we|you|i)\b[^.?!]{0,40}\b(?:directly|privately|between\s+us|off[-\s]?(?:app|platform|(?:ship\s?)?mova)|without\s+(?:ship\s?)?mova|outside)\b/i,
   // "not lose 8%", "rather not pay the fee", "save the 8 percent"
   /\b(?:rather\s+not|don'?t\s+want\s+to|do\s+not\s+want\s+to|hate\s+to|not\s+trying\s+to|not\s+keen\s+to|would\s+rather\s+not)\s+(?:lose|pay|give\s+up|eat|cover|part\s+with)\s+(?:the\s+)?(?:\d{1,2}\s*(?:%|percent|per\s?cent)|8|eight|fee|commission|cut)\b/i,
   /\b(?:not\s+lose|save|avoid\s+losing|keep|hold\s+onto)\s+(?:the\s+|that\s+|my\s+)?\d{1,2}\s*(?:%|percent|per\s?cent)\b/i,
   // "work something out directly / between us / on our own"
-  /\bwork\s+(?:something|this|it|a\s+deal|things)\s+out\s+(?:directly|privately|between\s+us|off[-\s]?(?:app|platform|mova)|on\s+(?:our|the)\s+own|ourselves)\b/i,
+  /\bwork\s+(?:something|this|it|a\s+deal|things)\s+out\s+(?:directly|privately|between\s+us|off[-\s]?(?:app|platform|(?:ship\s?)?mova)|on\s+(?:our|the)\s+own|ourselves)\b/i,
   // "a quieter / private / different channel to talk / we could use"
   /\b(?:quiet(?:er)?|private|different|another|separate|alternative|other|second)\s+(?:channel|line)\b[^.?!]{0,25}\b(?:use|talk|chat|reach|message|contact)\b/i,
   /\b(?:use|talk\s+on|chat\s+on|switch\s+to)\b[^.?!]{0,15}\b(?:quiet(?:er)?|private|different|another|separate)\s+(?:channel|line)\b/i,
-  // "off the platform / app / record / MOVA", "take this offline"
-  /\boff[-\s]?(?:the\s+)?(?:platform|app|site|record|books|mova)\b/i,
+  // "off the platform / app / record / ShipMova", "take this offline"
+  /\boff[-\s]?(?:the\s+)?(?:platform|app|site|record|books|(?:ship\s?)?mova)\b/i,
   /\btake\s+(?:this|it|things?)\s+off(?:line|\s+platform|\s+the\s+app)\b/i,
-  /\boutside\s+(?:of\s+)?(?:mova|this\s+(?:app|platform|site|chat)|the\s+(?:app|platform|site))\b/i,
-  /\bnot\s+(?:on|through|via)\s+(?:mova|the\s+(?:app|platform|site))\b/i,
+  /\boutside\s+(?:of\s+)?(?:(?:ship\s?)?mova|this\s+(?:app|platform|site|chat)|the\s+(?:app|platform|site))\b/i,
+  /\bnot\s+(?:on|through|via)\s+(?:(?:ship\s?)?mova|the\s+(?:app|platform|site))\b/i,
   // "move/switch this chat to another app / WhatsApp / email"
   /\b(?:move|switch|shift|take|bring|continue|carry|do)\s+(?:this|it|the)(?:\s+(?:chat|convo|conversation|discussion|deal|talk|thing|rest))?\s+(?:to|onto|over\s+to|on|into)\s+(?:a\s+)?(?:different|another|other|new|separate|whats\s?app|telegram|signal|email|text|sms|dm)\b/i,
   /\b(?:talk|chat|speak|continue)\s+(?:on|over|via|through)\s+(?:whats\s?app|telegram|signal|email|text|sms|another\s+app|a\s+different\s+app)\b/i,
   // "somewhere private / else to talk", "is there somewhere private"
   /\bsome\s?(?:where|place)\s+(?:private|more\s+private|else|off[-\s]?(?:app|platform))\b/i,
-  /\b(?:continue|carry\s+on|keep\s+(?:this|talking|going)|pick\s+this\s+up|finish\s+this|talk)\b[^.?!]{0,30}\b(?:private(?:ly)?|elsewhere|somewhere\s+else|off[-\s]?(?:app|platform|mova))\b/i,
+  /\b(?:continue|carry\s+on|keep\s+(?:this|talking|going)|pick\s+this\s+up|finish\s+this|talk)\b[^.?!]{0,30}\b(?:private(?:ly)?|elsewhere|somewhere\s+else|off[-\s]?(?:app|platform|(?:ship\s?)?mova))\b/i,
   // "what other ways can I reach / get in touch with you"
   /\bwhat\s+(?:other\s+)?ways?\b[^.?!]{0,40}\b(?:reach|contact|get\s+(?:in\s+touch|a?\s*hold)|message|talk\s+to)\b/i,
   /\b(?:other|another|a\s+different|some\s+other)\s+ways?\s+(?:can|could|to|for|i|we|of|that|we\s+could)\b[^.?!]{0,30}\b(?:reach|contact|get\s+(?:in\s+touch|a?\s*hold)|message|talk|close|finish|complete|handle|settle|sort|do|wrap\s+up)\s+(?:this|it|the\s+(?:deal|sale)|you)\b/i,
-  /\bget\s+in\s+touch\s+with\s+you\b(?![^.?!]*\b(?:mova|support|team|here)\b)/i,
+  /\bget\s+in\s+touch\s+with\s+you\b(?![^.?!]*\b(?:(?:ship\s?)?mova|support|team|here)\b)/i,
   // deal / buy / sell directly or privately. "Pay directly" / "wire you" is
   // handled separately, by the payment rules below (PAYMENT_RES), so it gets
   // the escrow message rather than this one.
   /\b(?:deal|deals?|dealing|transact|do\s+business|trade)\s+(?:\w+\s+){0,2}(?:directly|direct|off[-\s]?(?:app|platform|site)|privately|1\s?on\s?1|one\s+on\s+one)\b/i,
-  /\b(?:buy|buying|purchase|purchasing|sell|selling)\s+(?:\w+\s+){0,3}(?:directly|direct|off[-\s]?(?:app|platform|site)|privately|outside\s+(?:of\s+)?(?:the\s+)?(?:app|platform|site|mova|here))\b/i,
+  /\b(?:buy|buying|purchase|purchasing|sell|selling)\s+(?:\w+\s+){0,3}(?:directly|direct|off[-\s]?(?:app|platform|site)|privately|outside\s+(?:of\s+)?(?:the\s+)?(?:app|platform|site|(?:ship\s?)?mova|here))\b/i,
   // question forms angling for another channel
   /\bwhat(?:'?s| is)\s+(?:the\s+)?best\s+way\s+to\s+(?:reach|contact|get\s+(?:to|hold\s+of)|message|talk\s+to)\s+you\b/i,
   /\b(?:another|other|a\s+different|some\s+other)\s+way\s+(?:to|i\s+can|we\s+can|for\s+me\s+to)\s+(?:reach|contact|message|talk\s+to|get\s+(?:to|hold\s+of))\s+you\b/i,
   /\bis\s+there\s+(?:a|any|some)\s+(?:way|other\s+way)\s+(?:to|i\s+can|we\s+can)\s+(?:reach|contact|message|talk\s+to|get\s+(?:to|hold\s+of))\s+you\b/i,
   /\b(?:can|could|may)\s+(?:we|i|you)\s+(?:talk|chat|speak|connect|communicate|continue|deal|do\s+this)\s+(?:somewhere\s+else|elsewhere|off[-\s]?(?:app|platform)|privately|outside|offline|direct(?:ly)?)\b/i,
-  /\bhow\s+(?:can|do|would|could|else\s+can)\s+(?:we|i)\s+(?:reach|contact|get\s+(?:to|hold\s+of)|message|talk\s+to)\s+you\b(?![^.?!]*\b(?:mova|support|team|help)\b)/i,
+  /\bhow\s+(?:can|do|would|could|else\s+can)\s+(?:we|i)\s+(?:reach|contact|get\s+(?:to|hold\s+of)|message|talk\s+to)\s+you\b(?![^.?!]*\b(?:(?:ship\s?)?mova|support|team|help)\b)/i,
   /\bhow\s+(?:can|do|else\s+can)\s+(?:we|i)\s+(?:do|make|handle|close|finish)\s+this\s+(?:without|outside|off|privately)\b/i,
   /\b(?:do|have)\s+you\s+(?:have|got)\s+(?:another|a\s+different|other|any\s+other)\s+(?:way|number|contact|line|method|channel)\b/i,
   /\b(?:reach|contact|message|get\s+(?:to|hold\s+of)|talk\s+to)\s+you\s+(?:direct(?:ly)?|outside|off[-\s]?(?:app|platform)|privately)\b/i,
@@ -342,9 +342,9 @@ const Q_OPENER_RE =
 const COMMS_VERB_RE =
   /\b(?:contact|reach(?:\s+out)?|talk|speak|chat|message|msg|connect|communicate|continue|carry\s+on|keep\s+(?:this|talking)|get\s+in\s+touch|get\s+hold|link\s+up)\b/i;
 const OFF_QUALIFIER_RE =
-  /\b(?:outside|off[-\s]?(?:app|platform|site|here|mova)|directly|direct|elsewhere|somewhere\s+(?:else|private)|some\s?place\s+(?:else|private)|another\s+way|other\s+way|different\s+way|(?:different|another|other)\s+(?:app|platform|number)|privately|in\s+private|without\s+mova|not\s+(?:here|on\s+mova|through\s+mova)|offline|on\s+the\s+side)\b/i;
+  /\b(?:outside|off[-\s]?(?:app|platform|site|here|(?:ship\s?)?mova)|directly|direct|elsewhere|somewhere\s+(?:else|private)|some\s?place\s+(?:else|private)|another\s+way|other\s+way|different\s+way|(?:different|another|other)\s+(?:app|platform|number)|privately|in\s+private|without\s+(?:ship\s?)?mova|not\s+(?:here|on\s+(?:ship\s?)?mova|through\s+(?:ship\s?)?mova)|offline|on\s+the\s+side)\b/i;
 const STRONG_OFF_RE =
-  /\b(?:outside|off[-\s]?(?:app|platform|site|mova)|privately|somewhere\s+(?:else|private)|another\s+way|(?:different|another)\s+(?:app|platform)|without\s+mova|on\s+the\s+side|offline)\b/i;
+  /\b(?:outside|off[-\s]?(?:app|platform|site|(?:ship\s?)?mova)|privately|somewhere\s+(?:else|private)|another\s+way|(?:different|another)\s+(?:app|platform)|without\s+(?:ship\s?)?mova|on\s+the\s+side|offline)\b/i;
 
 function isOffPlatformIntent(text: string): boolean {
   if (INTENT_PHRASE_RES.some((re) => re.test(text))) return true;
@@ -377,7 +377,7 @@ const ADDRESS_RES: RegExp[] = [
   /\b(?:address|location)\s*(?:is|:|=)\s*\S/i,
   /\bwhere\s+are\s+you\s+(?:located|based|at)\b/i,
   /\bwhat(?:'?s| is)\s+your\s+(?:address|location)\b/i,
-  /\bsend\s+(?:me\s+)?(?:your|the)\s+(?:street\s+|home\s+|full\s+)?address\b(?![^.?!]*\bmova\b)/i,
+  /\bsend\s+(?:me\s+)?(?:your|the)\s+(?:street\s+|home\s+|full\s+)?address\b(?![^.?!]*\b(?:ship\s?)?mova\b)/i,
   /\bcome\s+(?:get|pick)\s+it\b/i,
   /\bpick(?:\s*it)?\s*up\s+(?:at|from\s+my|in\s+person)\b/i,
 ];
@@ -407,7 +407,7 @@ const STRUCTURAL: ContactInfoCategory[] = [
 //
 // The car price only ever goes into Escrow.com. Anything steering the money
 // to a person, an account, a payment app, or around escrow is blocked.
-// Deliberately NOT matched: "bank transfer" (MOVA's own fee can be paid by
+// Deliberately NOT matched: "bank transfer" (ShipMova's own fee can be paid by
 // bank transfer), Apple Pay / Google Pay (Stripe takes them for the fee),
 // and "send" without a money word ("send me more photos").
 
@@ -425,8 +425,8 @@ const PAYMENT_RES: RegExp[] = [
   new RegExp(String.raw`\b${PAY_VERB}\s*(?:it|that|this|the\s*${MONEY}|${MONEY})?\s*(?:to\s*)?${PERSON}\s*${DIRECTLY}\b`),
   // "pay directly to me", "wire it straight to you"
   new RegExp(String.raw`\b${PAY_VERB}\s*(?:it|that|this|the\s*${MONEY}|${MONEY})?\s*${DIRECTLY}\s*(?:in)?to\s*${PERSON}\b`),
-  // "can I just pay directly?" — unless it's directly to MOVA / escrow
-  new RegExp(String.raw`\bpay\w*\s*(?:for\s*(?:it|the\s*car)\s*)?${DIRECTLY}\b(?!\s*(?:to|into|through|via|with)\s*(?:mova|escrow))`),
+  // "can I just pay directly?" — unless it's directly to ShipMova / escrow
+  new RegExp(String.raw`\bpay\w*\s*(?:for\s*(?:it|the\s*car)\s*)?${DIRECTLY}\b(?!\s*(?:to|into|through|via|with)\s*(?:(?:ship\s?)?mova|escrow))`),
   // "wire it to me", "transfer the balance to the seller", "deposit it into my account"
   new RegExp(String.raw`\b(?:wire|wired|wiring|wyre|transfer\w*|deposit\w*|remit)\s*(?:it|that|this|the\s*${MONEY}|${MONEY})\s*${TO_PERSON_OR_ACCOUNT}`),
   // "send the money to my account", "pay the balance to you"
@@ -435,7 +435,7 @@ const PAYMENT_RES: RegExp[] = [
   new RegExp(String.raw`\b(?:send|sent|wire|wired|transfer)\s*(?:me|you|him|her)\s*(?:the\s*)?${MONEY}\b`),
   // bank-account details (not "bank transfer" — see above)
   /\b(?:bank\s*(?:account|acct|acount|details?|info|number|no\b)|account\s*(?:number|no\b|num\b|#|details)|acct\s*(?:no\b|number|num\b|#)|routing\s*(?:number|no\b|#)|iban|swift\s*code|sort\s*code)/,
-  // payment apps / channels MOVA never uses for the car
+  // payment apps / channels ShipMova never uses for the car
   /\b(?:zelle|zele|zell|cash\s*app|cashap+|cash\s*ap\b|pay\s*pal+|paypl|venmo|vemno|western\s*union|money\s*gram|moneygram|remitly|world\s*remit|worldremit|wise\s*transfer|bitcoin|btc|usdt|crypto|gift\s*cards?)\b/,
   // skipping / going around escrow
   /\b(?:skip|skipping|avoid|avoiding|bypass|without|w\/o|no\s*need\s*(?:for|of)|dont\s*need|don'?t\s*need|do\s*not\s*need|don'?t\s*use|do\s*not\s*use|forget|cut\s*out|outside(?:\s*of)?|instead\s*of|around|not\s*(?:through|via|using|use))\s*(?:the\s*|using\s*|of\s*)?(?:escrow\w*|escro\w*|escrw\w*|ecrow\w*|escrew\w*)\b/,

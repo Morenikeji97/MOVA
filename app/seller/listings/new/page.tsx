@@ -18,7 +18,7 @@ import { isValidVin, VIN_ERROR_MESSAGE } from "@/lib/vin";
 import { modelYearFrom, nigeriaImportStatus, vinYearCode } from "@/lib/import-rules";
 
 /** Seller-form error for vehicles_vin_active_unique (0044). */
-const DUPLICATE_VIN_MESSAGE = "This VIN is already listed on MOVA";
+const DUPLICATE_VIN_MESSAGE = "This VIN is already listed on ShipMova";
 import { US_STATES } from "@/lib/us-states";
 
 const MAX_PHOTOS = 20;
@@ -720,7 +720,7 @@ export default function NewListingPage() {
                   shouldDirty: true,
                 })
               }
-              successMessage="Title photo uploaded — MOVA will review it alongside your listing."
+              successMessage="Title photo uploaded — ShipMova will review it alongside your listing."
               removeAriaLabel="Remove title photo"
             />
           </Field>
@@ -751,7 +751,7 @@ export default function NewListingPage() {
                     shouldDirty: true,
                   })
                 }
-                successMessage="Authorization document uploaded — MOVA will review it alongside your title."
+                successMessage="Authorization document uploaded — ShipMova will review it alongside your title."
                 removeAriaLabel="Remove authorization document"
               />
             </Field>
@@ -790,7 +790,7 @@ export default function NewListingPage() {
 
           <fieldset className="flex flex-col gap-2 sm:col-span-2">
             <legend className="text-sm text-gray-500">
-              Who covers MOVA&rsquo;s 8% service fee?
+              Who covers ShipMova&rsquo;s 8% service fee?
             </legend>
             <label className="flex items-start gap-2 rounded border border-gray-200 bg-white p-3">
               <input

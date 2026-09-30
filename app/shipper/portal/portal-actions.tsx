@@ -2,7 +2,7 @@
 
 import { useFormStatus } from "react-dom";
 import { Button } from "@/components/ui/button";
-import { claimShipper, startShipperCardSetup } from "./actions";
+import { claimShipper, startShipperCardSetup } from "../actions";
 
 function Pending({
   idle,

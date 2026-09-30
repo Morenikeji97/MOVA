@@ -1,5 +1,5 @@
 /**
- * MOVA — shipping ESTIMATES for the listing page. Not a quote: the buyer
+ * ShipMova — shipping ESTIMATES for the listing page. Not a quote: the buyer
  * gets a firm price from their chosen shipper after reserving.
  *
  * Published 2026 port-to-port RoRo rates (BR Logistics, WC Shipping, Shipit). Replace with real shipper rates once onboarded.

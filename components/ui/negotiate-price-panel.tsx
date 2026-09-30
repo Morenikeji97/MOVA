@@ -72,7 +72,7 @@ export function NegotiatePricePanel({
       {locked ? (
         <p className="mt-3 rounded border border-verified-100 bg-verified-50 p-3 text-sm text-verified-600">
           The buyer accepted {negotiatedPriceUsd != null ? usd.format(negotiatedPriceUsd) : "your offer"}.
-          MOVA&rsquo;s fee will be based on this price.
+          ShipMova&rsquo;s fee will be based on this price.
         </p>
       ) : (
         <>

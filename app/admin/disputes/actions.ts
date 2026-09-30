@@ -98,7 +98,7 @@ export async function denyDispute(formData: FormData): Promise<void> {
 }
 
 /**
- * Record-keeping only: marks a refund MOVA already processed manually
+ * Record-keeping only: marks a refund ShipMova already processed manually
  * (Stripe dashboard, or a manual bank transfer) as completed. Only reachable
  * from 'approved_pending_refund' — a denied dispute has nothing to complete.
  */

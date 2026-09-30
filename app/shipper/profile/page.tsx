@@ -11,7 +11,7 @@ function Shell({ children }: { children: ReactNode }) {
   return (
     <main className="mx-auto max-w-2xl px-6 py-16">
       <Link
-        href="/shipper"
+        href="/shipper/portal"
         className="font-mono text-xs uppercase tracking-wider text-gray-500 hover:text-black"
       >
         &larr; Shipper portal
@@ -35,7 +35,7 @@ export default async function ShipperProfilePage() {
     .maybeSingle();
 
   if (!shipper || shipper.status !== "approved") {
-    redirect("/shipper");
+    redirect("/shipper/portal");
   }
 
   const [{ data: ratingRow }, { data: reviewRows }] = await Promise.all([

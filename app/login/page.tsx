@@ -45,7 +45,7 @@ function LoginForm() {
 
   return (
     <main className="mx-auto flex min-h-screen max-w-md flex-col justify-center px-6">
-      <h1 className="mb-6 text-2xl font-semibold text-black">Sign in to MOVA</h1>
+      <h1 className="mb-6 text-2xl font-semibold text-black">Sign in to ShipMova</h1>
 
       {resetNotice === "success" ? (
         <p className="mb-4 rounded border border-verified-100 bg-verified-50 p-3 text-sm text-verified-600">
@@ -93,12 +93,12 @@ function LoginForm() {
         </Button>
       </form>
 
-      {/* MOVA has no separate username — the email above is it, for every
+      {/* ShipMova has no separate username — the email above is it, for every
           account type (buyer, seller, shipper, admin). So there's nothing
           to build here beyond this note: if you can't remember which email
           you signed up with, there's no separate identity to recover. */}
       <p className="mt-3 text-center text-xs text-gray-500">
-        Your email is your MOVA username — there&rsquo;s no separate login name.
+        Your email is your ShipMova username — there&rsquo;s no separate login name.
       </p>
 
       <p className="mt-6 text-center text-sm text-gray-500">

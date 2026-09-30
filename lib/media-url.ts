@@ -1,5 +1,5 @@
 /**
- * MOVA — show listing photos and videos from MOVA's own address.
+ * ShipMova — show listing photos and videos from ShipMova's own address.
  *
  * Files stay in Supabase Storage and the database keeps storing Supabase's
  * URL (the photo editor matches photos by that exact URL, so it must not

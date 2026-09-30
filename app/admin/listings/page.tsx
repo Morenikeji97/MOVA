@@ -48,7 +48,7 @@ function DocumentPreview({
   if (!url) {
     return <p className="mt-1 text-sm text-copper-700">{emptyLabel}</p>;
   }
-  // Signed Storage URL -> /media-signed/…, so it opens on MOVA's address.
+  // Signed Storage URL -> /media-signed/…, so it opens on ShipMova's address.
   url = mediaUrl(url);
   if (path?.toLowerCase().endsWith(".pdf")) {
     return (

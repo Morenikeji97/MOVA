@@ -11,24 +11,27 @@ import {
 } from "@/lib/prelaunch";
 import { joinWaitlist } from "@/app/waitlist/actions";
 
-const COPY: Record<WaitlistAudience, { heading: string; intro: string; success: string }> = {
+/** This form is for buyers and sellers; partners use PartnerWaitlistForm. */
+type BuyerOrSeller = Extract<WaitlistAudience, "buyer" | "seller">;
+
+const COPY: Record<BuyerOrSeller, { heading: string; intro: string; success: string }> = {
   buyer: {
     heading: "Join the waitlist",
     intro:
-      "MOVA isn't taking reservations or payments yet. Leave an email or WhatsApp number and we'll tell you the moment we launch.",
-    success: "We'll message you as soon as MOVA launches.",
+      "ShipMova isn't taking reservations or payments yet. Leave an email or WhatsApp number and we'll tell you the moment we launch.",
+    success: "We'll message you as soon as ShipMova launches.",
   },
   seller: {
     heading: "Get notified when we launch — list your car early",
     intro:
       "Leave an email or WhatsApp number and we'll tell you as soon as buyers can reserve. You can list your car now.",
-    success: "We'll message you as soon as buyers can reserve on MOVA.",
+    success: "We'll message you as soon as buyers can reserve on ShipMova.",
   },
 };
 
 /**
  * Pre-launch waitlist form: an email or WhatsApp number, plus a country.
- * Stands in for Reserve and the MOVA-fee step, and sits on the homepage,
+ * Stands in for Reserve and the ShipMova-fee step, and sits on the homepage,
  * /how-it-works, an empty /browse, and (seller version) /sell.
  */
 export function WaitlistForm({
@@ -40,7 +43,7 @@ export function WaitlistForm({
   className,
 }: {
   source: WaitlistSource;
-  audience?: WaitlistAudience;
+  audience?: BuyerOrSeller;
   vehicleId?: string;
   heading?: string;
   intro?: string;

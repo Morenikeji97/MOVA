@@ -11,7 +11,7 @@ export type AcceptFeePaymentPolicyResult =
   | { ok: false; error: string };
 
 /**
- * Buyer's "I understand and agree" acceptance on the MOVA-fee payment step,
+ * Buyer's "I understand and agree" acceptance on the ShipMova-fee payment step,
  * just before they're sent to the pre-built Stripe Checkout link. Refused
  * while PRELAUNCH is on (lib/prelaunch.ts). A
  * separate acceptance from the signup-time one — this one is tied to the

@@ -81,7 +81,7 @@ export async function SellerReviewHub({ userId }: { userId: string }) {
         {openPr.length === 0 ? (
           <p className="mt-2 text-sm text-gray-500">
             Nothing to review yet — you can review a buyer once they&rsquo;ve
-            paid MOVA&rsquo;s fee on one of your vehicles.
+            paid ShipMova&rsquo;s fee on one of your vehicles.
           </p>
         ) : (
           <div className="mt-3 flex flex-col gap-4">

@@ -99,7 +99,7 @@ export async function BuyerReviewHub({ userId }: { userId: string }) {
         {nothingToLeave ? (
           <p className="mt-2 text-sm text-gray-500">
             Nothing to review yet — you can review a seller once you&rsquo;ve paid
-            MOVA&rsquo;s fee, and a shipper once your shipment is completed.
+            ShipMova&rsquo;s fee, and a shipper once your shipment is completed.
           </p>
         ) : (
           <div className="mt-3 flex flex-col gap-4">

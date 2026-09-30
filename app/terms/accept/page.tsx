@@ -9,8 +9,8 @@ import { CURRENT_TERMS_VERSION, TERMS_EFFECTIVE_DATE } from "@/lib/terms";
 import { CURRENT_PRIVACY_VERSION, PRIVACY_EFFECTIVE_DATE } from "@/lib/privacy";
 
 export const metadata: Metadata = {
-  title: "Terms & Privacy — MOVA",
-  description: "Review and accept MOVA's Terms & Conditions and Privacy Policy to continue.",
+  title: "Terms & Privacy — ShipMova",
+  description: "Review and accept ShipMova's Terms & Conditions and Privacy Policy to continue.",
 };
 
 export const dynamic = "force-dynamic";
@@ -70,7 +70,7 @@ export default async function AcceptPoliciesPage({
       </h1>
       <p className="mt-2 text-sm text-gray-500">
         You must accept the current Terms &amp; Conditions and Privacy Policy
-        to continue using MOVA.
+        to continue using ShipMova.
       </p>
 
       {needsTerms ? (

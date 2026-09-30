@@ -42,7 +42,7 @@ export function AcceptPoliciesForm({
             onChange={(e) => setTermsAgreed(e.target.checked)}
             className="mt-0.5"
           />
-          <span>I have read and agree to the MOVA Terms &amp; Conditions.</span>
+          <span>I have read and agree to the ShipMova Terms &amp; Conditions.</span>
         </label>
       ) : null}
 
@@ -54,7 +54,7 @@ export function AcceptPoliciesForm({
             onChange={(e) => setPrivacyAgreed(e.target.checked)}
             className="mt-0.5"
           />
-          <span>I have read and agree to the MOVA Privacy Policy.</span>
+          <span>I have read and agree to the ShipMova Privacy Policy.</span>
         </label>
       ) : null}
 

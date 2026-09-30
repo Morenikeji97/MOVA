@@ -1,6 +1,6 @@
-# MOVA auth emails — Supabase dashboard setup
+# ShipMova auth emails — Supabase dashboard setup
 
-Supabase sends MOVA's sign-up, sign-in, email-change, invite and password-reset
+Supabase sends ShipMova's sign-up, sign-in, email-change, invite and password-reset
 emails. The HTML for each lives here; Supabase doesn't read these files, so
 they're applied by hand in the dashboard. Project: `dplwwsednwkcvhgnuvgw`.
 
@@ -10,14 +10,14 @@ exists once the `branded-auth-emails` change is deployed: paste them just
 before testing on the deploy preview, or right after merging. If they're live
 while shipmova.com still runs the old build, emails sent from shipmova.com
 will have broken links until the merge deploys. Nothing depends on that while
-MOVA is in pre-launch.
+ShipMova is in pre-launch.
 
 ## 1. Send from noreply@shipmova.com through Resend (custom SMTP)
 
 Prerequisite: shipmova.com shows **Verified** at https://resend.com/domains.
 
 1. Create a key at https://resend.com/api-keys → **Create API key**.
-   - Name: `Supabase SMTP (MOVA)`
+   - Name: `Supabase SMTP (ShipMova)`
    - Permission: **Sending access**
    - Domain: `shipmova.com`
    - Copy the key (starts `re_`). It's shown once. Don't paste it anywhere else.
@@ -28,7 +28,7 @@ Prerequisite: shipmova.com shows **Verified** at https://resend.com/domains.
    | Field | Value |
    |---|---|
    | Sender email | `noreply@shipmova.com` |
-   | Sender name | `MOVA` |
+   | Sender name | `ShipMova` |
    | Host | `smtp.resend.com` |
    | Port number | `465` |
    | Username | `resend` |
@@ -55,7 +55,7 @@ Open https://supabase.com/dashboard/project/dplwwsednwkcvhgnuvgw/auth/url-config
    calling the auth API directly) then won't match, falls back to the Site
    URL, and still produces a working link. With a `/**` entry the path would
    be kept, making `…/dashboard/auth/confirm` and a broken link. Nothing in
-   MOVA needs a path allowed: there's no OAuth sign-in and no other redirect
+   ShipMova needs a path allowed: there's no OAuth sign-in and no other redirect
    flow.
 
    Emails requested on a deploy preview link back to that preview. Anything
@@ -84,17 +84,17 @@ the top), and **Save**.
 
 | Dashboard template | Subject | File |
 |---|---|---|
-| Confirm signup | `Confirm your MOVA account` | `confirm-signup.html` |
-| Invite user | `You're invited to MOVA` | `invite.html` |
-| Magic link | `Your MOVA sign-in link` | `magic-link.html` |
-| Change email address | `Confirm your new MOVA email` | `change-email.html` |
-| Reset password | `Reset your MOVA password` | `recovery.html` |
+| Confirm signup | `Confirm your ShipMova account` | `confirm-signup.html` |
+| Invite user | `You're invited to ShipMova` | `invite.html` |
+| Magic link | `Your ShipMova sign-in link` | `magic-link.html` |
+| Change email address | `Confirm your new ShipMova email` | `change-email.html` |
+| Reset password | `Reset your ShipMova password` | `recovery.html` |
 
-(Leave "Reauthentication" as is. MOVA doesn't use it.)
+(Leave "Reauthentication" as is. ShipMova doesn't use it.)
 
 Every link has the form
 `{{ .RedirectTo }}/auth/confirm?token_hash={{ .TokenHash }}&type=<type>&next=<path>`.
-`/auth/confirm` verifies the link on the MOVA site and signs the user in:
+`/auth/confirm` verifies the link on the ShipMova site and signs the user in:
 
 | Type | Lands on |
 |---|---|
@@ -106,6 +106,6 @@ Every link has the form
 ## 5. Check it
 
 Sign up at https://shipmova.com/signup (or on a deploy preview) with an email
-you can read. The email should come from **MOVA &lt;noreply@shipmova.com&gt;**,
-show the MOVA logo, and its button link should start with the site you signed
+you can read. The email should come from **ShipMova &lt;noreply@shipmova.com&gt;**,
+show the ShipMova logo, and its button link should start with the site you signed
 up on, never `supabase.co`.

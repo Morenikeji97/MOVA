@@ -4,9 +4,9 @@ import { MarkdownLite } from "@/components/ui/markdown-lite";
 import { BUYER_PROTECTION_POLICY_MARKDOWN } from "@/lib/policy-content";
 
 export const metadata: Metadata = {
-  title: "Buyer Protection & Refund Policy — MOVA",
+  title: "Buyer Protection & Refund Policy — ShipMova",
   description:
-    "MOVA's Buyer Protection & Refund Policy — when the service fee is refundable, and how disputes are handled.",
+    "ShipMova's Buyer Protection & Refund Policy — when the service fee is refundable, and how disputes are handled.",
 };
 
 export default function BuyerProtectionPolicyPage() {
@@ -16,7 +16,7 @@ export default function BuyerProtectionPolicyPage() {
         href="/"
         className="font-mono text-xs uppercase tracking-wider text-gray-500 hover:text-black"
       >
-        &larr; MOVA
+        &larr; ShipMova
       </Link>
       <article className="mt-6">
         <MarkdownLite source={BUYER_PROTECTION_POLICY_MARKDOWN} />

@@ -2,7 +2,7 @@ import { round2 } from "./fees.ts";
 import type { ShipperPaymentStatus, ShippingMethod, VehicleSizeType } from "@/types/database";
 
 /**
- * MOVA's commission on a completed shipment, as a whole-number percent. Stored
+ * ShipMova's commission on a completed shipment, as a whole-number percent. Stored
  * per-row on shipment_requests.commission_pct at selection time so historical
  * rows keep the rate they were created under, but new rows use this value.
  */
@@ -16,7 +16,7 @@ export const SHIPPER_COMMISSION_PCT = 8;
  */
 export const SHIPPER_SUSPEND_AFTER_UNPAID = 2;
 
-/** Countries MOVA ships to. ISO-3166 alpha-2 codes stored in the DB. */
+/** Countries ShipMova ships to. ISO-3166 alpha-2 codes stored in the DB. */
 export const SERVICE_COUNTRIES = [
   { code: "NG", name: "Nigeria" },
   { code: "GH", name: "Ghana" },
@@ -77,7 +77,7 @@ export function shippingMethodLabel(m: ShippingMethod): string {
   return SHIPPING_METHOD_LABEL[m];
 }
 
-/** MOVA's commission owed on an agreed shipping rate. */
+/** ShipMova's commission owed on an agreed shipping rate. */
 export function commissionOwed(
   agreedRate: number,
   pct: number = SHIPPER_COMMISSION_PCT,

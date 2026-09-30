@@ -43,7 +43,7 @@ export function AcceptPricePrompt({
   if (accepted) {
     return (
       <p className="mt-3 rounded border border-verified-100 bg-verified-50 p-3 text-sm text-verified-600">
-        Accepted — {usd.format(negotiatedPriceUsd)}. MOVA&rsquo;s service fee will
+        Accepted — {usd.format(negotiatedPriceUsd)}. ShipMova&rsquo;s service fee will
         be based on this price.
       </p>
     );
@@ -56,7 +56,7 @@ export function AcceptPricePrompt({
         {usd.format(listingPriceUsd)}
       </p>
       <p className="mt-1 text-sm text-gray-500">
-        Accepting locks in this price for your reservation — MOVA&rsquo;s service
+        Accepting locks in this price for your reservation — ShipMova&rsquo;s service
         fee will be calculated from it instead of the listing price.
       </p>
       <Button type="button" size="sm" className="mt-3" onClick={accept} disabled={pending}>

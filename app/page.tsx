@@ -8,6 +8,7 @@ import { loadRecentApprovedListings } from "@/lib/listings";
 import { SELLER_SPLITS_FEE_BADGE } from "@/lib/fees";
 import { isPrelaunch } from "@/lib/prelaunch";
 import { WaitlistForm } from "@/components/ui/waitlist-form";
+import { WhyBuy } from "@/components/ui/why-buy";
 
 const TRUST_STRIP = [
   "Verified sellers",
@@ -37,7 +38,7 @@ const FEE_COVERS = [
   },
   {
     title: "Protected payment",
-    body: "your money is held by Escrow.com, a licensed escrow company, never sent to the seller or MOVA directly.",
+    body: "your money is held by Escrow.com, a licensed escrow company, never sent to the seller or ShipMova directly.",
   },
   {
     title: "Support until it ships",
@@ -46,8 +47,8 @@ const FEE_COVERS = [
 ];
 
 const MONEY_STEPS = [
-  "You pay MOVA's fee by card. It covers verification and coordination.",
-  "You pay the car price into Escrow.com. It's held there — not by the seller, not by MOVA.",
+  "You pay ShipMova's fee by card. It covers verification and coordination.",
+  "You pay the car price into Escrow.com. It's held there — not by the seller, not by ShipMova.",
   "An inspector checks the car in person and confirms it matches the listing.",
   "Your shipper collects the car and the original title. U.S. law requires the original title for export.",
   "Only then does Escrow.com pay the seller.",
@@ -109,8 +110,10 @@ export default async function Home() {
         </div>
       </section>
 
+      <WhyBuy waitlistHref={isPrelaunch() ? "#waitlist" : null} />
+
       {isPrelaunch() ? (
-        <section className="border-b border-gray-200 bg-gray-100">
+        <section id="waitlist" className="scroll-mt-4 border-y border-gray-200 bg-gray-100">
           <div className="mx-auto max-w-6xl px-6 py-10">
             <WaitlistForm source="home" className="max-w-3xl" />
           </div>
@@ -174,7 +177,7 @@ export default async function Home() {
         <div className="mx-auto max-w-6xl px-6 py-16">
           <h2 className="text-2xl font-semibold text-black">What the 8% covers</h2>
           <p className="mt-3 max-w-2xl text-gray-500">
-            Every car on MOVA goes through checks you can&rsquo;t easily do
+            Every car on ShipMova goes through checks you can&rsquo;t easily do
             yourself from your country:
           </p>
           <ul className="mt-6 grid grid-cols-1 gap-4 sm:grid-cols-2">
@@ -186,7 +189,7 @@ export default async function Home() {
             ))}
           </ul>
           <p className="mt-6 max-w-2xl text-sm text-gray-500">
-            MOVA&rsquo;s fee is 8% of the car price, shown before you commit. On
+            ShipMova&rsquo;s fee is 8% of the car price, shown before you commit. On
             some listings the seller pays half — look for the &ldquo;
             {SELLER_SPLITS_FEE_BADGE}&rdquo; badge. Escrow.com&rsquo;s fee is
             shown separately.
@@ -210,7 +213,7 @@ export default async function Home() {
             ))}
           </ol>
           <div className="mt-6 max-w-2xl rounded-lg border border-copper-100 bg-copper-50 p-5">
-            <p className="font-semibold text-copper-700">MOVA will never&hellip;</p>
+            <p className="font-semibold text-copper-700">ShipMova will never&hellip;</p>
             <ul className="mt-2 list-disc space-y-1 pl-5 text-sm text-copper-700">
               <li>send you bank details on WhatsApp, email or text</li>
               <li>ask you to pay a person directly</li>

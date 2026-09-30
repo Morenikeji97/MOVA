@@ -4,8 +4,8 @@ import { buttonClasses } from "@/components/ui/button";
 import { REFERRAL_BATCH_SIZE, REFERRAL_PAYOUT_AMOUNT_USD } from "@/lib/referrals";
 
 export const metadata: Metadata = {
-  title: "Referral Program — MOVA",
-  description: `Earn $${REFERRAL_PAYOUT_AMOUNT_USD} for every ${REFERRAL_BATCH_SIZE} people you refer to MOVA who complete a transaction.`,
+  title: "Referral Program — ShipMova",
+  description: `Earn $${REFERRAL_PAYOUT_AMOUNT_USD} for every ${REFERRAL_BATCH_SIZE} people you refer to ShipMova who complete a transaction.`,
 };
 
 function Step({ n, title, children }: { n: number; title: string; children: React.ReactNode }) {
@@ -28,16 +28,16 @@ export default function ReferralsPage() {
       <section className="bg-black text-white">
         <div className="mx-auto max-w-4xl px-6 py-16">
           <p className="font-mono text-sm uppercase tracking-widest text-gray-400">
-            MOVA Referral Program
+            ShipMova Referral Program
           </p>
           <h1 className="mt-4 max-w-2xl text-4xl font-semibold leading-tight sm:text-5xl">
             Earn ${REFERRAL_PAYOUT_AMOUNT_USD.toLocaleString()} for every {REFERRAL_BATCH_SIZE}{" "}
-            people you bring to MOVA.
+            people you bring to ShipMova.
           </h1>
           <p className="mt-4 max-w-xl text-gray-300">
             Every Buyer and every Seller account gets its own referral link.
             Once {REFERRAL_BATCH_SIZE} people you referred complete a
-            transaction on MOVA, you get paid ${REFERRAL_PAYOUT_AMOUNT_USD.toLocaleString()}
+            transaction on ShipMova, you get paid ${REFERRAL_PAYOUT_AMOUNT_USD.toLocaleString()}
             . No cap — refer {REFERRAL_BATCH_SIZE * 2}, get paid twice; refer{" "}
             {REFERRAL_BATCH_SIZE * 10}, get paid ten times.
           </p>
@@ -72,11 +72,11 @@ export default function ReferralsPage() {
           </Step>
           <Step n={3} title="They complete a transaction">
             A referral qualifies once the person you referred pays
-            MOVA&rsquo;s service fee on their first transaction and passes
+            ShipMova&rsquo;s service fee on their first transaction and passes
             their own identity verification.
           </Step>
           <Step n={4} title={`Get paid every ${REFERRAL_BATCH_SIZE}`}>
-            Once you hit {REFERRAL_BATCH_SIZE} qualifying referrals, MOVA
+            Once you hit {REFERRAL_BATCH_SIZE} qualifying referrals, ShipMova
             pays out ${REFERRAL_PAYOUT_AMOUNT_USD.toLocaleString()} — and the
             count keeps going toward your next payout.
           </Step>

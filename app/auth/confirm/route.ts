@@ -9,7 +9,7 @@ import {
 import { redirectToPath } from "@/lib/relative-redirect";
 
 /**
- * Landing route for every MOVA auth email (supabase/email-templates/):
+ * Landing route for every ShipMova auth email (supabase/email-templates/):
  *   /auth/confirm?token_hash=…&type=email|recovery|magiclink|invite|email_change&next=…
  *
  * Verifies the one-time token on this site (so the user never passes

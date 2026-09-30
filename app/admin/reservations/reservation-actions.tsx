@@ -61,7 +61,7 @@ export function ReservationActions({
       ) : null}
       {canRequestFee && prelaunch ? (
         <span className="text-sm text-copper-700">
-          Pre-launch: fee payment links are switched off until MOVA launches.
+          Pre-launch: fee payment links are switched off until ShipMova launches.
         </span>
       ) : null}
       {canRequestFee && !prelaunch ? (

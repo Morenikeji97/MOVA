@@ -1,6 +1,6 @@
 import type { MovaFeePaymentStatus } from "@/types/database";
 
-/** How long a buyer has to complete the MOVA service fee once it's requested. */
+/** How long a buyer has to complete the ShipMova service fee once it's requested. */
 export const AUTO_RELEASE_WINDOW_HOURS = 24;
 
 /** Below this many hours to the deadline, admin sees "expires soon" styling. */

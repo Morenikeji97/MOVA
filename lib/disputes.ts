@@ -15,7 +15,7 @@ export const DISPUTE_CATEGORY_LABEL: Record<DisputeCategory, string> = {
 };
 
 export const DISPUTE_STATUS_LABEL: Record<DisputeStatus, string> = {
-  open: "Open — awaiting MOVA review",
+  open: "Open — awaiting ShipMova review",
   approved_pending_refund: "Approved — refund pending",
   denied: "Denied",
   refund_completed: "Refund completed",
