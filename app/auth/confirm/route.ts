@@ -1,10 +1,11 @@
-import { NextResponse, type NextRequest } from "next/server";
+import { type NextRequest } from "next/server";
 import { createClient } from "@/lib/supabase/server";
 import {
   destinationAfterConfirm,
   isEmailLinkType,
   LINK_EXPIRED_PATH,
 } from "@/lib/auth-redirect";
+import { redirectToPath } from "@/lib/relative-redirect";
 
 /**
  * Landing route for every MOVA auth email (supabase/email-templates/):
@@ -14,6 +15,9 @@ import {
  * through a supabase.co address), which signs them in via the session
  * cookie, then sends them on — see lib/auth-redirect.ts for where. An
  * expired, reused or malformed link goes to /auth/link-expired.
+ *
+ * Redirects are relative paths (lib/relative-redirect.ts): behind Netlify,
+ * request.url is the deploy's internal netlify.app address, not shipmova.com.
  */
 export async function GET(request: NextRequest) {
   const url = request.nextUrl;
@@ -22,10 +26,9 @@ export async function GET(request: NextRequest) {
   const next = url.searchParams.get("next");
 
   const fail = (reason: string) => {
-    const dest = new URL(LINK_EXPIRED_PATH, request.url);
-    dest.searchParams.set("reason", reason);
-    if (isEmailLinkType(type)) dest.searchParams.set("type", type);
-    return NextResponse.redirect(dest);
+    const q = new URLSearchParams({ reason });
+    if (isEmailLinkType(type)) q.set("type", type);
+    return redirectToPath(`${LINK_EXPIRED_PATH}?${q}`);
   };
 
   if (!tokenHash || !isEmailLinkType(type)) return fail("invalid");
@@ -42,11 +45,12 @@ export async function GET(request: NextRequest) {
     supabase.from("shippers").select("id").eq("user_id", data.user.id).maybeSingle(),
   ]);
 
-  const dest = destinationAfterConfirm({
-    type,
-    next,
-    role: profile?.role ?? null,
-    isShipper: Boolean(shipper),
-  });
-  return NextResponse.redirect(new URL(dest, request.url));
+  return redirectToPath(
+    destinationAfterConfirm({
+      type,
+      next,
+      role: profile?.role ?? null,
+      isShipper: Boolean(shipper),
+    }),
+  );
 }
