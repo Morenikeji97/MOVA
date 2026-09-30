@@ -42,15 +42,25 @@ Prerequisite: shipmova.com shows **Verified** at https://resend.com/domains.
 Open https://supabase.com/dashboard/project/dplwwsednwkcvhgnuvgw/auth/url-configuration
 (Authentication → **URL Configuration**).
 
-1. **Site URL:** `https://shipmova.com` → **Save**.
-2. **Redirect URLs** → **Add URL**, one at a time (keep any existing entries):
-   - `https://shipmova.com/**`
-   - `https://deploy-preview-*--mova-marketplace.netlify.app/**`
-   - `http://localhost:3000/**` (local development only; optional)
+1. **Site URL:** `https://shipmova.com` (no trailing slash) → **Save**.
+2. **Redirect URLs:** delete any existing entries that end in `/**` or
+   `/auth/callback…`, then **Add URL**, one at a time, exactly as written:
+   - `https://shipmova.com`
+   - `https://deploy-preview-*--mova-marketplace.netlify.app`
+   - `http://localhost:3000` (local development only; optional)
 
-   The app sends its own address with every email request. Supabase only uses
-   it if it matches this list, and otherwise falls back to the Site URL, so
-   emails requested on a deploy preview link back to that preview.
+   **Bare origins, no paths or `/**`.** Every email link is
+   `{{ .RedirectTo }}/auth/confirm?…`. The app only ever sends its bare
+   origin, and a request carrying a path (from an old build, or someone
+   calling the auth API directly) then won't match, falls back to the Site
+   URL, and still produces a working link. With a `/**` entry the path would
+   be kept, making `…/dashboard/auth/confirm` and a broken link. Nothing in
+   MOVA needs a path allowed: there's no OAuth sign-in and no other redirect
+   flow.
+
+   Emails requested on a deploy preview link back to that preview. Anything
+   else, including invites sent from the dashboard (no redirect at all),
+   links to `https://shipmova.com/auth/confirm?…`.
 
 ## 3. Raise the email rate limit (after custom SMTP is on)
 
