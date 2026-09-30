@@ -50,6 +50,31 @@ export function safeNextPath(next: string | null | undefined): string | null {
 }
 
 /**
+ * The marker added to a destination that has no query string of its own.
+ * Behind Netlify, a redirect whose Location has no query gets the ORIGINAL
+ * request's query re-attached — so /buyer/dashboard would arrive as
+ * /buyer/dashboard?token_hash=…&type=…&next=…, leaving the (used) token in
+ * the address bar and history. A Location with its own query is left alone
+ * (seen on production: /auth/link-expired?reason=… never picked up the
+ * token), so every destination gets one.
+ */
+export const EMAIL_LINK_MARKER = "from=email";
+
+/**
+ * The exact path + query /auth/confirm redirects to: the destination's own
+ * query if it has one, otherwise `?from=email`. Never carries the email
+ * link's token_hash / type / next.
+ */
+export function confirmRedirectLocation(destination: string): string {
+  const q = destination.indexOf("?");
+  if (q === -1) return `${destination}?${EMAIL_LINK_MARKER}`;
+  const params = new URLSearchParams(destination.slice(q + 1));
+  for (const leaked of ["token_hash", "type", "next"]) params.delete(leaked);
+  const query = params.toString();
+  return `${destination.slice(0, q)}?${query || EMAIL_LINK_MARKER}`;
+}
+
+/**
  * Where to send the user once the link has verified.
  *   recovery / invite            -> set a (new) password: /reset-password
  *   next is a real path          -> that path
