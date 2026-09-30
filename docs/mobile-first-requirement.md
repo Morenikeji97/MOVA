@@ -1,14 +1,45 @@
-# Mobile-first requirement
+# ShipMova operating standard
 
 **Status:** Adopted · applies to every new or changed page, component and flow.
 
-MOVA's buyers are mostly in Nigeria and mostly on Android phones on metered
-mobile data. Sellers and shippers often use the site from a phone too, photographing a car or a
-pickup in a driveway. So the phone is the primary target. Desktop is the
-enhancement.
+The brand is **ShipMova**. Never use "MOVA" in anything user-facing.
 
-This document is the rule set. The findings that led to it, and the current
-gaps against it, are in [`architecture-review.md`](architecture-review.md).
+## Goals
+
+1. **The founder and staff can run about 95% of daily operations from a phone.**
+   - ShipMova is the single source of truth for every transaction. Each one
+     has an ID (`SM-000001`) and a full stage history.
+   - Exceptions surface in an **Action Required** queue.
+   - Admin screens are mobile-first cards and queues, not shrunken tables.
+2. **Buyers and sellers get fast, light pages.** Assume many of them are on
+   Android phones and metered mobile data. Buyers are mostly in Nigeria.
+   Sellers and shippers often use a phone too, photographing a car or a
+   pickup in a driveway.
+
+So the phone is the primary target, for staff as well as customers.
+Desktop is the enhancement.
+
+## Before building or changing anything, answer
+
+1. Does it work properly on mobile?
+2. Does it keep ShipMova as the source of truth?
+3. Does it fit the transaction lifecycle? Stages are data-driven, not hard-coded.
+4. Does it write the audit trail for admin and sensitive actions?
+5. Are permissions enforced server-side or by RLS? Never UI-only.
+6. Does it open a security hole? Sensitive actions need reauth or MFA.
+7. Can staff use it without the founder?
+8. Can it scale without a rebuild?
+9. Is it needed now, or is it over-building before launch?
+
+## Payments
+
+ShipMova never custodies vehicle funds. The car price goes through Escrow.com.
+
+---
+
+The rest of this document is the mobile engineering rule set. The findings
+that led to it, and the current gaps against it, are in
+[`architecture-review.md`](architecture-review.md).
 
 ---
 
@@ -19,9 +50,10 @@ gaps against it, are in [`architecture-review.md`](architecture-review.md).
   patch it with `max-*:` or hide things below a breakpoint.
 - Target widths are **360 × 740** (the most common Android viewport in
   Nigeria) as the baseline and **320px** as the minimum that must not break.
-- No horizontal page scroll at 320px. Wide data (tables, rate grids) goes in
-  its own `overflow-x-auto` container, like `app/admin/shipments/page.tsx`
-  already does, or is restacked as cards below `sm`.
+- No horizontal page scroll at 320px. Lists of records (transactions,
+  shipments, listings, and admin queues especially) are cards below `sm`,
+  not tables. A table may appear from `md` up. A scrolling `overflow-x-auto`
+  table is only a stopgap for dense reference data such as rate grids.
 - Multi-column grids start at 1 column (or 2 for small thumbnails) and grow:
   `grid-cols-1 sm:grid-cols-2 lg:grid-cols-3`.
 - Page gutters are `px-4` on phones (`sm:px-6` and up). Keep content inside
@@ -120,6 +152,7 @@ A UI pull request is not ready for review until the author has:
    resized and lists are paginated.
 5. Noted the mobile check in the PR description ("Checked at 360/320/1280").
 
-Admin-only pages (`/admin/**`) must stay usable on a phone (no broken
-layout, reachable controls), but they're exempt from the data-budget and
-performance targets in sections 4–5.
+Admin and staff pages (`/admin/**`) are held to the same mobile rules,
+because staff run operations from a phone. They're exempt only from the
+public-page performance targets in section 5. Paginate them and resize
+their images like everything else.

@@ -175,7 +175,9 @@ colour) so the Android browser chrome matches the header. Pick the colour after 
 - `h-11` fields on the main public forms (browse filters, listing form, shipper signup).
 - Mobile-first grids on the listing page (`grid-cols-1 sm:grid-cols-2`, spec
   `grid-cols-2 sm:grid-cols-3`).
-- `overflow-x-auto` around the admin shipments table.
+- `overflow-x-auto` around the admin shipments table keeps the page from
+  scrolling sideways. Under the operating standard it should become a card
+  queue on phones, but it's a sound stopgap until then.
 - `capture="environment"` on shipment proof uploads.
 - Tap-based reorder alternative to drag in the photo uploader.
 - `prefers-reduced-motion` and `:focus-visible` handled globally.
@@ -197,11 +199,27 @@ Once the rebrand merges, create `CLAUDE.md` at the repo root with this
 section, or add it if the rebrand introduces one:
 
 ```markdown
-## Mobile-first (required)
+## ShipMova operating standard (required) — full text: docs/mobile-first-requirement.md
+Brand is "ShipMova" — never "MOVA" in anything user-facing.
 
-MOVA is used mainly on Android phones on metered mobile data. All UI work
-follows docs/mobile-first-requirement.md. In short:
+Two goals:
+1. The founder and staff can run ~95% of daily operations from a phone: ShipMova is the single source of truth for every transaction (ID "SM-000001", full stage history), exceptions surface in an Action Required queue, and admin screens are mobile-first cards/queues, not shrunken tables.
+2. Buyers and sellers (assume many on Android phones and metered data) get fast, light pages.
 
+Before building or changing anything, answer:
+1. Does it work properly on mobile?
+2. Does it keep ShipMova as the source of truth?
+3. Does it fit the transaction lifecycle (stages are data-driven, not hard-coded)?
+4. Does it write the audit trail for admin/sensitive actions?
+5. Are permissions enforced server-side / by RLS (never UI-only)?
+6. Does it open a security hole (sensitive actions need reauth/MFA)?
+7. Can staff use it without the founder?
+8. Can it scale without a rebuild?
+9. Is it needed now, or is it over-building before launch?
+
+Payments: ShipMova never custodies vehicle funds — the car price goes through Escrow.com.
+
+Mobile engineering rules:
 - Build the 360px layout first with unprefixed Tailwind classes; widen with
   sm:/md:/lg:. Nothing may scroll horizontally at 320px.
 - Tap targets ≥ 44px (h-11). No hover-only controls.
@@ -213,5 +231,5 @@ follows docs/mobile-first-requirement.md. In short:
 - Before calling a UI change done, check it at 360px, 320px and one desktop
   width, and say so in the PR description.
 
-Current known gaps and their priority: docs/architecture-review.md.
+Known gaps and priorities: docs/architecture-review.md.
 ```
