@@ -1,6 +1,50 @@
 import { test } from "node:test";
 import assert from "node:assert/strict";
-import { destinationAfterConfirm, isEmailLinkType, safeNextPath } from "./auth-redirect.ts";
+import {
+  confirmRedirectLocation,
+  destinationAfterConfirm,
+  isEmailLinkType,
+  safeNextPath,
+} from "./auth-redirect.ts";
+
+// ---------------------------------------------------------------------------
+// confirmRedirectLocation — the Location /auth/confirm actually sends
+// ---------------------------------------------------------------------------
+
+test("a destination without a query gets its own explicit one", () => {
+  assert.equal(confirmRedirectLocation("/buyer/dashboard"), "/buyer/dashboard?from=email");
+  assert.equal(confirmRedirectLocation("/reset-password"), "/reset-password?from=email");
+});
+
+test("a destination's own query is kept as is", () => {
+  assert.equal(
+    confirmRedirectLocation("/buyer/dashboard?email=changed"),
+    "/buyer/dashboard?email=changed",
+  );
+});
+
+test("never carries the email link's token_hash, type or next", () => {
+  for (const dest of [
+    "/buyer/dashboard",
+    "/reset-password",
+    "/seller/dashboard?token_hash=abc&type=magiclink&next=%2Fdashboard",
+    "/x?next=/y&keep=1",
+  ]) {
+    const loc = confirmRedirectLocation(dest);
+    assert.doesNotMatch(loc, /token_hash|[?&]type=|[?&]next=/, loc);
+    assert.match(loc, /\?./, `has its own query: ${loc}`);
+  }
+  assert.equal(confirmRedirectLocation("/x?next=/y&keep=1"), "/x?keep=1");
+});
+
+test("end to end: every destination the route can produce has its own query", () => {
+  for (const type of ["email", "magiclink", "email_change", "recovery", "invite"] as const) {
+    for (const role of ["buyer", "seller", "admin", null]) {
+      const loc = confirmRedirectLocation(destinationAfterConfirm({ type, next: "/dashboard", role }));
+      assert.match(loc, /^\/[^?]*\?[^=]+=/, `${type}/${role}: ${loc}`);
+    }
+  }
+});
 
 test("signup lands on the user's own dashboard by role", () => {
   assert.equal(destinationAfterConfirm({ type: "email", next: "/dashboard", role: "buyer" }), "/buyer/dashboard");

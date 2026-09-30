@@ -1,6 +1,7 @@
 import { type NextRequest } from "next/server";
 import { createClient } from "@/lib/supabase/server";
 import {
+  confirmRedirectLocation,
   destinationAfterConfirm,
   isEmailLinkType,
   LINK_EXPIRED_PATH,
@@ -45,12 +46,16 @@ export async function GET(request: NextRequest) {
     supabase.from("shippers").select("id").eq("user_id", data.user.id).maybeSingle(),
   ]);
 
+  // Always with its own query (lib/auth-redirect.ts confirmRedirectLocation),
+  // so Netlify can't re-attach this link's token_hash/type/next.
   return redirectToPath(
-    destinationAfterConfirm({
-      type,
-      next,
-      role: profile?.role ?? null,
-      isShipper: Boolean(shipper),
-    }),
+    confirmRedirectLocation(
+      destinationAfterConfirm({
+        type,
+        next,
+        role: profile?.role ?? null,
+        isShipper: Boolean(shipper),
+      }),
+    ),
   );
 }
