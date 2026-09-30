@@ -19,6 +19,8 @@ const jetbrainsMono = JetBrains_Mono({
 });
 
 export const metadata: Metadata = {
+  // Absolute URLs in metadata (Open Graph etc.) always point at shipmova.com.
+  metadataBase: new URL("https://shipmova.com"),
   title: "MOVA — American cars. Global buyers.",
   description:
     "Buy directly from verified U.S. sellers. Your payment is held by Escrow.com, and the seller isn't paid until the car is inspected and in your shipper's hands.",

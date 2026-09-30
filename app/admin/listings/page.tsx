@@ -8,6 +8,7 @@ import { fetchVerifiedSellerName } from "@/lib/stripe-identity";
 import { cn } from "@/lib/utils";
 import { ReviewActions } from "./review-actions";
 import { ImportBadge } from "@/components/ui/import-badge";
+import { mediaUrl } from "@/lib/media-url";
 
 const usd = new Intl.NumberFormat("en-US", {
   style: "currency",
@@ -47,6 +48,8 @@ function DocumentPreview({
   if (!url) {
     return <p className="mt-1 text-sm text-copper-700">{emptyLabel}</p>;
   }
+  // Signed Storage URL -> /media-signed/…, so it opens on MOVA's address.
+  url = mediaUrl(url);
   if (path?.toLowerCase().endsWith(".pdf")) {
     return (
       <a
@@ -294,7 +297,7 @@ export default async function AdminListingReviewPage() {
                       // eslint-disable-next-line @next/next/no-img-element
                       <img
                         key={i}
-                        src={p.url}
+                        src={mediaUrl(p.url)}
                         alt={`${v.year} ${v.make} ${v.model} photo ${i + 1}`}
                         className={cn(
                           "h-28 w-40 shrink-0 rounded border object-cover",

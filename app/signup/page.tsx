@@ -53,7 +53,11 @@ function SignupForm() {
           signup_ip: rateLimit.ip ?? undefined,
           signup_device_fingerprint: collectDeviceFingerprint() || undefined,
         },
-        emailRedirectTo: `${window.location.origin}/auth/callback`,
+        // The confirmation email links to {{ .RedirectTo }}/auth/confirm?…
+        // (supabase/email-templates/confirm-signup.html), so this is the
+        // bare origin: shipmova.com in production, the preview's own
+        // address while testing.
+        emailRedirectTo: window.location.origin,
       },
     });
 

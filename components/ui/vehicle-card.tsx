@@ -3,6 +3,7 @@ import { VinData } from "@/components/ui/vin-data";
 import { VerifiedBadge } from "@/components/ui/verified-badge";
 import { PriceBreakdown, SellerSplitsFeeBadge } from "@/components/ui/price-breakdown";
 import { ImportBadge } from "@/components/ui/import-badge";
+import { mediaUrl } from "@/lib/media-url";
 import type { FeeResponsibility } from "@/types/database";
 import {
   badgeFacts,
@@ -57,7 +58,7 @@ export function VehicleCard({
         {thumbnailUrl ? (
           // eslint-disable-next-line @next/next/no-img-element
           <img
-            src={thumbnailUrl}
+            src={mediaUrl(thumbnailUrl)}
             alt={`${v.year} ${v.make} ${v.model}`}
             className="h-full w-full object-cover transition-transform duration-200 group-hover:scale-[1.02]"
           />

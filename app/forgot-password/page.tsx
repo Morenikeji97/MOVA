@@ -30,7 +30,9 @@ function ForgotPasswordForm() {
 
     const supabase = createClient();
     const { error } = await supabase.auth.resetPasswordForEmail(email, {
-      redirectTo: `${window.location.origin}/auth/callback?next=/reset-password`,
+      // The reset email links to {{ .RedirectTo }}/auth/confirm?…&type=recovery
+      // (supabase/email-templates/recovery.html), which lands on /reset-password.
+      redirectTo: window.location.origin,
     });
 
     setLoading(false);

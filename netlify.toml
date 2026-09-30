@@ -1,0 +1,41 @@
+# MOVA — Netlify redirect/rewrite rules only.
+#
+# There is deliberately no [build] section: build settings stay as configured
+# in the Netlify UI. Rules are matched top to bottom, before the Next.js app.
+
+# ── The netlify.app addresses always move to shipmova.com ────────────────────
+# Host-matched, so deploy-preview-N--mova-marketplace.netlify.app (a different
+# host) is untouched and previews keep working. "main--" is the production
+# branch alias of the same site. 301 = permanent; force = redirect even when a
+# file exists at that path.
+[[redirects]]
+  from = "https://mova-marketplace.netlify.app/*"
+  to = "https://shipmova.com/:splat"
+  status = 301
+  force = true
+
+[[redirects]]
+  from = "https://main--mova-marketplace.netlify.app/*"
+  to = "https://shipmova.com/:splat"
+  status = 301
+  force = true
+
+# ── Listing photos and videos served from the MOVA address ───────────────────
+# Files stay in Supabase Storage; these proxy them (status 200 = rewrite, not
+# redirect), so the browser only ever sees shipmova.com/media/… (or the
+# preview's own address). lib/media-url.ts turns stored Supabase URLs into
+# these paths at display time. next.config.ts has the same rewrites for local
+# development, where these rules don't run.
+#   /media/<bucket>/<path>             public buckets (vehicle-photos, vehicle-videos)
+#   /media-signed/<bucket>/<path>?token=…  short-lived signed URLs (admin document previews)
+[[redirects]]
+  from = "/media/*"
+  to = "https://dplwwsednwkcvhgnuvgw.supabase.co/storage/v1/object/public/:splat"
+  status = 200
+  force = true
+
+[[redirects]]
+  from = "/media-signed/*"
+  to = "https://dplwwsednwkcvhgnuvgw.supabase.co/storage/v1/object/sign/:splat"
+  status = 200
+  force = true

@@ -8,6 +8,7 @@ import { loadFullVins } from "@/lib/listings";
 import { isPrelaunch } from "@/lib/prelaunch";
 import type { FeeResponsibility, PurchaseRequestStatus } from "@/types/database";
 import { ReservationActions } from "./reservation-actions";
+import { mediaUrl } from "@/lib/media-url";
 
 const usd = new Intl.NumberFormat("en-US", {
   style: "currency",
@@ -94,7 +95,7 @@ export default async function AdminReservationsPage() {
       const { data } = await supabase.storage
         .from("bank-transfer-proofs")
         .createSignedUrl(r.bank_transfer_proof_path!, 300);
-      return [r.id, data?.signedUrl ?? null] as const;
+      return [r.id, data?.signedUrl ? mediaUrl(data.signedUrl) : null] as const;
     }),
   );
   const proofUrlByRequestId = new Map(signedUrlEntries);

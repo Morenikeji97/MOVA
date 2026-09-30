@@ -6,6 +6,7 @@ import { countryName } from "@/lib/shipping";
 import { ShippingStatusControl } from "../status-control";
 import { ShipmentProofUploader } from "@/components/ui/shipment-proof-uploader";
 import { NoteForm } from "./note-form";
+import { mediaUrl } from "@/lib/media-url";
 
 const PROOF_BUCKET = "shipment-proof-photos";
 
@@ -105,7 +106,7 @@ export default async function ShipmentDetailPage({
         const { data } = await supabase.storage
           .from(PROOF_BUCKET)
           .createSignedUrl(p.storage_path, 300);
-        return [p.storage_path, data?.signedUrl ?? null] as const;
+        return [p.storage_path, data?.signedUrl ? mediaUrl(data.signedUrl) : null] as const;
       }),
     ),
   );

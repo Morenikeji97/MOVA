@@ -20,7 +20,7 @@ const POLICY_EXEMPT_PATHS = [
   "/forgot-password",
   "/reset-password",
   "/shipper/signup", // prefix — also covers /shipper/signup/success
-  "/auth/callback", // prefix — covers the route handler and any sub-paths
+  "/auth", // prefix — /auth/callback, /auth/confirm (emailed links), /auth/link-expired
 ];
 
 function isPolicyExempt(path: string): boolean {
@@ -49,13 +49,21 @@ export async function middleware(request: NextRequest) {
     }
   }
 
+  // Canonical URL is always shipmova.com, whichever host served the page
+  // (the netlify.app alias, a deploy preview), so search engines index the
+  // real domain. Path only — query strings aren't part of the canonical page.
+  supabaseResponse.headers.set("Link", `<${CANONICAL_ORIGIN}${path}>; rel="canonical"`);
   return supabaseResponse;
 }
+
+const CANONICAL_ORIGIN = "https://shipmova.com";
 
 export const config = {
   matcher: [
     // Skip Stripe webhooks — they carry no session and the raw body must
     // reach the route handler untouched for signature verification.
-    "/((?!api/stripe|_next/static|_next/image|favicon.ico|.*\\.(?:svg|png|jpg|jpeg|gif|webp)$).*)",
+    // Skip /media and /media-signed too: proxied Storage files (photos,
+    // videos) need no session, and a video is fetched in many range requests.
+    "/((?!api/stripe|media/|media-signed/|_next/static|_next/image|favicon.ico|.*\\.(?:svg|png|jpg|jpeg|gif|webp)$).*)",
   ],
 };

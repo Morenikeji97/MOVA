@@ -4,6 +4,7 @@ import { useCallback, useId, useRef, useState } from "react";
 import { ArrowDown, ArrowUp, ImagePlus, Loader2, Star, X } from "lucide-react";
 import { createClient } from "@/lib/supabase/client";
 import { cn } from "@/lib/utils";
+import { mediaUrl } from "@/lib/media-url";
 
 export type PhotoDraft = {
   /** Object key within the vehicle-photos bucket, e.g. "<uid>/<uuid>.jpg". */
@@ -222,7 +223,7 @@ export function PhotoUploader({
             >
               {/* eslint-disable-next-line @next/next/no-img-element */}
               <img
-                src={photo.url}
+                src={mediaUrl(photo.url)}
                 alt={`Vehicle photo ${index + 1}`}
                 className="aspect-square w-full object-cover"
                 draggable={false}
