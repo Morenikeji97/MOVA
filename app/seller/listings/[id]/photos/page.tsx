@@ -41,13 +41,16 @@ export default async function EditListingPhotosPage({
 
   const { data: photoRows } = await supabase
     .from("vehicle_photos")
-    .select("url, sort_order, is_primary")
+    .select("url, thumb_url, sort_order, is_primary")
     .eq("vehicle_id", id)
     .order("sort_order", { ascending: true });
 
   const initialPhotos: PhotoDraft[] = (photoRows ?? []).map((row) => ({
     path: pathFromPublicUrl(row.url),
     url: row.url,
+    ...(row.thumb_url
+      ? { thumbPath: pathFromPublicUrl(row.thumb_url), thumbUrl: row.thumb_url }
+      : {}),
     isPrimary: row.is_primary,
   }));
 

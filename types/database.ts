@@ -346,12 +346,14 @@ export interface Database {
           id: string;
           vehicle_id: string;
           url: string;
+          thumb_url: string | null;
           sort_order: number;
           is_primary: boolean;
         };
         Insert: {
           vehicle_id: string;
           url: string;
+          thumb_url?: string | null;
           id?: string;
           sort_order?: number;
           is_primary?: boolean;
@@ -360,6 +362,7 @@ export interface Database {
           id: string;
           vehicle_id: string;
           url: string;
+          thumb_url: string | null;
           sort_order: number;
           is_primary: boolean;
         }>;

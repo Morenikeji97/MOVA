@@ -191,6 +191,7 @@ export function VideoUploader({ value, onChange, disabled, error }: VideoUploade
           {/* eslint-disable-next-line jsx-a11y/media-has-caption */}
           <video
             src={mediaUrl(value.url)}
+            preload="none"
             controls
             className="aspect-video w-full bg-black object-contain"
           />

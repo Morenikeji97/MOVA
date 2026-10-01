@@ -60,6 +60,8 @@ export function VehicleCard({
           <img
             src={mediaUrl(thumbnailUrl)}
             alt={`${v.year} ${v.make} ${v.model}`}
+            loading="lazy"
+            decoding="async"
             className="h-full w-full object-cover transition-transform duration-200 group-hover:scale-[1.02]"
           />
         ) : (

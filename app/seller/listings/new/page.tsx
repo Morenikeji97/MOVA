@@ -128,6 +128,8 @@ const schema = z.object({
       z.object({
         path: z.string().min(1),
         url: z.string().url(),
+        thumbPath: z.string().min(1).optional(),
+        thumbUrl: z.string().url().optional(),
         isPrimary: z.boolean(),
       }),
     )
@@ -469,6 +471,7 @@ export default function NewListingPage() {
         values.photos.map((photo, index) => ({
           vehicle_id: created.id,
           url: photo.url,
+          thumb_url: photo.thumbUrl ?? null,
           sort_order: index,
           is_primary: photo.isPrimary,
         })),

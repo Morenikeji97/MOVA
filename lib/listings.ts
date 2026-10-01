@@ -67,7 +67,8 @@ export async function loadFullVins(
 
 /**
  * Primary photo per vehicle: the first by sort_order, unless one is explicitly
- * flagged is_primary. Returns an empty map for an empty id list.
+ * flagged is_primary. Returns an empty map for an empty id list. Uses the
+ * ≈480px thumbnail where one exists (migration 0049), else the full photo.
  */
 export async function loadListingThumbnails(
   supabase: ServerSupabase,
@@ -78,13 +79,13 @@ export async function loadListingThumbnails(
 
   const { data: photos } = await supabase
     .from("vehicle_photos")
-    .select("vehicle_id, url, is_primary, sort_order")
+    .select("vehicle_id, url, thumb_url, is_primary, sort_order")
     .in("vehicle_id", vehicleIds)
     .order("sort_order", { ascending: true });
 
   for (const p of photos ?? []) {
     if (!thumbByVehicle.has(p.vehicle_id) || p.is_primary) {
-      thumbByVehicle.set(p.vehicle_id, p.url);
+      thumbByVehicle.set(p.vehicle_id, p.thumb_url ?? p.url);
     }
   }
   return thumbByVehicle;

@@ -5,23 +5,27 @@ import { ArrowDown, ArrowUp, ImagePlus, Loader2, Star, X } from "lucide-react";
 import { createClient } from "@/lib/supabase/client";
 import { cn } from "@/lib/utils";
 import { mediaUrl } from "@/lib/media-url";
+import { resizePhoto } from "@/lib/image-resize";
+import { buttonClasses } from "@/components/ui/button";
 
 export type PhotoDraft = {
-  /** Object key within the vehicle-photos bucket, e.g. "<uid>/<uuid>.jpg". */
+  /** Object key within the vehicle-photos bucket, e.g. "<uid>/<uuid>.webp". */
   path: string;
   /** Public URL, saved verbatim into vehicle_photos.url. */
   url: string;
+  /** The ≈480px thumbnail ("<uid>/<uuid>-thumb.webp"). Absent for photos
+   * uploaded before resizing existed (migration 0049). */
+  thumbPath?: string;
+  /** Public URL, saved into vehicle_photos.thumb_url. */
+  thumbUrl?: string;
   isPrimary: boolean;
 };
 
 const BUCKET = "vehicle-photos";
 const ACCEPT = ["image/jpeg", "image/png", "image/webp"] as const;
 const MAX_BYTES = 10 * 1024 * 1024;
-const EXT: Record<string, string> = {
-  "image/jpeg": "jpg",
-  "image/png": "png",
-  "image/webp": "webp",
-};
+// Every object name is a fresh UUID, so a stored file never changes.
+const CACHE_SECONDS = "31536000";
 
 type PhotoUploaderProps = {
   value: PhotoDraft[];
@@ -48,6 +52,7 @@ export function PhotoUploader({
   const inputRef = useRef<HTMLInputElement>(null);
   const dragIndex = useRef<number | null>(null);
   const [busy, setBusy] = useState(false);
+  const [progress, setProgress] = useState<{ done: number; total: number } | null>(null);
   const [dragOver, setDragOver] = useState(false);
   const [failures, setFailures] = useState<string[]>([]);
   const inputId = useId();
@@ -72,7 +77,9 @@ export function PhotoUploader({
         const errs: string[] = [];
         const accepted: PhotoDraft[] = [];
 
-        for (const file of files.slice(0, Math.max(remaining, 0))) {
+        const batch = files.slice(0, Math.max(remaining, 0));
+        for (const [i, file] of batch.entries()) {
+          setProgress({ done: i, total: batch.length });
           if (!ACCEPT.includes(file.type as (typeof ACCEPT)[number])) {
             errs.push(`${file.name}: unsupported format — use JPEG, PNG or WebP.`);
             continue;
@@ -82,21 +89,48 @@ export function PhotoUploader({
             continue;
           }
 
-          const path = `${user.id}/${crypto.randomUUID()}.${EXT[file.type]}`;
-          const { error: upErr } = await supabase.storage
-            .from(BUCKET)
-            .upload(path, file, {
-              cacheControl: "3600",
-              contentType: file.type,
-              upsert: false,
-            });
+          // Shrink before upload: ≈1600px for the gallery, ≈480px for cards
+          // (lib/image-resize.ts). The original never leaves the phone.
+          let resized;
+          try {
+            resized = await resizePhoto(file);
+          } catch {
+            errs.push(`${file.name}: couldn't read this photo — try saving it as a JPEG.`);
+            continue;
+          }
+
+          const id = crypto.randomUUID();
+          const path = `${user.id}/${id}.${resized.full.ext}`;
+          const thumbPath = `${user.id}/${id}-thumb.${resized.thumb.ext}`;
+          const bucket = supabase.storage.from(BUCKET);
+
+          const { error: upErr } = await bucket.upload(path, resized.full.blob, {
+            cacheControl: CACHE_SECONDS,
+            contentType: resized.full.type,
+            upsert: false,
+          });
           if (upErr) {
             errs.push(`${file.name}: ${upErr.message}`);
             continue;
           }
+          const { error: thumbErr } = await bucket.upload(thumbPath, resized.thumb.blob, {
+            cacheControl: CACHE_SECONDS,
+            contentType: resized.thumb.type,
+            upsert: false,
+          });
+          if (thumbErr) {
+            await bucket.remove([path]);
+            errs.push(`${file.name}: ${thumbErr.message}`);
+            continue;
+          }
 
-          const { data } = supabase.storage.from(BUCKET).getPublicUrl(path);
-          accepted.push({ path, url: data.publicUrl, isPrimary: false });
+          accepted.push({
+            path,
+            url: bucket.getPublicUrl(path).data.publicUrl,
+            thumbPath,
+            thumbUrl: bucket.getPublicUrl(thumbPath).data.publicUrl,
+            isPrimary: false,
+          });
         }
 
         if (files.length > remaining) {
@@ -107,6 +141,7 @@ export function PhotoUploader({
         if (accepted.length > 0) onChange(withPrimary([...value, ...accepted]));
       } finally {
         setBusy(false);
+        setProgress(null);
       }
     },
     [remaining, maxPhotos, onChange, value],
@@ -116,7 +151,8 @@ export function PhotoUploader({
     const target = value[index];
     onChange(withPrimary(value.filter((_, i) => i !== index)));
     // Best-effort cleanup — the vehicle_photos row hasn't been written yet.
-    await createClient().storage.from(BUCKET).remove([target.path]);
+    const paths = target.thumbPath ? [target.path, target.thumbPath] : [target.path];
+    await createClient().storage.from(BUCKET).remove(paths);
   }
 
   function makePrimary(index: number) {
@@ -156,17 +192,15 @@ export function PhotoUploader({
         )}
       >
         <ImagePlus className="h-6 w-6 text-gray-500" aria-hidden />
-        <p className="text-sm text-gray-500">
-          Drag photos here, or{" "}
-          <button
-            type="button"
-            onClick={() => inputRef.current?.click()}
-            disabled={!canAdd}
-            className="font-medium text-black underline underline-offset-2 disabled:no-underline disabled:opacity-60"
-          >
-            choose files
-          </button>
-        </p>
+        <p className="text-sm text-gray-500 [@media(hover:none)]:hidden">Drag photos here, or</p>
+        <button
+          type="button"
+          onClick={() => inputRef.current?.click()}
+          disabled={!canAdd}
+          className={buttonClasses({ variant: "secondary" })}
+        >
+          Choose photos
+        </button>
         <p className="font-mono text-xs uppercase tracking-wider text-gray-500">
           JPEG, PNG or WebP · up to 10 MB · {value.length}/{maxPhotos} added
         </p>
@@ -189,7 +223,9 @@ export function PhotoUploader({
       {busy ? (
         <p className="flex items-center gap-2 text-sm text-gray-500">
           <Loader2 className="h-4 w-4 animate-spin" aria-hidden />
-          Uploading…
+          {progress && progress.total > 1
+            ? `Uploading photo ${progress.done + 1} of ${progress.total}…`
+            : "Uploading…"}
         </p>
       ) : null}
 
@@ -223,8 +259,10 @@ export function PhotoUploader({
             >
               {/* eslint-disable-next-line @next/next/no-img-element */}
               <img
-                src={mediaUrl(photo.url)}
+                src={mediaUrl(photo.thumbUrl ?? photo.url)}
                 alt={`Vehicle photo ${index + 1}`}
+                loading="lazy"
+                decoding="async"
                 className="aspect-square w-full object-cover"
                 draggable={false}
               />
@@ -236,44 +274,57 @@ export function PhotoUploader({
                 </span>
               ) : null}
 
+              {/* 44px tap area around a small visible circle. Always shown on
+                  touch screens, which have no hover (architecture review §1.3). */}
               <button
                 type="button"
                 onClick={() => removeAt(index)}
                 disabled={disabled}
                 aria-label={`Remove photo ${index + 1}`}
-                className="absolute right-1.5 top-1.5 rounded-full bg-black/70 p-1 text-white opacity-0 transition-opacity focus-visible:opacity-100 group-hover:opacity-100"
+                className="absolute right-0 top-0 flex h-11 w-11 items-start justify-end p-1.5 opacity-0 transition-opacity focus-visible:opacity-100 group-hover:opacity-100 [@media(hover:none)]:opacity-100"
               >
-                <X className="h-3.5 w-3.5" aria-hidden />
+                <span className="rounded-full bg-black/70 p-1 text-white">
+                  <X className="h-4 w-4" aria-hidden />
+                </span>
               </button>
 
-              <div className="flex items-center justify-between gap-1 border-t border-gray-200 px-1.5 py-1">
+              <div className="flex items-center justify-between gap-1 border-t border-gray-200 px-0.5">
                 <div className="flex gap-0.5">
                   <button
                     type="button"
                     onClick={() => move(index, index - 1)}
                     disabled={disabled || index === 0}
                     aria-label={`Move photo ${index + 1} earlier`}
-                    className="rounded p-1 text-gray-500 hover:text-black disabled:opacity-30"
+                    className="flex h-11 w-11 items-center justify-center rounded text-gray-500 hover:text-black disabled:opacity-30"
                   >
-                    <ArrowUp className="h-3.5 w-3.5" aria-hidden />
+                    <ArrowUp className="h-4 w-4" aria-hidden />
                   </button>
                   <button
                     type="button"
                     onClick={() => move(index, index + 1)}
                     disabled={disabled || index === value.length - 1}
                     aria-label={`Move photo ${index + 1} later`}
-                    className="rounded p-1 text-gray-500 hover:text-black disabled:opacity-30"
+                    className="flex h-11 w-11 items-center justify-center rounded text-gray-500 hover:text-black disabled:opacity-30"
                   >
-                    <ArrowDown className="h-3.5 w-3.5" aria-hidden />
+                    <ArrowDown className="h-4 w-4" aria-hidden />
                   </button>
                 </div>
                 <button
                   type="button"
                   onClick={() => makePrimary(index)}
                   disabled={disabled || photo.isPrimary}
-                  className="rounded px-1.5 py-0.5 text-xs font-medium text-black hover:bg-gray-100 disabled:opacity-40"
+                  aria-label={
+                    photo.isPrimary
+                      ? `Photo ${index + 1} is the cover photo`
+                      : `Make photo ${index + 1} the cover photo`
+                  }
+                  title={photo.isPrimary ? "Cover photo" : "Make cover photo"}
+                  className="flex h-11 w-11 items-center justify-center rounded text-black hover:bg-gray-100 disabled:hover:bg-transparent"
                 >
-                  {photo.isPrimary ? "Primary" : "Make primary"}
+                  <Star
+                    className={cn("h-4 w-4", photo.isPrimary && "fill-current")}
+                    aria-hidden
+                  />
                 </button>
               </div>
             </li>
