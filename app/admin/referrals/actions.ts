@@ -3,6 +3,7 @@
 import { revalidatePath } from "next/cache";
 import { createClient } from "@/lib/supabase/server";
 import type { ReferralPayoutStatus } from "@/types/database";
+import { requireAdminMfa } from "@/lib/admin-mfa";
 
 /**
  * Admin actions for /admin/referrals. Bound to <form action={…}> with hidden
@@ -25,6 +26,7 @@ async function requireAdmin() {
     .eq("id", user.id)
     .single();
   if (profile?.role !== "admin") return null;
+  await requireAdminMfa(supabase);
 
   return { supabase, adminId: user.id };
 }

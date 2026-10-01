@@ -176,6 +176,15 @@ export default async function AdminDashboard() {
             Review flags &amp; payouts &rarr;
           </p>
         </Link>
+        <Link
+          href="/admin/security"
+          className="rounded-lg border border-gray-200 bg-white p-5 transition-colors hover:border-black"
+        >
+          <p className="font-mono text-xs uppercase tracking-wider text-gray-500">
+            Two-step sign-in
+          </p>
+          <p className="mt-1 text-sm text-black">Manage authenticator apps &rarr;</p>
+        </Link>
       </div>
     </main>
   );

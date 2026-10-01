@@ -6,6 +6,7 @@ import { scanForContactInfo, CONTACT_INFO_BLOCK_MESSAGE } from "@/lib/chat-filte
 import { REVIEW_COMMENT_MAX } from "@/lib/reviews";
 import { notifyNewReview } from "@/lib/notifications";
 import type { ReviewType } from "@/types/database";
+import { requireAdminMfa } from "@/lib/admin-mfa";
 
 export interface SubmitReviewInput {
   reviewType: ReviewType;
@@ -175,6 +176,7 @@ async function requireAdmin() {
     .eq("id", user.id)
     .single();
   if (profile?.role !== "admin") return null;
+  await requireAdminMfa(supabase);
   return { supabase, adminId: user.id };
 }
 

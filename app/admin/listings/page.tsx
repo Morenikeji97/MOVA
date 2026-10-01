@@ -9,6 +9,7 @@ import { cn } from "@/lib/utils";
 import { ReviewActions } from "./review-actions";
 import { ImportBadge } from "@/components/ui/import-badge";
 import { mediaUrl } from "@/lib/media-url";
+import { requireAdminMfa } from "@/lib/admin-mfa";
 
 const usd = new Intl.NumberFormat("en-US", {
   style: "currency",
@@ -87,6 +88,8 @@ export default async function AdminListingReviewPage() {
     .eq("id", user.id)
     .maybeSingle();
   if (me?.role !== "admin") notFound();
+  // The private-column read below uses the service-role key, bypassing RLS.
+  await requireAdminMfa(supabase);
 
   // Oldest first — the seller who has waited longest is at the top.
   const { data: vehicles } = await supabase

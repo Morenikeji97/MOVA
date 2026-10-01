@@ -10,6 +10,7 @@ import {
   applyStandingAfterFailure,
   maybeRestoreGoodStanding,
 } from "@/lib/shipper-billing";
+import { requireAdminMfa } from "@/lib/admin-mfa";
 
 function str(v: FormDataEntryValue | null): string {
   return typeof v === "string" ? v.trim() : "";
@@ -26,7 +27,9 @@ async function requireAdmin(): Promise<boolean> {
     .select("role")
     .eq("id", user.id)
     .single();
-  return profile?.role === "admin";
+  if (profile?.role !== "admin") return false;
+  await requireAdminMfa(supabase);
+  return true;
 }
 
 /** Pull a PaymentIntent id out of a thrown Stripe off-session card error. */
