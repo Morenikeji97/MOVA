@@ -3,6 +3,7 @@
 import { revalidatePath } from "next/cache";
 import { createClient } from "@/lib/supabase/server";
 import { notifyDisputeDecision } from "@/lib/notifications";
+import { requireAdminMfa } from "@/lib/admin-mfa";
 
 /**
  * Admin actions for the dispute queue. Bound to <form action={…}> with a
@@ -30,6 +31,7 @@ async function requireAdmin() {
     .eq("id", user.id)
     .single();
   if (profile?.role !== "admin") return null;
+  await requireAdminMfa(supabase);
 
   return { supabase, adminId: user.id };
 }

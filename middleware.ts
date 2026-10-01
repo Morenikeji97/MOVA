@@ -1,6 +1,7 @@
 import { type NextRequest, NextResponse } from "next/server";
 import { updateSession } from "@/lib/supabase/middleware";
 import { TERMS_ACCEPT_PATH } from "@/lib/terms";
+import { MFA_PATH, isMfaExempt } from "@/lib/admin-mfa-paths";
 
 const ROLE_PREFIXES: { prefix: string; role: "seller" | "buyer" | "admin" }[] = [
   { prefix: "/seller", role: "seller" },
@@ -28,8 +29,26 @@ function isPolicyExempt(path: string): boolean {
 }
 
 export async function middleware(request: NextRequest) {
-  const { supabaseResponse, user, role, needsPolicyAcceptance } = await updateSession(request);
+  const { supabaseResponse, user, role, needsPolicyAcceptance, adminMfaVerified } =
+    await updateSession(request);
   const path = request.nextUrl.pathname;
+
+  // An admin account must enter an authenticator code before it can open any
+  // page (lib/admin-mfa.ts). Server action requests are let through: an
+  // action can be invoked by id from any page, so each admin action checks
+  // the code itself (requireAdminMfa) and redirects here — a middleware
+  // redirect of the action's POST would only surface as a client error.
+  if (
+    user &&
+    role === "admin" &&
+    !adminMfaVerified &&
+    !isMfaExempt(path) &&
+    !request.headers.has("next-action")
+  ) {
+    const url = new URL(MFA_PATH, request.url);
+    url.searchParams.set("next", path + request.nextUrl.search);
+    return NextResponse.redirect(url);
+  }
 
   if (user && needsPolicyAcceptance && !isPolicyExempt(path)) {
     const url = new URL(TERMS_ACCEPT_PATH, request.url);

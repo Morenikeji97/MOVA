@@ -12,6 +12,7 @@ import {
   notifyBankTransferRejected,
 } from "@/lib/notifications";
 import { evaluateReferralQualification } from "@/lib/referral-credit";
+import { requireAdminMfa } from "@/lib/admin-mfa";
 
 /**
  * Admin actions for the reservation queue (purchase_requests). Bound to
@@ -34,6 +35,7 @@ async function requireAdmin() {
     .eq("id", user.id)
     .single();
   if (profile?.role !== "admin") return null;
+  await requireAdminMfa(supabase);
 
   return supabase;
 }

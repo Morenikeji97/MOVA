@@ -3,6 +3,7 @@
 import { revalidatePath } from "next/cache";
 import { createClient } from "@/lib/supabase/server";
 import { isServiceCountry, isVehicleSizeType, isShippingMethod } from "@/lib/shipping";
+import { requireAdminMfa } from "@/lib/admin-mfa";
 
 /**
  * Admin actions for the shipper review queue. Bound to <form action={…}> with
@@ -25,6 +26,7 @@ async function requireAdmin() {
     .eq("id", user.id)
     .single();
   if (profile?.role !== "admin") return null;
+  await requireAdminMfa(supabase);
 
   return { supabase, adminId: user.id };
 }

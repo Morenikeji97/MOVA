@@ -5,6 +5,7 @@ import type { CookieOptions } from "@supabase/ssr";
 import { assertSupabaseKey } from "@/lib/supabase/keys";
 import { CURRENT_TERMS_VERSION } from "@/lib/terms";
 import { CURRENT_PRIVACY_VERSION } from "@/lib/privacy";
+import { hasMfaSession } from "@/lib/admin-mfa";
 
 export async function updateSession(request: NextRequest) {
   let supabaseResponse = NextResponse.next({ request });
@@ -54,6 +55,9 @@ export async function updateSession(request: NextRequest) {
   // public.privacy_policy_acceptances. Independent from the Buyer
   // Protection Policy's own acceptance flow.
   let needsPolicyAcceptance = false;
+  // Admins only: whether this session passed the authenticator-code step
+  // (aal2). See lib/admin-mfa.ts.
+  let adminMfaVerified = false;
   if (user) {
     const { data: profile } = await supabase
       .from("users")
@@ -61,6 +65,10 @@ export async function updateSession(request: NextRequest) {
       .eq("id", user.id)
       .single();
     role = profile?.role ?? null;
+
+    if (role === "admin") {
+      adminMfaVerified = await hasMfaSession(supabase);
+    }
 
     if (role && role !== "admin") {
       const [{ data: termsAcceptance }, { data: privacyAcceptance }] = await Promise.all([
@@ -81,5 +89,5 @@ export async function updateSession(request: NextRequest) {
     }
   }
 
-  return { supabaseResponse, user, role, needsPolicyAcceptance };
+  return { supabaseResponse, user, role, needsPolicyAcceptance, adminMfaVerified };
 }

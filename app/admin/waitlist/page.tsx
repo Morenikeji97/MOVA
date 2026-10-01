@@ -8,6 +8,7 @@ import {
   WAITLIST_COUNTRIES,
   type WaitlistAudience,
 } from "@/lib/prelaunch";
+import { requireAdminMfa } from "@/lib/admin-mfa";
 
 const joined = new Intl.DateTimeFormat("en-US", {
   month: "short",
@@ -56,6 +57,7 @@ export default async function AdminWaitlistPage({
   if (!user) notFound();
   const { data: me } = await supabase.from("users").select("role").eq("id", user.id).maybeSingle();
   if (me?.role !== "admin") notFound();
+  await requireAdminMfa(supabase);
 
   let query = supabase
     .from("waitlist_signups")

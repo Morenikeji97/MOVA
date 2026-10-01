@@ -4,6 +4,7 @@ import { revalidatePath } from "next/cache";
 import { createClient } from "@/lib/supabase/server";
 import type { VinVerificationStatus } from "@/types/database";
 import { NO_PHOTOS_APPROVAL_MESSAGE, VIN_NOT_VERIFIED_APPROVAL_MESSAGE } from "@/lib/listings-review";
+import { requireAdminMfa } from "@/lib/admin-mfa";
 
 const VIN_VERIFICATION_STATUSES: VinVerificationStatus[] = [
   "unverified",
@@ -36,6 +37,7 @@ async function requireAdmin() {
     .eq("id", user.id)
     .single();
   if (profile?.role !== "admin") return null;
+  await requireAdminMfa(supabase);
 
   return { supabase, adminId: user.id };
 }
