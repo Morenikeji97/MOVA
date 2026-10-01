@@ -501,7 +501,7 @@ Status key: **Exists** · **Partial** · **Missing**.
 - `prefers-reduced-motion` and `:focus-visible` handled globally.
 - A same-origin `/media` proxy.
 
-## Pending CLAUDE.md change (apply after `rebrand-shipmova` merges)
+## CLAUDE.md change (applied — now in `CLAUDE.md` at the repo root)
 
 There's no `CLAUDE.md` on `main` yet. Once the rebrand merges, create it at the
 repo root with this section, or add it if the rebrand introduces one:
