@@ -31,7 +31,7 @@ const STEPS = [
   {
     icon: Search,
     title: "Find a car.",
-    body: "Every listing shows whether it can be imported to your country and an estimated total cost.",
+    body: "Every listing shows whether it can be imported to Nigeria (more countries coming) and an estimated total cost.",
   },
   {
     icon: Bookmark,

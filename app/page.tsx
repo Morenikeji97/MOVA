@@ -26,7 +26,7 @@ const FEE_COVERS = [
   },
   {
     title: "Import check",
-    body: "we flag cars that can't legally enter your country before you pay anything.",
+    body: "we flag cars that can't legally enter Nigeria before you pay anything (more countries coming).",
   },
   {
     title: "In-person inspection",
