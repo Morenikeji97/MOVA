@@ -4,6 +4,8 @@ import { cn } from "@/lib/utils";
 import { buttonClasses } from "@/components/ui/button";
 import { VehicleCard, type VehicleCardData } from "@/components/ui/vehicle-card";
 import { LISTING_CARD_COLUMNS, loadListingThumbnails } from "@/lib/listings";
+import { getFxRates } from "@/lib/fx";
+import { FxNote } from "@/components/ui/fx-note";
 import { isPrelaunch } from "@/lib/prelaunch";
 import { WaitlistForm } from "@/components/ui/waitlist-form";
 
@@ -55,10 +57,13 @@ export default async function BrowsePage({
   const { data: vehicles } = await query;
   const rows = (vehicles ?? []) as VehicleCardData[];
 
-  const thumbByVehicle = await loadListingThumbnails(
-    supabase,
-    rows.map((v) => v.id),
-  );
+  const [thumbByVehicle, fx] = await Promise.all([
+    loadListingThumbnails(
+      supabase,
+      rows.map((v) => v.id),
+    ),
+    getFxRates(),
+  ]);
 
   return (
     <div className="min-h-screen bg-white">
@@ -156,11 +161,13 @@ export default async function BrowsePage({
                 <VehicleCard
                   vehicle={v}
                   thumbnailUrl={thumbByVehicle.get(v.id) ?? null}
+                  fx={fx}
                 />
               </li>
             ))}
           </ul>
         )}
+        {rows.length > 0 ? <FxNote fx={fx} className="mt-4" /> : null}
       </main>
     </div>
   );

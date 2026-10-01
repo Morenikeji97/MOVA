@@ -11,6 +11,9 @@ import {
   hasVerifiedListingBadge,
 } from "@/lib/listing-badges";
 import { PriceBreakdown, SellerSplitsFeeBadge } from "@/components/ui/price-breakdown";
+import { FxNote } from "@/components/ui/fx-note";
+import { getFxRates } from "@/lib/fx";
+import { currenciesFor } from "@/lib/fx-format";
 import { feeBreakdown } from "@/lib/fees";
 import { compareRatesForBuyer, countryName, shippingMethodLabel } from "@/lib/shipping";
 import { RatingSummary } from "@/components/ui/rating-summary";
@@ -214,13 +217,14 @@ export default async function VehicleDetailPage({
     }
   }
 
-  const [{ data: photos }, { data: video }] = await Promise.all([
+  const [{ data: photos }, { data: video }, fx] = await Promise.all([
     supabase
       .from("vehicle_photos")
       .select("url, thumb_url, is_primary, sort_order")
       .eq("vehicle_id", id)
       .order("sort_order", { ascending: true }),
     supabase.from("vehicle_videos").select("url").eq("vehicle_id", id).maybeSingle(),
+    getFxRates(),
   ]);
 
   // Primary photo leads the gallery; the rest keep their sort order.
@@ -276,8 +280,10 @@ export default async function VehicleDetailPage({
               : null
           }
           variant="detail"
+          local={fx ? { fx, currencies: currenciesFor(profileCountry) } : null}
           className="mt-3 max-w-xs"
         />
+        <FxNote fx={fx} className="mt-1 max-w-xs" />
         {/* Estimate only — never added to "Total before shipping" above. */}
         <ShippingEstimate
           profileCountry={profileCountry}

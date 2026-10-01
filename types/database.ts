@@ -341,6 +341,27 @@ export interface Database {
         }>;
         Relationships: [];
       };
+      fx_rates: {
+        Row: {
+          currency: string;
+          usd_rate: number;
+          provider_updated_at: string;
+          fetched_at: string;
+        };
+        Insert: {
+          currency: string;
+          usd_rate: number;
+          provider_updated_at: string;
+          fetched_at?: string;
+        };
+        Update: Partial<{
+          currency: string;
+          usd_rate: number;
+          provider_updated_at: string;
+          fetched_at: string;
+        }>;
+        Relationships: [];
+      };
       vehicle_photos: {
         Row: {
           id: string;
