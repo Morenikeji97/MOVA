@@ -85,7 +85,7 @@ export async function notifyNewChatMessage(
 // ── Fee payment ──────────────────────────────────────────────────────────
 
 /**
- * MOVA facilitation fee confirmed as paid — covers both trigger paths
+ * ShipMova facilitation fee confirmed as paid — covers both trigger paths
  * (Stripe card payment, admin bank-transfer confirmation), since both land
  * on the exact same event: mova_fee_payment_status = 'paid'.
  */
@@ -107,10 +107,10 @@ export async function notifyFeePaymentConfirmed(purchaseRequestId: string): Prom
   const origin = await appUrl();
   await sendEmail({
     to: buyer.email,
-    subject: `MOVA fee confirmed — ${vehicleTitle(vehicle)}`,
+    subject: `ShipMova fee confirmed — ${vehicleTitle(vehicle)}`,
     html: renderEmailShell({
       heading: "Payment confirmed",
-      bodyHtml: `<p style="margin:0 0 8px;">Your MOVA fee for the ${vehicleTitle(vehicle)} is confirmed. Next, the car price goes into Escrow.com &mdash; MOVA sets up the escrow transaction and it appears on your dashboard.</p><p style="margin:0;">MOVA will never send you bank details by email, WhatsApp or text, or ask you to pay a person directly. If anyone does, it&rsquo;s a scam &mdash; stop and message us.</p>`,
+      bodyHtml: `<p style="margin:0 0 8px;">Your ShipMova fee for the ${vehicleTitle(vehicle)} is confirmed. Next, the car price goes into Escrow.com &mdash; ShipMova sets up the escrow transaction and it appears on your dashboard.</p><p style="margin:0;">ShipMova will never send you bank details by email, WhatsApp or text, or ask you to pay a person directly. If anyone does, it&rsquo;s a scam &mdash; stop and message us.</p>`,
       ctaLabel: "View your dashboard",
       ctaHref: `${origin}/buyer/dashboard`,
     }),
@@ -205,7 +205,7 @@ export async function notifyBankTransferRejected(
     subject: `Bank transfer needs another look — ${vehicleTitle(vehicle)}`,
     html: renderEmailShell({
       heading: "We couldn't confirm your transfer",
-      bodyHtml: `<p style="margin:0 0 8px;">MOVA couldn&rsquo;t confirm your bank transfer for the ${vehicleTitle(vehicle)}: ${reason}</p><p style="margin:0;">You can upload new proof or pay by card instead.</p>`,
+      bodyHtml: `<p style="margin:0 0 8px;">ShipMova couldn&rsquo;t confirm your bank transfer for the ${vehicleTitle(vehicle)}: ${reason}</p><p style="margin:0;">You can upload new proof or pay by card instead.</p>`,
       ctaLabel: "Try again",
       ctaHref: `${origin}/buyer/dashboard`,
     }),
@@ -245,10 +245,10 @@ export async function notifyNewReview(reviewId: string): Promise<void> {
   const origin = await appUrl();
   await sendEmail({
     to: email,
-    subject: "You received a new review on MOVA",
+    subject: "You received a new review on ShipMova",
     html: renderEmailShell({
       heading: "New review",
-      bodyHtml: `<p style="margin:0;">You received a ${review.rating}-star review on MOVA.</p>`,
+      bodyHtml: `<p style="margin:0;">You received a ${review.rating}-star review on ShipMova.</p>`,
       ctaLabel: "View your reviews",
       ctaHref: origin,
     }),
@@ -293,7 +293,7 @@ export async function notifyDisputeFiled(
     subject: `A dispute was filed — ${vehicleTitle(vehicle)}`,
     html: renderEmailShell({
       heading: "A dispute was filed",
-      bodyHtml: `<p style="margin:0;">A dispute was filed regarding the ${vehicleTitle(vehicle)}. MOVA will review it and reach a decision.</p>`,
+      bodyHtml: `<p style="margin:0;">A dispute was filed regarding the ${vehicleTitle(vehicle)}. ShipMova will review it and reach a decision.</p>`,
       ctaLabel: "View details",
       ctaHref: `${origin}${isSellerRecipient ? "/seller/reservations" : "/buyer/dashboard"}`,
     }),
@@ -335,8 +335,8 @@ export async function notifyDisputeDecision(disputeId: string): Promise<void> {
       heading: approved ? "Your dispute was approved" : "Your dispute was denied",
       bodyHtml: `<p style="margin:0;">${
         approved
-          ? "MOVA approved your dispute for a refund."
-          : `MOVA reviewed your dispute and didn&rsquo;t approve it${dispute.decision_reason ? `: ${dispute.decision_reason}` : "."}`
+          ? "ShipMova approved your dispute for a refund."
+          : `ShipMova reviewed your dispute and didn&rsquo;t approve it${dispute.decision_reason ? `: ${dispute.decision_reason}` : "."}`
       }</p>`,
       ctaLabel: "View details",
       ctaHref: `${origin}${reporterIsBuyer ? "/buyer/dashboard" : "/seller/reservations"}`,

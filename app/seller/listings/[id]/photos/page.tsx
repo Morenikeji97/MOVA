@@ -74,7 +74,7 @@ export default async function EditListingPhotosPage({
         <section className="mt-12 border-t border-gray-200 pt-8">
           <h2 className="text-lg font-semibold text-black">Remove this listing</h2>
           <p className="mt-1 text-sm text-gray-500">
-            Takes the car off MOVA. Use this if it&rsquo;s sold elsewhere or you
+            Takes the car off ShipMova. Use this if it&rsquo;s sold elsewhere or you
             no longer want it listed.
           </p>
           <RemoveListingButton

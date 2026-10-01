@@ -1,5 +1,6 @@
 import Link from "next/link";
 import { AccountMenu } from "@/components/ui/account-menu";
+import { Logo } from "@/components/ui/logo";
 import { createClient } from "@/lib/supabase/server";
 
 const BASE_NAV_LINKS = [
@@ -18,12 +19,12 @@ const BASE_NAV_LINKS = [
  * app/browse/page.tsx and app/browse/[id]/page.tsx, and how-it-works'
  * back-link header).
  *
- * Logo is the real vector lockup (public/mova-logo-white-transparent.svg),
+ * Logo is the ShipMova vector lockup via <Logo> (components/ui/logo.tsx),
  * not a raster image, so it stays crisp at any size.
  *
  * "Sell Your Car" is hidden for signed-in buyers — a buyer browsing/reserving
  * vehicles has no reason to be pointed at seller onboarding, and showing it
- * only muddies what MOVA thinks this visitor is here to do. Logged-out
+ * only muddies what ShipMova thinks this visitor is here to do. Logged-out
  * visitors and sellers/shippers/admins still see the full nav.
  */
 export async function Header() {
@@ -49,13 +50,8 @@ export async function Header() {
   return (
     <header className="bg-black text-white print:hidden">
       <div className="mx-auto flex max-w-6xl items-center justify-between gap-6 px-6 py-4">
-        <Link href="/" className="flex shrink-0 items-center" aria-label="MOVA home">
-          {/* eslint-disable-next-line @next/next/no-img-element */}
-          <img
-            src="/mova-logo-white-transparent.svg"
-            alt="MOVA"
-            className="h-8 w-auto"
-          />
+        <Link href="/" className="flex shrink-0 items-center" aria-label="ShipMova home">
+          <Logo height={40} />
         </Link>
 
         <nav className="hidden items-center gap-6 text-sm font-medium md:flex">

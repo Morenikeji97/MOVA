@@ -1,5 +1,5 @@
 /**
- * MOVA — can this car be imported to the buyer's country?
+ * ShipMova — can this car be imported to the buyer's country?
  *
  * Sources: Nigeria Customs 12-year rule (legit.ng, carawon.com, 2026). Verify with clearing agents.
  *

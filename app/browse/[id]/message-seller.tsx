@@ -46,7 +46,7 @@ export function MessageSeller({
             conversationId={conversationId}
             selfId={buyerId}
             counterpartyLabel="Seller"
-            emptyHint="No messages yet. Ask the seller anything about this vehicle — MOVA connects you directly once the deal is confirmed."
+            emptyHint="No messages yet. Ask the seller anything about this vehicle — ShipMova connects you directly once the deal is confirmed."
           />
         </div>
       ) : (

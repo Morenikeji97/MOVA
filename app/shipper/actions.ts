@@ -41,7 +41,7 @@ async function requireApprovedShipper() {
 }
 
 function revalidateRateViews() {
-  revalidatePath("/shipper");
+  revalidatePath("/shipper/portal");
   revalidatePath("/admin/shippers");
   revalidatePath("/browse", "layout");
 }
@@ -49,7 +49,7 @@ function revalidateRateViews() {
 /**
  * Link the signed-in account to an approved shipper record whose contact email
  * matches the account's (verified) email. Used when a shipper applied while
- * logged out and only created a MOVA login afterwards.
+ * logged out and only created a ShipMova login afterwards.
  *
  * The link write needs the service role — RLS only lets admins update shippers
  * — but the action is safe: the target is pinned by the caller's
@@ -60,7 +60,7 @@ export async function claimShipper(): Promise<void> {
   const {
     data: { user },
   } = await supabase.auth.getUser();
-  if (!user?.email) redirect("/login?next=/shipper");
+  if (!user?.email) redirect("/login?next=/shipper/portal");
 
   const email = user.email.toLowerCase();
   const admin = createAdminClient();
@@ -76,7 +76,7 @@ export async function claimShipper(): Promise<void> {
     shipper.user_id !== null ||
     shipper.contact_email.toLowerCase() !== email
   ) {
-    redirect("/shipper?claim=failed");
+    redirect("/shipper/portal?claim=failed");
   }
 
   const { error } = await admin
@@ -86,11 +86,11 @@ export async function claimShipper(): Promise<void> {
     .is("user_id", null);
   if (error) {
     console.error("claimShipper link failed:", error);
-    redirect("/shipper?claim=failed");
+    redirect("/shipper/portal?claim=failed");
   }
 
-  revalidatePath("/shipper");
-  redirect("/shipper?claim=ok");
+  revalidatePath("/shipper/portal");
+  redirect("/shipper/portal?claim=ok");
 }
 
 interface RateFields {
@@ -202,7 +202,7 @@ export async function deleteShipperRate(formData: FormData): Promise<void> {
 
 /**
  * Send the shipper to Stripe (Checkout in `setup` mode) to replace the card
- * MOVA charges commission to. The shipper-commission webhook writes the new
+ * ShipMova charges commission to. The shipper-commission webhook writes the new
  * Customer / PaymentMethod tokens back on `checkout.session.completed`.
  */
 export async function startShipperCardSetup(): Promise<void> {
@@ -210,7 +210,7 @@ export async function startShipperCardSetup(): Promise<void> {
   const {
     data: { user },
   } = await supabase.auth.getUser();
-  if (!user) redirect("/login?next=/shipper");
+  if (!user) redirect("/login?next=/shipper/portal");
 
   const admin = createAdminClient();
   const { data: shipper } = await admin
@@ -218,7 +218,7 @@ export async function startShipperCardSetup(): Promise<void> {
     .select("id, company_name, contact_email, status, stripe_customer_id")
     .eq("user_id", user.id)
     .maybeSingle();
-  if (!shipper || shipper.status !== "approved") redirect("/shipper");
+  if (!shipper || shipper.status !== "approved") redirect("/shipper/portal");
 
   let redirectUrl: string | null = null;
   try {
@@ -240,15 +240,15 @@ export async function startShipperCardSetup(): Promise<void> {
       payment_method_types: ["card"],
       metadata: { shipper_id: shipper.id },
       setup_intent_data: { metadata: { shipper_id: shipper.id } },
-      success_url: `${origin}/shipper?card=updated`,
-      cancel_url: `${origin}/shipper?card=cancelled`,
+      success_url: `${origin}/shipper/portal?card=updated`,
+      cancel_url: `${origin}/shipper/portal?card=cancelled`,
     });
     redirectUrl = session.url ?? null;
   } catch (err) {
     console.error("startShipperCardSetup failed:", err);
-    redirect("/shipper?card=error");
+    redirect("/shipper/portal?card=error");
   }
 
-  if (!redirectUrl) redirect("/shipper?card=error");
+  if (!redirectUrl) redirect("/shipper/portal?card=error");
   redirect(redirectUrl);
 }

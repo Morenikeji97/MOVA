@@ -79,9 +79,9 @@ export function RemoveListingButton({
       <p className="text-sm text-copper-700">
         Remove this listing?{" "}
         {isLive
-          ? "Buyers will no longer see it anywhere on MOVA."
+          ? "Buyers will no longer see it anywhere on ShipMova."
           : "It will be taken out of your active listings."}{" "}
-        Putting it back needs a fresh review by MOVA.
+        Putting it back needs a fresh review by ShipMova.
       </p>
       <div className="flex flex-wrap gap-2">
         <Button type="button" size="sm" onClick={onConfirm} disabled={pending}>

@@ -76,7 +76,7 @@ export async function releaseReservation(formData: FormData): Promise<void> {
 
 /**
  * Generate (or regenerate) the buyer's Stripe Checkout link for their share of
- * MOVA's service fee. Available once a reservation is past 'submitted'
+ * ShipMova's service fee. Available once a reservation is past 'submitted'
  * (under_review / verified) and the fee hasn't been paid yet.
  *
  * The buyer pays only their portion — the full fee when the seller chose
@@ -86,7 +86,7 @@ export async function releaseReservation(formData: FormData): Promise<void> {
  *
  * The link is stored on the reservation and surfaced on the buyer's dashboard.
  *
- * Refused while PRELAUNCH is on (lib/prelaunch.ts): no MOVA-fee checkout is
+ * Refused while PRELAUNCH is on (lib/prelaunch.ts): no ShipMova-fee checkout is
  * created before launch, so there is no link a buyer could pay.
  */
 export async function requestFeePayment(formData: FormData): Promise<void> {
@@ -107,7 +107,7 @@ export async function requestFeePayment(formData: FormData): Promise<void> {
   if (!pr) return;
   if (pr.mova_fee_payment_status === "paid") return;
   if (pr.status !== "under_review" && pr.status !== "verified") return;
-  // The buyer must have locked in a shipper/method before MOVA sends an
+  // The buyer must have locked in a shipper/method before ShipMova sends an
   // invoice — see 0018. The reservations page hides this button and shows
   // why when shipping_rate_id is still null, so reaching here with it unset
   // shouldn't happen via the UI; bail rather than trust that alone.
@@ -157,11 +157,11 @@ export async function requestFeePayment(formData: FormData): Promise<void> {
           currency: "usd",
           unit_amount: amountCents,
           product_data: {
-            name: `MOVA service fee — ${title}`,
+            name: `ShipMova service fee — ${title}`,
             description:
               vehicle.fee_responsibility === "split"
-                ? "Your half of MOVA's 8% service fee (the seller's half comes out of their escrow payout)."
-                : "MOVA's 8% service fee.",
+                ? "Your half of ShipMova's 8% service fee (the seller's half comes out of their escrow payout)."
+                : "ShipMova's 8% service fee.",
           },
         },
       },
@@ -192,7 +192,7 @@ export async function requestFeePayment(formData: FormData): Promise<void> {
 }
 
 /**
- * Confirm a buyer's bank-transfer proof for MOVA's fee: the manual
+ * Confirm a buyer's bank-transfer proof for ShipMova's fee: the manual
  * equivalent of the Stripe payments webhook (/api/stripe/payments/webhook) —
  * marks the fee paid. Nothing about the seller is revealed; the car price
  * goes through Escrow.com.

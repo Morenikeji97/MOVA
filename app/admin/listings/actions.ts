@@ -3,7 +3,7 @@
 import { revalidatePath } from "next/cache";
 import { createClient } from "@/lib/supabase/server";
 import type { VinVerificationStatus } from "@/types/database";
-import { NO_PHOTOS_APPROVAL_MESSAGE } from "@/lib/listings-review";
+import { NO_PHOTOS_APPROVAL_MESSAGE, VIN_NOT_VERIFIED_APPROVAL_MESSAGE } from "@/lib/listings-review";
 
 const VIN_VERIFICATION_STATUSES: VinVerificationStatus[] = [
   "unverified",
@@ -68,25 +68,38 @@ export async function approveListing(
     .eq("vehicle_id", id);
   if (!photoCount) return { ok: false, error: NO_PHOTOS_APPROVAL_MESSAGE };
 
+  // The VIN check must be 'verified' (0047), not merely "not flagged".
+  const { data: vinRow } = await supabase
+    .from("vehicles")
+    .select("vin_verification_status")
+    .eq("id", id)
+    .maybeSingle();
+  if (vinRow?.vin_verification_status !== "verified") {
+    return { ok: false, error: VIN_NOT_VERIFIED_APPROVAL_MESSAGE };
+  }
+
   // The status filter keeps this idempotent: a double-submit updates no rows.
   // The vin_verification_status and title_identity_match_confirmed filters
   // express the same rule as lib/listings-review.ts's canApproveListing()
   // (which drives the Approve button's disabled state), backstopped by the
-  // DB CHECK constraints themselves
-  // (vehicles_flagged_not_approved, vehicles_title_identity_confirmed_before_approval)
-  // — a flagged VIN or an unconfirmed title-identity match can't be
-  // approved, so this matches zero rows rather than erroring.
+  // DB CHECK constraints themselves (vehicles_vin_verified_before_approval,
+  // vehicles_title_identity_confirmed_before_approval) — a VIN that isn't
+  // 'verified' or an unconfirmed title-identity match can't be approved, so
+  // this matches zero rows rather than erroring.
   const { error } = await supabase
     .from("vehicles")
     .update({ status: "approved", rejection_reason: null })
     .eq("id", id)
     .eq("status", "pending_review")
-    .neq("vin_verification_status", "flagged")
+    .eq("vin_verification_status", "verified")
     .eq("title_identity_match_confirmed", true);
 
   if (error) {
     if (error.message.includes("listing_has_no_photos")) {
       return { ok: false, error: NO_PHOTOS_APPROVAL_MESSAGE };
+    }
+    if (error.message.includes("vehicles_vin_verified_before_approval")) {
+      return { ok: false, error: VIN_NOT_VERIFIED_APPROVAL_MESSAGE };
     }
     console.error("approveListing: update failed", error);
     return { ok: false, error: "Could not approve this listing. Please try again." };

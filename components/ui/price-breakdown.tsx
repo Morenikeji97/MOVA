@@ -10,12 +10,12 @@ const usd = new Intl.NumberFormat("en-US", {
 });
 
 /**
- * Itemised buyer-facing price, from lib/fees.ts: car price, MOVA's fee (8%,
+ * Itemised buyer-facing price, from lib/fees.ts: car price, ShipMova's fee (8%,
  * or 4% when the seller splits it), Escrow.com's fee (estimate, its own
  * line), and the total before shipping. With `shipping`, the buyer's chosen
  * shipping cost is added below that and a total with shipping is shown.
  * Shipping is display-only — it's arranged with the shipper, not collected
- * through MOVA.
+ * through ShipMova.
  */
 export function PriceBreakdown({
   price,
@@ -47,7 +47,7 @@ export function PriceBreakdown({
       <Line
         label={
           <>
-            MOVA fee ({b.buyerRatePct}%)
+            ShipMova fee ({b.buyerRatePct}%)
             {b.split ? (
               <span className="text-gray-500"> · seller pays the other 4%</span>
             ) : null}

@@ -17,7 +17,7 @@ import {
   deleteShipperRate,
   setShipperRateActive,
   updateShipperRate,
-} from "./actions";
+} from "../actions";
 
 const inputClass =
   "h-10 rounded border border-gray-200 bg-white px-3 text-sm text-black";

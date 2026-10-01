@@ -32,11 +32,11 @@ test("clean messages pass", () => {
     "Hi, is this vehicle still available?",
     "Can you share more photos of the interior?",
     "What's the lowest you'd take for it?",
-    "I can wire $45,000 once MOVA confirms the deal.",
+    "I can wire $45,000 once ShipMova confirms the deal.",
     "The 2015 model with 62,000 miles — is the timing belt done?",
     "Let's chat at noon about the inspection.",
     "Rate it out of 10 for me, that scratch aside.",
-    "Sounds good. I'll wait for MOVA to connect us.",
+    "Sounds good. I'll wait for ShipMova to connect us.",
   ]) {
     assert.equal(scanForContactInfo(msg).ok, true, `expected clean: ${msg}`);
   }
@@ -113,10 +113,10 @@ test("scan reports the matched categories", () => {
 
 test("block messages are stable copy", () => {
   assert.match(CONTACT_INFO_BLOCK_MESSAGE, /can't be shared in chat/);
-  assert.match(CIRCUMVENTION_BLOCK_MESSAGE, /keep this on MOVA/i);
+  assert.match(CIRCUMVENTION_BLOCK_MESSAGE, /keep this on ShipMova/i);
   assert.equal(
     PAYMENT_BLOCK_MESSAGE,
-    "For your protection, all car payments go through Escrow.com on MOVA.",
+    "For your protection, all car payments go through Escrow.com on ShipMova.",
   );
   assert.notEqual(CONTACT_INFO_BLOCK_MESSAGE, CIRCUMVENTION_BLOCK_MESSAGE);
 });
@@ -136,9 +136,9 @@ test("off-platform payment attempts are blocked with the escrow message", () => 
     "pay me directly",
     "Can I pay you directly for the car?",
     "just pay the seller directly",
-    "I'll pay you directly once MOVA confirms the deal",
+    "I'll pay you directly once ShipMova confirms the deal",
     "I'll wire the balance to the seller after the fee clears",
-    "I'll pay the seller directly for the car once MOVA releases the details.",
+    "I'll pay the seller directly for the car once ShipMova releases the details.",
     "wire it to me",
     "transfer the money to my account",
     "send the money to my account",
@@ -210,13 +210,13 @@ test("Escrow.com / shipmova.com named bare are fine; links and lookalikes are no
   assert.ok(blocked("my site is sellerdeals.com"));
 });
 
-test("payment talk that stays on MOVA / escrow still sends", () => {
+test("payment talk that stays on ShipMova / escrow still sends", () => {
   for (const msg of [
-    "I can wire $45,000 once MOVA confirms the deal.",
+    "I can wire $45,000 once ShipMova confirms the deal.",
     "Can I pay into escrow today?",
     "When does Escrow.com release the money to you?",
-    "I paid MOVA's fee by bank transfer yesterday.",
-    "Can I pay the MOVA fee with Apple Pay?",
+    "I paid ShipMova's fee by bank transfer yesterday.",
+    "Can I pay the ShipMova fee with Apple Pay?",
     "What's the best way to pay the reservation fee?",
     "Would you consider a different price if I pay the full fee?",
     "Please send me more photos of the engine.",
@@ -311,9 +311,9 @@ test("intent-based circumvention questions are HARD blocked", () => {
     "what's the best way to reach you",
     "do you have another way I can reach you",
     "let's cut out the middleman",
-    "any way we can do this off MOVA?",
+    "any way we can do this off ShipMova?",
     "can we finish this privately to avoid the fee",
-    "how do we close this without MOVA taking a cut",
+    "how do we close this without ShipMova taking a cut",
   ]) {
     assert.ok(blocked(probe), `expected blocked: ${probe}`);
     assert.ok(blocked(embedded(probe)), embedded(probe));
@@ -343,9 +343,9 @@ test("a message with an actual number still shows the contact-info reason", () =
 test("legitimate deal / price / contact talk is NOT flagged as circumvention", () => {
   for (const msg of [
     "can I buy this car?",
-    "how do I contact MOVA support?",
+    "how do I contact ShipMova support?",
     "can we discuss the price a bit?",
-    "does MOVA connect us after payment?",
+    "does ShipMova connect us after payment?",
     "can you deliver directly to the port in Lagos?",
     "let's do the deal this week if the inspection is clean",
   ]) {
@@ -423,7 +423,7 @@ test("leet normalization does not corrupt clean messages", () => {
 test("harder circumvention variants are blocked", () => {
   for (const probe of [
     "is there somewhere private we can continue this",
-    "can we handle the sale without going through MOVA",
+    "can we handle the sale without going through ShipMova",
     "what other ways can I get in touch with you",
     "would you sell it to me directly if I paid a bit more",
     "any chance we do this between us to save the fee",
@@ -462,7 +462,7 @@ test("broader false-positive guard: normal negotiation still sends", () => {
     "Let's continue once the inspection report is back.",
     "Can we keep talking about the trim options?",
     "different trim, same year — is that also available?",
-    "I'll be reaching out through MOVA support about the fee split.",
+    "I'll be reaching out through ShipMova support about the fee split.",
     "What's the best way to pay the reservation fee?",
     "Another option is RoRo shipping instead of container.",
     "Can you bring the price down a little?",

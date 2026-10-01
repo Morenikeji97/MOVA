@@ -179,7 +179,7 @@ export default async function AdminDisputesPage() {
                     <Detail label="Reservation status">{reservation.status}</Detail>
                   ) : null}
                   {reservation ? (
-                    <Detail label="MOVA fee">{reservation.mova_fee_payment_status}</Detail>
+                    <Detail label="ShipMova fee">{reservation.mova_fee_payment_status}</Detail>
                   ) : null}
                 </dl>
 

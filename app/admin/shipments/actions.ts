@@ -46,7 +46,7 @@ function revalidate() {
 }
 
 /**
- * Mark a shipment request completed and collect MOVA's commission.
+ * Mark a shipment request completed and collect ShipMova's commission.
  *
  * The completion is recorded first and stands regardless of the charge result.
  * Then an off-session PaymentIntent is charged against the shipper's saved card
@@ -94,7 +94,7 @@ export async function completeShipment(formData: FormData): Promise<void> {
     .eq("status", "pending");
 
   const currency = (sr.currency || "USD").toLowerCase();
-  // Minor units. MOVA's shipping lanes price in USD-like 2-decimal currencies.
+  // Minor units. ShipMova's shipping lanes price in USD-like 2-decimal currencies.
   const amountMinor = Math.round(owed * 100);
 
   // Below Stripe's minimum — treat as settled, nothing to charge.
@@ -128,7 +128,7 @@ export async function completeShipment(formData: FormData): Promise<void> {
       off_session: true,
       confirm: true,
       error_on_requires_action: true,
-      description: `MOVA ${sr.commission_pct}% commission — shipment ${id}`,
+      description: `ShipMova ${sr.commission_pct}% commission — shipment ${id}`,
       metadata: { shipment_request_id: id, shipper_id: sr.shipper_id },
     });
 

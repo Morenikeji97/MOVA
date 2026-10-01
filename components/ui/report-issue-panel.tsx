@@ -113,7 +113,7 @@ export function ReportIssuePanel({ purchaseRequestId }: { purchaseRequestId: str
   if (done) {
     return (
       <p className="mt-3 rounded border border-verified-100 bg-verified-50 p-3 text-sm text-verified-600">
-        Dispute filed — MOVA will review it, usually within 5 business days.
+        Dispute filed — ShipMova will review it, usually within 5 business days.
       </p>
     );
   }

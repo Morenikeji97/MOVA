@@ -45,7 +45,7 @@ export function hasTitleReviewedBadge(facts: ListingBadgeFacts): boolean {
 }
 
 /**
- * Whether the "Verified Listing" badge may be shown — every check MOVA
+ * Whether the "Verified Listing" badge may be shown — every check ShipMova
  * claims to perform has actually been performed:
  *
  *   - the seller cleared identity verification,

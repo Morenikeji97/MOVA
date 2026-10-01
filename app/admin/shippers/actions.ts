@@ -53,7 +53,7 @@ export async function approveShipper(formData: FormData): Promise<void> {
     .eq("id", id)
     .eq("status", "pending");
 
-  // Best-effort: if a MOVA account already exists for the contact email and the
+  // Best-effort: if a ShipMova account already exists for the contact email and the
   // shipper isn't linked yet, link it so the /shipper portal works right away.
   // Otherwise the shipper links it themselves via claimShipper. A failure here
   // (e.g. that account already owns another shipper) must not undo the approval.

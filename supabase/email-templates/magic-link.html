@@ -1,6 +1,6 @@
 <!--
-  MOVA — "Magic link" auth email (Supabase `magic_link` template).
-  Subject: Your MOVA sign-in link
+  ShipMova — "Magic link" auth email (Supabase `magic_link` template).
+  Subject: Your ShipMova sign-in link
 
   Not read by the app or by Supabase automatically: paste it into the
   Supabase dashboard (Authentication → Emails → Templates → "Magic link").
@@ -10,7 +10,7 @@
     - RedirectTo is the site the request came from (the app passes its own
       origin: https://shipmova.com in production, a deploy preview while
       testing); Supabase falls back to the Site URL (https://shipmova.com)
-      when none is given. Either way the link is on a MOVA address, never
+      when none is given. Either way the link is on a ShipMova address, never
       supabase.co.
     - /auth/confirm (app/auth/confirm/route.ts) verifies the token and
       signs the user in; lib/auth-redirect.ts decides where they land.
@@ -25,7 +25,7 @@
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Your MOVA sign-in link</title>
+    <title>Your ShipMova sign-in link</title>
   </head>
   <body style="margin:0; padding:0; background-color:#F3F4F1; font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Helvetica,Arial,sans-serif;">
     <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="background-color:#F3F4F1; padding:32px 16px;">
@@ -34,14 +34,14 @@
           <table role="presentation" width="480" cellpadding="0" cellspacing="0" style="max-width:480px; width:100%; background-color:#FFFFFF; border-radius:12px; overflow:hidden; border:1px solid #EBECE8;">
             <tr>
               <td style="background-color:#000000; padding:20px 32px;">
-                <img src="{{ .SiteURL }}/mova-logo-email.png" width="108" height="72" alt="MOVA" style="display:block; border:0; outline:none; text-decoration:none; color:#FFFFFF; font-family:'SFMono-Regular',ui-monospace,Menlo,monospace; font-size:16px; letter-spacing:0.08em;" />
+                <img src="{{ .SiteURL }}/brand/shipmova-email-logo.png" width="180" height="80" alt="ShipMova" style="display:block; border:0; outline:none; text-decoration:none; color:#FFFFFF; font-family:'SFMono-Regular',ui-monospace,Menlo,monospace; font-size:16px; letter-spacing:0.08em;" />
               </td>
             </tr>
             <tr>
               <td style="padding:32px;">
-                <h1 style="margin:0 0 16px; font-size:20px; line-height:28px; color:#0E1B2C;">Sign in to MOVA</h1>
+                <h1 style="margin:0 0 16px; font-size:20px; line-height:28px; color:#0E1B2C;">Sign in to ShipMova</h1>
                 <p style="margin:0 0 16px; font-size:15px; line-height:24px; color:#5B6472;">
-                  Use the button below to sign in to your MOVA account (<strong style="color:#0E1B2C;">{{ .Email }}</strong>).
+                  Use the button below to sign in to your ShipMova account (<strong style="color:#0E1B2C;">{{ .Email }}</strong>).
                 </p>
                 <table role="presentation" cellpadding="0" cellspacing="0" style="margin:24px 0;">
                   <tr>
@@ -63,8 +63,8 @@
                   <a href="{{ .RedirectTo }}/auth/confirm?token_hash={{ .TokenHash }}&amp;type=magiclink&amp;next=/dashboard" style="color:#1D4E6B; word-break:break-all;">{{ .RedirectTo }}/auth/confirm?token_hash={{ .TokenHash }}&amp;type=magiclink&amp;next=/dashboard</a>
                 </p>
                 <p style="margin:0; font-size:12px; line-height:18px; color:#5C7086;">
-                  MOVA will never ask you for your password or bank details by email.<br />
-                  MOVA &middot; <a href="https://shipmova.com" style="color:#1D4E6B;">shipmova.com</a>
+                  ShipMova will never ask you for your password or bank details by email.<br />
+                  ShipMova &middot; <a href="https://shipmova.com" style="color:#1D4E6B;">shipmova.com</a>
                 </p>
               </td>
             </tr>

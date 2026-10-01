@@ -4,6 +4,7 @@ import { createClient } from "@/lib/supabase/server";
 import { checkRateLimit, RATE_LIMIT_MESSAGE } from "@/lib/rate-limit";
 import { getRequestIp } from "@/lib/request-ip";
 import {
+  validatePartnerWaitlist,
   validateWaitlist,
   WAITLIST_SOURCES,
   type WaitlistAudience,
@@ -43,6 +44,7 @@ export async function joinWaitlist(
     const source: WaitlistSource = WAITLIST_SOURCES.includes(rawSource as WaitlistSource)
       ? (rawSource as WaitlistSource)
       : "site";
+    // The buyer/seller form only; partners go through joinPartnerWaitlist.
     const audience: WaitlistAudience = formData.get("audience") === "seller" ? "seller" : "buyer";
     const rawVehicle = formData.get("vehicleId");
     const vehicleId =
@@ -68,6 +70,55 @@ export async function joinWaitlist(
     return { ok: true };
   } catch (err) {
     console.error("joinWaitlist: unexpected failure", err);
+    return { ok: false, error: GENERIC_ERROR };
+  }
+}
+
+/**
+ * "Register your interest" for partners: /inspectors (audience inspector)
+ * and /clearing-agents (audience clearing_agent). Same table and same
+ * insert-only grants as joinWaitlist; lib/prelaunch.ts validatePartnerWaitlist
+ * decides which fields each audience needs. Never throws.
+ */
+export async function joinPartnerWaitlist(
+  _prev: JoinWaitlistResult | null,
+  formData: FormData,
+): Promise<JoinWaitlistResult> {
+  try {
+    const audience = formData.get("audience");
+    if (audience !== "inspector" && audience !== "clearing_agent") {
+      return { ok: false, error: GENERIC_ERROR };
+    }
+    const str = (k: string) => String(formData.get(k) ?? "");
+    const v = validatePartnerWaitlist({
+      audience,
+      fullName: str("full_name"),
+      email: str("email"),
+      whatsapp: str("whatsapp"),
+      company: str("company"),
+      cityState: str("city_state"),
+      experience: str("experience"),
+      ports: formData.getAll("ports").map(String),
+      licenseNumber: str("license_number"),
+    });
+    if (!v.ok) return v;
+
+    const ip = await getRequestIp();
+    const allowed = await checkRateLimit(`waitlist:${ip ?? "unknown"}`, 5, 60 * 60);
+    if (!allowed) return { ok: false, error: RATE_LIMIT_MESSAGE };
+
+    const supabase = await createClient();
+    const { error } = await supabase.from("waitlist_signups").insert({
+      ...v.row,
+      source: audience === "inspector" ? "inspectors" : "clearing_agents",
+    });
+    if (error) {
+      console.error("joinPartnerWaitlist: insert failed", error);
+      return { ok: false, error: GENERIC_ERROR };
+    }
+    return { ok: true };
+  } catch (err) {
+    console.error("joinPartnerWaitlist: unexpected failure", err);
     return { ok: false, error: GENERIC_ERROR };
   }
 }

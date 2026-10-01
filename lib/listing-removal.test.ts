@@ -98,7 +98,7 @@ test("an approved listing with an active buyer is blocked with the specified mes
 test("the active-buyer message is the one specified", () => {
   assert.equal(
     ACTIVE_BUYER_MESSAGE,
-    "This car has an active buyer, contact MOVA on WhatsApp to cancel.",
+    "This car has an active buyer, contact ShipMova on WhatsApp to cancel.",
   );
 });
 

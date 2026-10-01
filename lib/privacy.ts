@@ -1,5 +1,5 @@
 /**
- * MOVA Privacy Policy — central version constant.
+ * ShipMova Privacy Policy — central version constant.
  *
  * Independent from lib/terms.ts's CURRENT_TERMS_VERSION — a user must
  * accept both, not one instead of the other. Shares the same mandatory
@@ -14,6 +14,6 @@
  * user, on their next request" — see lib/terms.ts's doc comment for the
  * full mechanism, which this mirrors exactly.
  */
-export const CURRENT_PRIVACY_VERSION = "v1.1";
+export const CURRENT_PRIVACY_VERSION = "v1.2";
 
-export const PRIVACY_EFFECTIVE_DATE = "2026-09-28";
+export const PRIVACY_EFFECTIVE_DATE = "2026-09-30";

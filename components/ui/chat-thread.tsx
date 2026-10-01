@@ -197,7 +197,7 @@ export function ChatThread({
         </div>
         <p className="mt-2 text-[11px] text-gray-500">
           Phone numbers, emails, links and off-platform contact are blocked —
-          MOVA connects you directly once the deal is confirmed.
+          ShipMova connects you directly once the deal is confirmed.
         </p>
       </form>
     </div>

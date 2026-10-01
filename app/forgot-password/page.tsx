@@ -65,7 +65,7 @@ function ForgotPasswordForm() {
     <main className="mx-auto flex min-h-screen max-w-md flex-col justify-center px-6">
       <h1 className="mb-2 text-2xl font-semibold text-black">Reset your password</h1>
       <p className="mb-6 text-sm text-gray-500">
-        Enter the email on your MOVA account and we&rsquo;ll send you a link
+        Enter the email on your ShipMova account and we&rsquo;ll send you a link
         to set a new password. This works the same way for buyers, sellers,
         shippers, and admins — they all sign in with the same email + password.
       </p>

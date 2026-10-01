@@ -1,5 +1,5 @@
 /**
- * MOVA — shared VIN validation.
+ * ShipMova — shared VIN validation.
  *
  * One definition, three consumers: the seller listing form's Zod schema
  * (app/seller/listings/new/page.tsx), the DB constraint on vehicles.vin

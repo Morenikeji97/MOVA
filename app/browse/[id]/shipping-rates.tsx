@@ -77,8 +77,8 @@ export function ShippingRates({
     <section className="mt-10 rounded-lg border border-gray-200 bg-white p-6">
       <h2 className="text-black">Shipping — required before your invoice</h2>
       <p className="mt-1 text-sm text-gray-500">
-        Rates are set by each shipper and shown exactly as listed — MOVA
-        doesn&rsquo;t mark them up. You need to pick one before MOVA can send
+        Rates are set by each shipper and shown exactly as listed — ShipMova
+        doesn&rsquo;t mark them up. You need to pick one before ShipMova can send
         your service-fee invoice.
       </p>
 
@@ -92,7 +92,7 @@ export function ShippingRates({
           <p className="mt-1 text-sm text-gray-500">
             {locked
               ? "Locked in — your invoice has been sent."
-              : "To change shippers, contact MOVA support before your invoice is sent."}
+              : "To change shippers, contact ShipMova support before your invoice is sent."}
           </p>
         </div>
       ) : (

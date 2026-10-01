@@ -15,9 +15,9 @@ const usdCents = new Intl.NumberFormat("en-US", {
 });
 
 const REQUEST_STATUS_COPY: Record<string, string> = {
-  submitted: "Submitted — waiting for MOVA to review.",
-  under_review: "MOVA is reviewing your request.",
-  verified: "Verified — MOVA will be in touch with next steps.",
+  submitted: "Submitted — waiting for ShipMova to review.",
+  under_review: "ShipMova is reviewing your request.",
+  verified: "Verified — ShipMova will be in touch with next steps.",
   completed: "Completed.",
 };
 
@@ -59,7 +59,7 @@ export function ReserveVehicle({
         <p className="text-black">You&rsquo;ve requested to reserve this vehicle.</p>
         <p className="mt-1 text-sm text-gray-500">
           {(requestStatus && REQUEST_STATUS_COPY[requestStatus]) ??
-            "MOVA will be in touch."}
+            "ShipMova will be in touch."}
         </p>
 
         {negotiatedPriceStatus === "proposed" &&
@@ -76,7 +76,7 @@ export function ReserveVehicle({
         {negotiatedPriceStatus === "accepted" && negotiatedPriceUsd != null ? (
           <p className="mt-3 rounded border border-verified-100 bg-verified-50 p-3 text-sm text-verified-600">
             You accepted{" "}
-            {usdCents.format(negotiatedPriceUsd)} — MOVA&rsquo;s service fee will
+            {usdCents.format(negotiatedPriceUsd)} — ShipMova&rsquo;s service fee will
             be based on this price.
           </p>
         ) : null}
@@ -96,7 +96,7 @@ export function ReserveVehicle({
       <Card>
         <p className="text-black">Interested in this vehicle?</p>
         <p className="mt-1 text-sm text-gray-500">
-          Sign in with a buyer account to send MOVA a reservation request.
+          Sign in with a buyer account to send ShipMova a reservation request.
         </p>
         <div className="mt-4 flex flex-wrap items-center gap-3">
           <Link
@@ -121,7 +121,7 @@ export function ReserveVehicle({
       <Card>
         <p className="text-black">Reserving is for buyer accounts.</p>
         <p className="mt-1 text-sm text-gray-500">
-          Sign in with a buyer account to send MOVA a reservation request for
+          Sign in with a buyer account to send ShipMova a reservation request for
           this vehicle.
         </p>
       </Card>
@@ -133,11 +133,11 @@ export function ReserveVehicle({
     <Card>
       <p className="text-black">Reserve this vehicle</p>
       <p className="mt-1 text-sm text-gray-500">
-        This sends a reservation request to MOVA. The vehicle stays listed until
+        This sends a reservation request to ShipMova. The vehicle stays listed until
         our team confirms who proceeds.
       </p>
       <p className="mt-2 text-sm text-gray-500">
-        If MOVA approves your reservation, you&rsquo;ll pay MOVA&rsquo;s{" "}
+        If ShipMova approves your reservation, you&rsquo;ll pay ShipMova&rsquo;s{" "}
         {usdCents.format(buyerFeeUsd)} fee, then the car price into Escrow.com.
         The seller is only paid once the car has passed inspection and your
         shipper has it and the original title.
@@ -153,7 +153,7 @@ export function ReserveVehicle({
       ) : null}
       {result?.ok && result.created ? (
         <p className="mt-3 text-sm text-verified-600">
-          Request sent — MOVA will review it shortly.
+          Request sent — ShipMova will review it shortly.
         </p>
       ) : null}
     </Card>

@@ -19,18 +19,19 @@ import { BUYER_PROTECTION_POLICY_PATH } from "@/lib/policy";
 import { feeBreakdown } from "@/lib/fees";
 import { isPrelaunch } from "@/lib/prelaunch";
 import { WaitlistForm } from "@/components/ui/waitlist-form";
+import { WhyBuy } from "@/components/ui/why-buy";
 
 export const metadata: Metadata = {
-  title: "How MOVA Works — MOVA",
+  title: "How ShipMova Works — ShipMova",
   description:
-    "How buying a car on MOVA works: verified U.S. sellers, your payment held by Escrow.com, and an inspection before the seller is paid.",
+    "How buying a car on ShipMova works: verified U.S. sellers, your payment held by Escrow.com, and an inspection before the seller is paid.",
 };
 
 const STEPS = [
   {
     icon: Search,
     title: "Find a car.",
-    body: "Every listing shows whether it can be imported to your country and an estimated total cost.",
+    body: "Every listing shows whether it can be imported to Nigeria (more countries coming) and an estimated total cost.",
   },
   {
     icon: Bookmark,
@@ -44,7 +45,7 @@ const STEPS = [
   },
   {
     icon: CreditCard,
-    title: "Pay MOVA's fee, then the car price into escrow.",
+    title: "Pay ShipMova's fee, then the car price into escrow.",
     body: "",
   },
   {
@@ -133,11 +134,11 @@ export default function HowItWorksPage() {
       <section className="bg-black text-white">
         <div className="mx-auto max-w-4xl px-6 py-16">
           <h1 className="text-4xl font-semibold leading-tight sm:text-5xl">
-            How MOVA works
+            How ShipMova works
           </h1>
           <p className="mt-4 max-w-xl text-gray-300">
             Buying a car from another country can feel risky. Here&rsquo;s
-            exactly how MOVA makes it safe, transparent, and simple — from
+            exactly how ShipMova makes it safe, transparent, and simple — from
             browsing a listing to the car arriving at your door.
           </p>
         </div>
@@ -167,8 +168,14 @@ export default function HowItWorksPage() {
             </li>
           ))}
         </ol>
-        {isPrelaunch() ? <WaitlistForm source="how_it_works" className="mt-8" /> : null}
+        {isPrelaunch() ? (
+          <div id="waitlist" className="scroll-mt-4">
+            <WaitlistForm source="how_it_works" className="mt-8" />
+          </div>
+        ) : null}
       </section>
+
+      <WhyBuy waitlistHref={isPrelaunch() ? "#waitlist" : null} />
 
       {/* Section 2 — fee structure */}
       <section className="border-t border-gray-200 bg-white">
@@ -184,7 +191,7 @@ export default function HowItWorksPage() {
 
           <dl className="mt-6 max-w-md rounded-lg border border-gray-200 bg-white p-6">
             <ExampleRow label="Car price" value={EXAMPLE.vehiclePrice} first />
-            <ExampleRow label="MOVA fee (8%)" value={EXAMPLE.buyerFee} />
+            <ExampleRow label="ShipMova fee (8%)" value={EXAMPLE.buyerFee} />
             <ExampleRow label="Escrow.com fee (est.)" value={EXAMPLE.escrowFee ?? 0} />
             <ExampleRow label="Total before shipping" value={EXAMPLE.totalBeforeShipping} strong />
             <ExampleRow label="Shipping (varies by route)" value={EXAMPLE_SHIPPING} />
@@ -196,7 +203,7 @@ export default function HowItWorksPage() {
           </dl>
 
           <p className="mt-6 max-w-2xl text-sm text-gray-500">
-            <strong className="text-black">MOVA&rsquo;s fee</strong>, the{" "}
+            <strong className="text-black">ShipMova&rsquo;s fee</strong>, the{" "}
             <strong className="text-black">car price</strong> (held by
             Escrow.com), Escrow.com&rsquo;s own fee and the{" "}
             <strong className="text-black">shipping cost</strong> are separate
@@ -215,10 +222,10 @@ export default function HowItWorksPage() {
         </div>
       </section>
 
-      {/* Section 3 — what MOVA is and isn't */}
+      {/* Section 3 — what ShipMova is and isn't */}
       <section className="mx-auto max-w-4xl px-6 py-16">
         <h2 className="font-mono text-xs uppercase tracking-wider text-gray-500">
-          What MOVA is (and isn&rsquo;t)
+          What ShipMova is (and isn&rsquo;t)
         </h2>
         <p className="mt-3 max-w-2xl text-gray-500">
           We&rsquo;re straightforward about our role, because trust starts
@@ -226,13 +233,13 @@ export default function HowItWorksPage() {
         </p>
         <div className="mt-6 max-w-2xl rounded-lg border border-gray-200 bg-white p-6 text-sm text-black">
           <p>
-            MOVA is a <strong>technology platform</strong> — we verify
+            ShipMova is a <strong>technology platform</strong> — we verify
             sellers, check listings, and coordinate a protected payment: the
             car price is held by Escrow.com, a licensed escrow company, and
             only released to the seller after inspection and pickup.
           </p>
           <p className="mt-3">
-            What MOVA is <em>not</em>: we&rsquo;re not the seller of any
+            What ShipMova is <em>not</em>: we&rsquo;re not the seller of any
             vehicle, we&rsquo;re never a party to the sale itself, and we
             never take ownership of a vehicle at any point. The sale is
             always a direct agreement between you and the seller; shipping is

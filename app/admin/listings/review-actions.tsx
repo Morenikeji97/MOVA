@@ -7,6 +7,7 @@ import {
   canApproveListing,
   canSubmitForReview,
   NO_PHOTOS_APPROVAL_MESSAGE,
+  VIN_NOT_VERIFIED_APPROVAL_MESSAGE,
 } from "@/lib/listings-review";
 import type { VinVerificationStatus } from "@/types/database";
 import {
@@ -129,6 +130,8 @@ export function ReviewActions({
           VIN flagged — this listing can&rsquo;t be approved until the status
           changes.
         </p>
+      ) : vinVerificationStatus !== "verified" ? (
+        <p className="mt-2 text-sm text-copper-700">{VIN_NOT_VERIFIED_APPROVAL_MESSAGE}</p>
       ) : null}
 
       <form

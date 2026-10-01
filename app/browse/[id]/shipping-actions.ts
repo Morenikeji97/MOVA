@@ -26,7 +26,7 @@ function str(v: FormDataEntryValue | null): string {
  * Creates a shipment_requests row and snapshots both sides' contact details
  * onto it — shipper contact revealed to the buyer, buyer contact revealed to
  * the shipper — the same pattern purchase_requests uses for seller contact.
- * There is no buyer-facing Stripe step; MOVA's commission is charged to the
+ * There is no buyer-facing Stripe step; ShipMova's commission is charged to the
  * shipper later.
  *
  * The rate is validated against shipper_rates_public, which already excludes

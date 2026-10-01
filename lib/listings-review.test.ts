@@ -4,8 +4,7 @@ import { canApproveListing, canSubmitForReview } from "./listings-review.ts";
 
 // ---------------------------------------------------------------------------
 // canApproveListing — a listing can't reach Approved without the admin
-// title-match confirmation (and can't while the VIN is flagged, unchanged
-// from before this feature).
+// title-match confirmation, and needs a VIN check result of 'verified' (0047).
 // ---------------------------------------------------------------------------
 
 test("cannot approve without the admin title-identity-match confirmation", () => {
@@ -29,11 +28,14 @@ test("cannot approve with a flagged VIN even if the title-identity match is conf
   );
 });
 
-test("an unverified (never-checked) VIN doesn't block approval on its own", () => {
-  assert.equal(
-    canApproveListing({ vinVerificationStatus: "unverified", titleIdentityMatchConfirmed: true, photoCount: 3 }),
-    true,
-  );
+test("an unverified or still-checking VIN blocks approval (0047)", () => {
+  for (const vin of ["unverified", "checking"] as const) {
+    assert.equal(
+      canApproveListing({ vinVerificationStatus: vin, titleIdentityMatchConfirmed: true, photoCount: 3 }),
+      false,
+      vin,
+    );
+  }
 });
 
 test("cannot approve a listing with zero photos, even when everything else is clear", () => {

@@ -1,6 +1,6 @@
 import { test, afterEach } from "node:test";
 import assert from "node:assert/strict";
-import { isPrelaunch, toInternationalWhatsapp, validateWaitlist } from "./prelaunch.ts";
+import { isPrelaunch, toInternationalWhatsapp, validatePartnerWaitlist, validateWaitlist } from "./prelaunch.ts";
 
 const original = process.env.PRELAUNCH;
 afterEach(() => {
@@ -151,4 +151,71 @@ test("waitlist: rejects a WhatsApp number with letters", () => {
 
 test("waitlist: rejects an unknown country", () => {
   assert.equal(validateWaitlist({ email: "a@b.co", whatsapp: "", country: "XX" }).ok, false);
+});
+
+// ---------------------------------------------------------------------------
+// validatePartnerWaitlist — /inspectors and /clearing-agents
+// ---------------------------------------------------------------------------
+
+const inspector = {
+  audience: "inspector" as const,
+  fullName: " Dana Mechanic ",
+  email: "Dana@Example.com",
+  whatsapp: "631-617-3816",
+  company: "",
+  cityState: "Houston, TX",
+  experience: "ASE-certified tech, 10 years",
+  ports: [],
+  licenseNumber: "",
+};
+
+test("inspector: valid signup is stored as a U.S. number and lower-cased email", () => {
+  const r = validatePartnerWaitlist(inspector);
+  assert.equal(r.ok, true);
+  if (r.ok) {
+    assert.equal(r.row.country, "US");
+    assert.equal(r.row.whatsapp, "+16316173816");
+    assert.equal(r.row.email, "dana@example.com");
+    assert.equal(r.row.full_name, "Dana Mechanic");
+    assert.equal(r.row.city_state, "Houston, TX");
+    assert.equal(r.row.ports_served, null);
+  }
+});
+
+test("inspector: name, email, WhatsApp, city/state and experience are all required", () => {
+  for (const [field, blank] of [
+    ["fullName", ""], ["email", ""], ["whatsapp", ""], ["cityState", " "], ["experience", ""],
+  ] as const) {
+    assert.equal(validatePartnerWaitlist({ ...inspector, [field]: blank }).ok, false, field);
+  }
+});
+
+const agent = {
+  audience: "clearing_agent" as const,
+  fullName: "Ade Clearing",
+  email: "ade@example.com",
+  whatsapp: "0803 123 4567",
+  company: "Ade Logistics Ltd",
+  cityState: "",
+  experience: "",
+  ports: ["Apapa", "Onne", "Apapa"],
+  licenseNumber: "",
+};
+
+test("clearing agent: Nigerian number, de-duplicated ports, optional license", () => {
+  const r = validatePartnerWaitlist(agent);
+  assert.equal(r.ok, true);
+  if (r.ok) {
+    assert.equal(r.row.country, "NG");
+    assert.equal(r.row.whatsapp, "+2348031234567");
+    assert.deepEqual(r.row.ports_served, ["Apapa", "Onne"]);
+    assert.equal(r.row.license_number, null);
+    assert.equal(r.row.company, "Ade Logistics Ltd");
+  }
+});
+
+test("clearing agent: company and at least one known port are required", () => {
+  assert.equal(validatePartnerWaitlist({ ...agent, company: "" }).ok, false);
+  assert.equal(validatePartnerWaitlist({ ...agent, ports: [] }).ok, false);
+  assert.equal(validatePartnerWaitlist({ ...agent, ports: ["Lekki"] }).ok, false);
 });

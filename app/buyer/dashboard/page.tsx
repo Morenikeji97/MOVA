@@ -22,9 +22,9 @@ const usdCents = new Intl.NumberFormat("en-US", {
 });
 
 const RESERVATION_STATUS_COPY: Record<string, string> = {
-  submitted: "Submitted — waiting for MOVA to review.",
-  under_review: "MOVA is reviewing your request.",
-  verified: "Verified — MOVA will be in touch with next steps.",
+  submitted: "Submitted — waiting for ShipMova to review.",
+  under_review: "ShipMova is reviewing your request.",
+  verified: "Verified — ShipMova will be in touch with next steps.",
   completed: "Completed.",
   rejected: "Not accepted.",
   cancelled: "Released.",
@@ -127,7 +127,7 @@ export default async function BuyerDashboard({
         <div className="mt-3 space-y-2 rounded border border-gray-200 p-4">
           <p className="text-sm font-medium text-black">Verify your identity</p>
           <p className="text-sm text-gray-500">
-            Verifying your NIN or BVN unlocks your MOVA referral rewards and
+            Verifying your NIN or BVN unlocks your ShipMova referral rewards and
             speeds up reservation review. Either one is enough — you don’t
             need both.
           </p>
@@ -142,7 +142,7 @@ export default async function BuyerDashboard({
 
       {feeNotice === "paid" && awaitingFeeConfirmation ? (
         <p className="mt-6 rounded border border-verified-100 bg-verified-50 p-3 text-sm text-verified-600">
-          Thanks — your MOVA fee is being confirmed. It shows as paid below as
+          Thanks — your ShipMova fee is being confirmed. It shows as paid below as
           soon as Stripe confirms, usually within a minute.
         </p>
       ) : null}
@@ -168,7 +168,7 @@ export default async function BuyerDashboard({
           <div className="mt-4 rounded-lg border border-dashed border-gray-200 bg-white p-8 text-center">
             <p className="text-black">You haven&rsquo;t reserved any vehicles yet.</p>
             <p className="mt-1 text-sm text-gray-500">
-              Reserve a vehicle from its listing to send MOVA a request.
+              Reserve a vehicle from its listing to send ShipMova a request.
             </p>
           </div>
         ) : (
@@ -216,7 +216,7 @@ export default async function BuyerDashboard({
                 Boolean(r.mova_fee_checkout_url);
               // Two distinct reasons the fee link isn't here yet — worth
               // telling apart, since one needs the buyer to act and the
-              // other just needs MOVA to.
+              // other just needs ShipMova to.
               const showNeedsShipping =
                 !feePaid &&
                 OPEN_STATUSES.includes(r.status) &&
@@ -289,14 +289,14 @@ export default async function BuyerDashboard({
                   !feePaid ? (
                     <p className="mt-3 rounded border border-verified-100 bg-verified-50 p-3 text-sm text-verified-600">
                       You accepted {usdCents.format(Number(r.negotiated_price_usd))} —
-                      MOVA&rsquo;s service fee will be based on this price.
+                      ShipMova&rsquo;s service fee will be based on this price.
                     </p>
                   ) : null}
 
                   {showNeedsShipping ? (
                     <p className="mt-3 rounded border border-copper-100 bg-copper-50 p-3 text-sm text-copper-700">
                       Choose a destination and shipper on the listing page —
-                      MOVA can&rsquo;t send your invoice until shipping is
+                      ShipMova can&rsquo;t send your invoice until shipping is
                       selected.{" "}
                       <Link href={`/browse/${r.vehicle_id}`} className="underline">
                         Select shipping
@@ -306,7 +306,7 @@ export default async function BuyerDashboard({
 
                   {showFeePending ? (
                     <p className="mt-3 rounded border border-gray-200 bg-white p-3 text-sm text-gray-500">
-                      Shipping selected. MOVA will send your service-fee
+                      Shipping selected. ShipMova will send your service-fee
                       payment link here once your reservation has been
                       reviewed.
                     </p>
@@ -317,7 +317,7 @@ export default async function BuyerDashboard({
                       source="dashboard"
                       vehicleId={r.vehicle_id}
                       heading="Payments open at launch"
-                      intro="MOVA isn't taking payments yet. Join the waitlist and we'll tell you the moment you can pay and continue."
+                      intro="ShipMova isn't taking payments yet. Join the waitlist and we'll tell you the moment you can pay and continue."
                       className="mt-3"
                     />
                   ) : null}
@@ -325,17 +325,17 @@ export default async function BuyerDashboard({
                   {showPaymentOptions && !prelaunch ? (
                     <div className="mt-3 rounded border border-marine-100 bg-marine-50 p-4">
                       <p className="text-sm font-medium text-marine-700">
-                        Pay MOVA&rsquo;s fee
+                        Pay ShipMova&rsquo;s fee
                         {buyerFee != null ? ` — ${usdCents.format(buyerFee)}` : ""}
                       </p>
                       <p className="mt-1 text-sm text-gray-500">
-                        This covers MOVA&rsquo;s verification and coordination.
+                        This covers ShipMova&rsquo;s verification and coordination.
                         Next, the car price goes into Escrow.com — never to the
-                        seller or MOVA directly.
+                        seller or ShipMova directly.
                       </p>
                       {feeBankTransferRejected ? (
                         <p className="mt-3 rounded border border-copper-100 bg-copper-50 p-3 text-sm text-copper-700">
-                          MOVA couldn&rsquo;t confirm your last bank transfer
+                          ShipMova couldn&rsquo;t confirm your last bank transfer
                           {r.bank_transfer_rejection_reason
                             ? `: ${r.bank_transfer_rejection_reason}`
                             : "."}{" "}
@@ -354,7 +354,7 @@ export default async function BuyerDashboard({
 
                   {feeAwaitingBankVerification ? (
                     <p className="mt-3 rounded border border-marine-100 bg-marine-50 p-3 text-sm text-marine-700">
-                      MOVA is verifying your bank transfer (reference{" "}
+                      ShipMova is verifying your bank transfer (reference{" "}
                       {bankTransferReference(r.id)}). This can take a little
                       longer than an instant card payment — it shows as paid
                       here once it&rsquo;s confirmed.
@@ -364,16 +364,16 @@ export default async function BuyerDashboard({
                   {feePaid ? (
                     <div className="mt-3 rounded border border-verified-100 bg-verified-50 p-4">
                       <p className="text-sm font-semibold text-black">
-                        MOVA&rsquo;s fee is paid
+                        ShipMova&rsquo;s fee is paid
                       </p>
                       <p className="mt-1 text-sm text-gray-500">
-                        Next, the car price goes into Escrow.com. MOVA sets up
+                        Next, the car price goes into Escrow.com. ShipMova sets up
                         the escrow transaction and it appears here. The seller
                         is only paid once the car passes inspection and your
                         shipper has it and the original title.
                       </p>
                       <p className="mt-2 text-sm text-copper-700">
-                        MOVA will never send you bank details on WhatsApp,
+                        ShipMova will never send you bank details on WhatsApp,
                         email or text, or ask you to pay a person directly. If
                         anyone does, it&rsquo;s a scam — stop and message us.
                       </p>

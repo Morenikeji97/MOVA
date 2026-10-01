@@ -1,19 +1,19 @@
 import type { FeeResponsibility } from "@/types/database";
 
 /**
- * MOVA — the one place prices are worked out. Every surface that shows a
+ * ShipMova — the one place prices are worked out. Every surface that shows a
  * buyer a number (listing cards, the listing page, the dashboard, the Stripe
  * fee checkout, the how-it-works example) goes through feeBreakdown(), so
  * the card, the page and the charge can't disagree.
  */
 
-/** MOVA's service fee, as a fraction of the vehicle price. */
+/** ShipMova's service fee, as a fraction of the vehicle price. */
 export const MOVA_FEE_RATE = 0.08;
 
 /** New listings default to the buyer paying the whole fee. */
 export const DEFAULT_FEE_RESPONSIBILITY: FeeResponsibility = "buyer_pays_full";
 
-/** Badge shown on listings where the seller covers half of MOVA's fee. */
+/** Badge shown on listings where the seller covers half of ShipMova's fee. */
 export const SELLER_SPLITS_FEE_BADGE = "Seller splits the fee";
 
 /**
@@ -56,7 +56,7 @@ export interface FeeBreakdown {
   vehiclePrice: number;
   /** The full 8% fee, before any split. Stored as purchase_requests.mova_fee_usd. */
   fullFee: number;
-  /** What the buyer pays MOVA upfront: the full fee, or half when split. */
+  /** What the buyer pays ShipMova upfront: the full fee, or half when split. */
   buyerFee: number;
   /**
    * The seller's half when split, deducted from their escrow payout — the
@@ -68,7 +68,7 @@ export interface FeeBreakdown {
   /** Escrow.com's fee (estimate), paid by the buyer; null above the top tier. */
   escrowFee: number | null;
   /**
-   * Car price + the buyer's MOVA fee + the escrow estimate. What the buyer
+   * Car price + the buyer's ShipMova fee + the escrow estimate. What the buyer
    * pays before shipping. When escrowFee is null this excludes escrow.
    */
   totalBeforeShipping: number;
@@ -78,7 +78,7 @@ export interface FeeBreakdown {
 /**
  * Everything a buyer pays for a given car price, before shipping.
  *
- * `buyer_pays_full` — the buyer pays the whole 8% to MOVA.
+ * `buyer_pays_full` — the buyer pays the whole 8% to ShipMova.
  * `split`           — the buyer pays 4%; the seller's 4% is deducted from
  *                     their escrow payout, with nothing to pay upfront.
  *

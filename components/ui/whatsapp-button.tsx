@@ -21,7 +21,7 @@ export function WhatsAppButton() {
       href={href}
       target="_blank"
       rel="noopener noreferrer"
-      aria-label="Chat with MOVA on WhatsApp"
+      aria-label="Chat with ShipMova on WhatsApp"
       className={cn(
         "fixed bottom-4 right-4 z-50 sm:bottom-6 sm:right-6 print:hidden",
         "flex h-14 w-14 items-center justify-center rounded-full",

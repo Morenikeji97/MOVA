@@ -1,10 +1,10 @@
 /**
- * MOVA — pre-launch mode.
+ * ShipMova — pre-launch mode.
  *
  * PRELAUNCH is a server-only env var, set to "true" in Netlify for
  * production and deploy previews. While it's on:
  *   - every page shows the launching-soon banner (components/ui/prelaunch-banner.tsx);
- *   - reserving a car and every MOVA-fee payment step are refused by the
+ *   - reserving a car and every ShipMova-fee payment step are refused by the
  *     server actions themselves, and the UI offers the waitlist instead;
  *   - seller listing creation and admin review work as normal.
  *
@@ -14,7 +14,11 @@
  * The same rule is enforced in the database for callers that skip the app
  * entirely (a buyer hitting the REST API with their own session):
  * public.platform_settings.prelaunch + the purchase_requests_prelaunch_guard
- * trigger (migration 0039). Going live means flipping BOTH:
+ * trigger (migration 0039).
+ *
+ * BEFORE going live, every box in docs/LAUNCH-BLOCKERS.md must be ticked:
+ * the public copy describes features (escrow, inspection, shipper insurance
+ * checks, partner rewards) that aren't built yet. Going live means flipping BOTH:
  *   1. PRELAUNCH=false in Netlify (then redeploy), and
  *   2. `update public.platform_settings set prelaunch = false;`
  */
@@ -22,11 +26,11 @@ export function isPrelaunch(): boolean {
   return process.env.PRELAUNCH?.trim().toLowerCase() !== "false";
 }
 
-export const PRELAUNCH_BANNER = "MOVA is launching soon — here's how it will work.";
+export const PRELAUNCH_BANNER = "ShipMova is launching soon — here's how it will work.";
 
 /** What a refused reserve/pay attempt returns. */
 export const PRELAUNCH_REFUSAL =
-  "MOVA isn't taking reservations or payments yet — join the waitlist and we'll tell you the moment we launch.";
+  "ShipMova isn't taking reservations or payments yet — join the waitlist and we'll tell you the moment we launch.";
 
 /**
  * Countries offered on the waitlist form: the launch markets, the United
@@ -44,7 +48,7 @@ export const WAITLIST_COUNTRIES = [
 
 export type WaitlistCountryCode = (typeof WAITLIST_COUNTRIES)[number]["code"];
 
-/** Where a signup came from — mirrors waitlist_signups_source_check (0041). */
+/** Where a signup came from — mirrors waitlist_signups_source_check (0046). */
 export const WAITLIST_SOURCES = [
   "site",
   "listing",
@@ -53,11 +57,118 @@ export const WAITLIST_SOURCES = [
   "how_it_works",
   "browse",
   "sell",
+  "shipper",
+  "inspectors",
+  "clearing_agents",
 ] as const;
 export type WaitlistSource = (typeof WAITLIST_SOURCES)[number];
 
-/** Buyers waiting to buy, or sellers waiting to list (0041). */
-export type WaitlistAudience = "buyer" | "seller";
+/** Who signed up — mirrors waitlist_signups_audience_check (0046). */
+export const WAITLIST_AUDIENCES = ["buyer", "seller", "shipper", "inspector", "clearing_agent"] as const;
+export type WaitlistAudience = (typeof WAITLIST_AUDIENCES)[number];
+
+export const WAITLIST_AUDIENCE_LABEL: Record<WaitlistAudience, string> = {
+  buyer: "Buyer",
+  seller: "Seller",
+  shipper: "Shipper",
+  inspector: "Inspector",
+  clearing_agent: "Clearing agent",
+};
+
+/** Nigerian ports a clearing agent can say they serve (0046 check). */
+export const NIGERIA_PORTS = ["Apapa", "Tin Can Island", "Onne"] as const;
+export type NigeriaPort = (typeof NIGERIA_PORTS)[number];
+
+export type PartnerWaitlistInput = {
+  audience: "inspector" | "clearing_agent";
+  fullName: string;
+  email: string;
+  whatsapp: string;
+  company: string;
+  cityState: string;
+  experience: string;
+  ports: string[];
+  licenseNumber: string;
+};
+
+export type PartnerWaitlistValidation =
+  | {
+      ok: true;
+      row: {
+        audience: "inspector" | "clearing_agent";
+        country: WaitlistCountryCode;
+        full_name: string;
+        email: string;
+        whatsapp: string;
+        company: string | null;
+        city_state: string | null;
+        experience: string | null;
+        ports_served: NigeriaPort[] | null;
+        license_number: string | null;
+      };
+    }
+  | { ok: false; error: string };
+
+/**
+ * Validates an /inspectors or /clearing-agents signup. Inspectors are in
+ * the U.S. (country US); clearing agents are in Nigeria (country NG), so
+ * each WhatsApp number is resolved against that country.
+ *
+ *   inspector:      name, email, WhatsApp, city/state, car experience
+ *   clearing_agent: name, company, WhatsApp, email, at least one port;
+ *                   license / CAC number optional
+ */
+export function validatePartnerWaitlist(input: PartnerWaitlistInput): PartnerWaitlistValidation {
+  const t = (s: string) => s.trim();
+  const fullName = t(input.fullName);
+  const email = t(input.email);
+  const whatsappRaw = t(input.whatsapp);
+  const country: WaitlistCountryCode = input.audience === "inspector" ? "US" : "NG";
+
+  if (!fullName) return { ok: false, error: "Enter your name." };
+  if (fullName.length > 120) return { ok: false, error: "That name is too long." };
+  if (!email || email.length > 254 || !EMAIL_RE.test(email)) {
+    return { ok: false, error: "Enter a valid email address." };
+  }
+  if (!whatsappRaw) return { ok: false, error: "Enter your WhatsApp number." };
+  const w = toInternationalWhatsapp(whatsappRaw, country);
+  if (!w.ok) return w;
+
+  if (input.audience === "inspector") {
+    const cityState = t(input.cityState);
+    const experience = t(input.experience);
+    if (!cityState) return { ok: false, error: "Enter your city and state." };
+    if (cityState.length > 120) return { ok: false, error: "Keep city and state under 120 characters." };
+    if (!experience) return { ok: false, error: "Tell us a little about your car experience." };
+    if (experience.length > 1000) return { ok: false, error: "Keep your car experience under 1,000 characters." };
+    return {
+      ok: true,
+      row: {
+        audience: "inspector", country, full_name: fullName, email: email.toLowerCase(), whatsapp: w.e164,
+        company: null, city_state: cityState, experience, ports_served: null, license_number: null,
+      },
+    };
+  }
+
+  const company = t(input.company);
+  const license = t(input.licenseNumber);
+  const ports = [...new Set(input.ports.map(t))];
+  if (!company) return { ok: false, error: "Enter your company name." };
+  if (company.length > 160) return { ok: false, error: "That company name is too long." };
+  if (ports.length === 0) return { ok: false, error: "Choose at least one port you serve." };
+  if (!ports.every((p): p is NigeriaPort => (NIGERIA_PORTS as readonly string[]).includes(p))) {
+    return { ok: false, error: "Choose ports from the list." };
+  }
+  if (license.length > 80) return { ok: false, error: "That license / CAC number is too long." };
+  return {
+    ok: true,
+    row: {
+      audience: "clearing_agent", country, full_name: fullName, email: email.toLowerCase(), whatsapp: w.e164,
+      company, city_state: null, experience: null, ports_served: ports as NigeriaPort[],
+      license_number: license || null,
+    },
+  };
+}
 
 export type WaitlistInput = {
   email: string;

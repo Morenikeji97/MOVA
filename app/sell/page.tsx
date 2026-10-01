@@ -1,14 +1,49 @@
 import type { Metadata } from "next";
 import Link from "next/link";
+import { BadgeDollarSign, Banknote, Globe2, ShieldCheck, SlidersHorizontal, Truck } from "lucide-react";
 import { buttonClasses } from "@/components/ui/button";
+import { BenefitsSection, type Benefit } from "@/components/ui/benefits-section";
 import { WaitlistForm } from "@/components/ui/waitlist-form";
 import { isPrelaunch } from "@/lib/prelaunch";
 
 export const metadata: Metadata = {
-  title: "Sell your car — MOVA",
+  title: "Sell your car — ShipMova",
   description:
     "Reach verified international buyers without handling export paperwork, shipping or overseas payments yourself.",
 };
+
+const SELLER_BENEFITS: Benefit[] = [
+  {
+    icon: Globe2,
+    title: "A bigger market for your car",
+    body: "Buyers in Nigeria, Ghana, Togo and Benin are looking for U.S. cars like yours.",
+  },
+  {
+    icon: Banknote,
+    title: "Paid at pickup, not at arrival",
+    body: "Escrow.com pays you once the inspector confirms your car and a licensed shipper collects it with the title. No waiting for it to cross the ocean.",
+  },
+  {
+    icon: ShieldCheck,
+    title: "No overseas payment risk",
+    body: "Buyers pay into escrow. You never handle foreign transfers, fake checks or overpayment scams.",
+  },
+  {
+    icon: Truck,
+    title: "We handle the hard parts",
+    body: "A licensed, insured shipper picks up the car and handles export paperwork and the port.",
+  },
+  {
+    icon: BadgeDollarSign,
+    title: "Free to list",
+    body: "Buyers pay ShipMova's fee. Want to stand out? Offer to split it 50/50, deducted from your payout.",
+  },
+  {
+    icon: SlidersHorizontal,
+    title: "You stay in control",
+    body: "Set your price, offer a buyer a lower price, and remove your listing anytime before a buyer commits.",
+  },
+];
 
 const FAQ = [
   {
@@ -24,8 +59,8 @@ const FAQ = [
     a: "Yes. You can propose a lower price; the buyer must accept it.",
   },
   {
-    q: "Does MOVA take ownership of my car?",
-    a: "Never. You sell directly to the buyer; MOVA provides the verification and payment tools.",
+    q: "Does ShipMova take ownership of my car?",
+    a: "Never. You sell directly to the buyer; ShipMova provides the verification and payment tools.",
   },
   {
     q: "What happens to my title?",
@@ -86,11 +121,21 @@ export default function SellPage() {
 
         <h2 className="mt-12 text-2xl font-semibold text-black">Fees</h2>
         <p className="mt-3 max-w-2xl text-gray-500">
-          Listing is free. Buyers pay MOVA&rsquo;s fee. Want your car to stand
+          Listing is free. Buyers pay ShipMova&rsquo;s fee. Want your car to stand
           out? Offer to split it 50/50 — your half is simply deducted from your
           payout. Nothing to pay upfront.
         </p>
       </section>
+
+      <BenefitsSection
+        headline="Why sell with ShipMova?"
+        subhead="Reach buyers across West Africa without the export headache."
+        benefits={SELLER_BENEFITS}
+      >
+        <Link href="/seller/listings/new" className={buttonClasses({ size: "lg", className: "mt-8" })}>
+          List your car &rarr;
+        </Link>
+      </BenefitsSection>
 
       <section className="border-t border-gray-200">
         <div className="mx-auto max-w-4xl px-6 py-16">

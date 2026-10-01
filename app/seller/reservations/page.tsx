@@ -16,9 +16,9 @@ const submitted = new Intl.DateTimeFormat("en-US", {
 });
 
 const RESERVATION_STATUS_COPY: Record<string, string> = {
-  submitted: "Submitted — waiting for MOVA to review.",
-  under_review: "MOVA is reviewing this request.",
-  verified: "Verified — MOVA is in touch with the buyer on next steps.",
+  submitted: "Submitted — waiting for ShipMova to review.",
+  under_review: "ShipMova is reviewing this request.",
+  verified: "Verified — ShipMova is in touch with the buyer on next steps.",
   completed: "Completed.",
   rejected: "Not accepted.",
   cancelled: "Released.",
@@ -33,7 +33,7 @@ const RESERVATION_STATUS_COPY: Record<string, string> = {
  * experience.
  *
  * No buyer identity/contact is shown — sellers never see that anywhere in
- * the app (buyers and sellers talk through MOVA's filtered chat), and the
+ * the app (buyers and sellers talk through ShipMova's filtered chat), and the
  * "users read own" RLS policy wouldn't let this query read the buyer's row
  * anyway.
  */
@@ -154,7 +154,7 @@ export default async function SellerReservationsPage() {
                 </p>
                 {r.mova_fee_payment_status === "paid" ? (
                   <p className="mt-2 rounded border border-verified-100 bg-verified-50 p-3 text-sm text-verified-600">
-                    Buyer has paid MOVA&rsquo;s fee. Next they pay the car price
+                    Buyer has paid ShipMova&rsquo;s fee. Next they pay the car price
                     into Escrow.com; you&rsquo;re paid once an inspector confirms
                     the car and a licensed shipper collects it with the title.
                   </p>

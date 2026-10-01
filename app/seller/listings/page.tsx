@@ -32,7 +32,7 @@ const usd = new Intl.NumberFormat("en-US", {
 });
 
 const FEE_LABEL: Record<FeeResponsibility, string> = {
-  buyer_pays_full: "Buyer pays MOVA's full 8% fee",
+  buyer_pays_full: "Buyer pays ShipMova's full 8% fee",
   split: "Seller splits the fee — your 4% comes out of your escrow payout",
 };
 
@@ -74,7 +74,7 @@ export default async function SellerListingsPage() {
     rows.map((v) => v.id),
   );
 
-  // Reservations where the buyer has already paid MOVA's fee — next the car
+  // Reservations where the buyer has already paid ShipMova's fee — next the car
   // price goes into Escrow.com, and the seller is paid out of escrow.
   const vehicleIds = rows.map((v) => v.id);
   const { data: paidReqs } = vehicleIds.length
@@ -164,7 +164,7 @@ export default async function SellerListingsPage() {
               ) : null}
               {paidByVehicle.has(v.id) ? (
                 <p className="mt-3 rounded border border-verified-100 bg-verified-50 p-3 text-sm text-verified-600">
-                  A buyer has paid MOVA&rsquo;s fee
+                  A buyer has paid ShipMova&rsquo;s fee
                   {paidByVehicle.get(v.id)!.vehicle_price_usd != null
                     ? ` at ${usd.format(
                         Number(paidByVehicle.get(v.id)!.vehicle_price_usd),

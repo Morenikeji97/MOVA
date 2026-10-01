@@ -1,7 +1,7 @@
 import { Resend } from "resend";
 
 /**
- * Transactional email sending for MOVA — the first app-code-driven email
+ * Transactional email sending for ShipMova — the first app-code-driven email
  * sending in this codebase. There is no existing SMTP/email infrastructure
  * to reuse: no email dependency, no SMTP env vars (locally or in Netlify),
  * nothing beyond Supabase Auth's own hosted email sending (used only for
@@ -35,7 +35,7 @@ export async function sendEmail({
   try {
     const resend = new Resend(apiKey);
     const { error } = await resend.emails.send({
-      from: process.env.RESEND_FROM_ADDRESS || "MOVA <notifications@shipmova.com>",
+      from: process.env.RESEND_FROM_ADDRESS || "ShipMova <notifications@shipmova.com>",
       to,
       subject,
       html,
@@ -51,8 +51,8 @@ export async function sendEmail({
 /**
  * Shared HTML shell for every notification email — same table-based layout,
  * colors, and inlined styles as supabase/email-templates/recovery.html (the
- * one existing email template in this codebase), so a MOVA email looks like
- * a MOVA email regardless of which system sent it. Table-based (not <div>)
+ * one existing email template in this codebase), so a ShipMova email looks like
+ * a ShipMova email regardless of which system sent it. Table-based (not <div>)
  * for the same reason as that file: Outlook's Word-based HTML engine ignores
  * a lot of modern CSS.
  *
@@ -98,7 +98,7 @@ export function renderEmailShell({
           <table role="presentation" width="480" cellpadding="0" cellspacing="0" style="max-width:480px; width:100%; background-color:#FFFFFF; border-radius:12px; overflow:hidden; border:1px solid #EBECE8;">
             <tr>
               <td style="background-color:#0E1B2C; padding:24px 32px;">
-                <span style="font-family:'SFMono-Regular',ui-monospace,Menlo,monospace; font-size:13px; letter-spacing:0.08em; text-transform:uppercase; color:#FFFFFF;">MOVA</span>
+                <span style="font-family:'SFMono-Regular',ui-monospace,Menlo,monospace; font-size:13px; letter-spacing:0.08em; text-transform:uppercase; color:#FFFFFF;">ShipMova</span>
               </td>
             </tr>
             <tr>
@@ -111,7 +111,7 @@ export function renderEmailShell({
             <tr>
               <td style="padding:20px 32px; background-color:#F3F4F1; border-top:1px solid #EBECE8;">
                 <p style="margin:0; font-size:12px; line-height:18px; color:#5C7086;">
-                  You&rsquo;re receiving this because of activity on your MOVA account.
+                  You&rsquo;re receiving this because of activity on your ShipMova account.
                 </p>
               </td>
             </tr>
