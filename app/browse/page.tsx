@@ -8,9 +8,9 @@ import { getFxRates } from "@/lib/fx";
 import { FxNote } from "@/components/ui/fx-note";
 import { isPrelaunch } from "@/lib/prelaunch";
 import { WaitlistForm } from "@/components/ui/waitlist-form";
+import { inputClasses } from "@/components/ui/input-classes";
 
-const inputClass =
-  "h-11 rounded border border-gray-200 bg-white px-3 text-black";
+const inputClass = inputClasses();
 
 /** Reads a single-value string search param, ignoring arrays and blanks. */
 function str(value: string | string[] | undefined): string {

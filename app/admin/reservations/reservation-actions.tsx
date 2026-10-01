@@ -10,6 +10,7 @@ import {
   releaseReservation,
   requestFeePayment,
 } from "./actions";
+import { inputClasses } from "@/components/ui/input-classes";
 
 function PendingButton({
   children,
@@ -124,7 +125,7 @@ export function ReservationActions({
               required
               rows={2}
               placeholder="e.g. amount doesn't match, reference code missing, transfer not received yet"
-              className="rounded border border-gray-200 bg-white px-3 py-2 text-sm text-black"
+              className={inputClasses({ multiline: true })}
             />
           </label>
           <div className="flex items-center gap-3">

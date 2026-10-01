@@ -6,8 +6,9 @@ import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 import { NIGERIA_PORTS } from "@/lib/prelaunch";
 import { joinPartnerWaitlist } from "@/app/waitlist/actions";
+import { inputClasses } from "@/components/ui/input-classes";
 
-const input = "h-11 rounded border border-gray-200 bg-white px-3 text-black";
+const input = inputClasses();
 
 /**
  * "Register your interest" form for partners — /inspectors (U.S.) and

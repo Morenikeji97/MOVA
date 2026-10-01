@@ -6,6 +6,7 @@ import { Button } from "@/components/ui/button";
 import { SERVICE_COUNTRIES } from "@/lib/shipping";
 import { US_STATES } from "@/lib/us-states";
 import { updateShipperProfile } from "./actions";
+import { inputClasses } from "@/components/ui/input-classes";
 
 function SubmitButton() {
   const { pending } = useFormStatus();
@@ -60,7 +61,7 @@ export function ShipperProfileForm({
           rows={4}
           defaultValue={description}
           placeholder="A short description of your service — years in business, typical transit time, what makes you reliable."
-          className="rounded border border-gray-200 px-3 py-2 text-sm"
+          className={inputClasses({ multiline: true })}
         />
       </label>
 
