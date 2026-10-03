@@ -282,6 +282,8 @@ export default async function VehicleDetailPage({
         <ShippingEstimate
           profileCountry={profileCountry}
           modelYear={modelYearFrom(v.vin_model_year_code, v.year)}
+          price={Number(v.price_usd)}
+          feeResponsibility={v.fee_responsibility}
           className="mt-3 max-w-md"
         />
         <p className="mt-2 font-mono text-sm text-gray-500">
