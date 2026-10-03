@@ -2,6 +2,7 @@ import { Handshake } from "lucide-react";
 import { feeBreakdown, SELLER_SPLITS_FEE_BADGE } from "@/lib/fees";
 import { cn } from "@/lib/utils";
 import type { FeeResponsibility } from "@/types/database";
+import { formatLocal, type FxCurrency, type FxRates } from "@/lib/fx-format";
 
 const usd = new Intl.NumberFormat("en-US", {
   style: "currency",
@@ -15,19 +16,22 @@ const usd = new Intl.NumberFormat("en-US", {
  * line), and the total before shipping. With `shipping`, the buyer's chosen
  * shipping cost is added below that and a total with shipping is shown.
  * Shipping is display-only — it's arranged with the shipper, not collected
- * through ShipMova.
+ * through ShipMova. With `local`, the final total is also shown in those
+ * currencies (lib/fx.ts); the page adds <FxNote> for the label and attribution.
  */
 export function PriceBreakdown({
   price,
   feeResponsibility,
   shipping = null,
   variant = "card",
+  local = null,
   className,
 }: {
   price: number;
   feeResponsibility: FeeResponsibility;
   shipping?: { cost: number; label: string } | null;
   variant?: "card" | "detail";
+  local?: { fx: FxRates | null; currencies: FxCurrency[] } | null;
   className?: string;
 }) {
   const b = feeBreakdown(price, feeResponsibility);
@@ -69,6 +73,18 @@ export function PriceBreakdown({
             detail={detail}
           />
         </>
+      ) : null}
+      {local?.fx ? (
+        <div className="flex justify-end">
+          <dt className="sr-only">In local currency</dt>
+          <dd className={cn("text-right font-mono text-gray-500", detail ? "text-sm" : "text-xs")}>
+            {local.currencies.map((c) => (
+              <span key={c} className="block">
+                {formatLocal(b.totalBeforeShipping + (shipping?.cost ?? 0), c, local.fx!.rates[c])}
+              </span>
+            ))}
+          </dd>
+        </div>
       ) : null}
     </dl>
   );

@@ -11,6 +11,9 @@ import {
   hasVerifiedListingBadge,
 } from "@/lib/listing-badges";
 import { PriceBreakdown, SellerSplitsFeeBadge } from "@/components/ui/price-breakdown";
+import { FxNote } from "@/components/ui/fx-note";
+import { getFxRates } from "@/lib/fx";
+import { currenciesFor } from "@/lib/fx-format";
 import { feeBreakdown } from "@/lib/fees";
 import { compareRatesForBuyer, countryName, shippingMethodLabel } from "@/lib/shipping";
 import { RatingSummary } from "@/components/ui/rating-summary";
@@ -214,13 +217,14 @@ export default async function VehicleDetailPage({
     }
   }
 
-  const [{ data: photos }, { data: video }] = await Promise.all([
+  const [{ data: photos }, { data: video }, fx] = await Promise.all([
     supabase
       .from("vehicle_photos")
-      .select("url, is_primary, sort_order")
+      .select("url, thumb_url, is_primary, sort_order")
       .eq("vehicle_id", id)
       .order("sort_order", { ascending: true }),
     supabase.from("vehicle_videos").select("url").eq("vehicle_id", id).maybeSingle(),
+    getFxRates(),
   ]);
 
   // Primary photo leads the gallery; the rest keep their sort order.
@@ -276,8 +280,10 @@ export default async function VehicleDetailPage({
               : null
           }
           variant="detail"
+          local={fx ? { fx, currencies: currenciesFor(profileCountry) } : null}
           className="mt-3 max-w-xs"
         />
+        <FxNote fx={fx} className="mt-1 max-w-xs" />
         {/* Estimate only — never added to "Total before shipping" above. */}
         <ShippingEstimate
           profileCountry={profileCountry}
@@ -300,6 +306,9 @@ export default async function VehicleDetailPage({
                 key={i}
                 src={mediaUrl(p.url)}
                 alt={`${title} photo ${i + 1}`}
+                // The cover shows at once; the rest load as they scroll near.
+                loading={i === 0 ? "eager" : "lazy"}
+                decoding="async"
                 className={cn(
                   "w-full rounded-lg border border-gray-200 object-cover",
                   i === 0 ? "aspect-[16/10] sm:col-span-2" : "aspect-[4/3]"
@@ -319,6 +328,9 @@ export default async function VehicleDetailPage({
             <video
               src={mediaUrl(video.url)}
               controls
+              // Nothing downloads until the buyer presses play (clips run to 100 MB).
+              preload="none"
+              poster={gallery[0] ? mediaUrl(gallery[0].thumb_url ?? gallery[0].url) : undefined}
               className="aspect-video w-full rounded-lg border border-gray-200 bg-black object-contain"
             />
           </div>

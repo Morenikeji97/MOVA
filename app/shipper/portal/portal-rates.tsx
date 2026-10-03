@@ -18,9 +18,9 @@ import {
   setShipperRateActive,
   updateShipperRate,
 } from "../actions";
+import { inputClasses } from "@/components/ui/input-classes";
 
-const inputClass =
-  "h-10 rounded border border-gray-200 bg-white px-3 text-sm text-black";
+const inputClass = inputClasses();
 
 export interface ShipperRate {
   id: string;

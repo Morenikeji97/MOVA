@@ -81,12 +81,36 @@ export function ChatThread({
     });
   }, [conversationId]);
 
-  // Initial load + poll loop.
+  // Initial load + poll loop. Polling stops while the tab is hidden — a
+  // background tab on a phone shouldn't spend data or battery — and catches
+  // up the moment it's visible again.
   useEffect(() => {
     void load();
     void markConversationRead(conversationId);
-    const timer = setInterval(() => void load(), POLL_MS);
-    return () => clearInterval(timer);
+
+    let timer: ReturnType<typeof setInterval> | null = null;
+    const start = () => {
+      if (timer === null) timer = setInterval(() => void load(), POLL_MS);
+    };
+    const stop = () => {
+      if (timer !== null) clearInterval(timer);
+      timer = null;
+    };
+    const onVisibilityChange = () => {
+      if (document.hidden) {
+        stop();
+      } else {
+        void load();
+        start();
+      }
+    };
+
+    if (!document.hidden) start();
+    document.addEventListener("visibilitychange", onVisibilityChange);
+    return () => {
+      stop();
+      document.removeEventListener("visibilitychange", onVisibilityChange);
+    };
   }, [load, conversationId]);
 
   // Clear the seller/buyer unread marker whenever the other side has spoken.

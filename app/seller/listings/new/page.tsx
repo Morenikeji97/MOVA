@@ -20,6 +20,7 @@ import { modelYearFrom, nigeriaImportStatus, vinYearCode } from "@/lib/import-ru
 /** Seller-form error for vehicles_vin_active_unique (0044). */
 const DUPLICATE_VIN_MESSAGE = "This VIN is already listed on ShipMova";
 import { US_STATES } from "@/lib/us-states";
+import { inputClasses } from "@/components/ui/input-classes";
 
 const MAX_PHOTOS = 20;
 
@@ -128,6 +129,8 @@ const schema = z.object({
       z.object({
         path: z.string().min(1),
         url: z.string().url(),
+        thumbPath: z.string().min(1).optional(),
+        thumbUrl: z.string().url().optional(),
         isPrimary: z.boolean(),
       }),
     )
@@ -204,7 +207,7 @@ const EMPTY: FormValues = {
   authorization_document_path: null,
 };
 
-const inputClass = "h-11 rounded border border-gray-200 bg-white px-3 text-black";
+const inputClass = inputClasses();
 
 /** Trims a form string, returning null for empty values so the column stays NULL. */
 function orNull(value: string): string | null {
@@ -469,6 +472,7 @@ export default function NewListingPage() {
         values.photos.map((photo, index) => ({
           vehicle_id: created.id,
           url: photo.url,
+          thumb_url: photo.thumbUrl ?? null,
           sort_order: index,
           is_primary: photo.isPrimary,
         })),

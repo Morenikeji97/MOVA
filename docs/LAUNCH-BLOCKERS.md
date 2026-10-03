@@ -62,12 +62,35 @@ the copy can be changed instead if a feature is dropped.
 ## Also true today, but worth re-checking at launch
 
 - Import rules exist for **Nigeria only**. Copy says "Nigeria (more
-  countries coming)"; Ghana, Togo and Benin show "Import rules not yet
-  checked". Two older lines still say "your country" — homepage "Import
-  check" and How It Works step 1 — and should match before launch.
+  countries coming)", including the homepage "Import check" card and How
+  It Works step 1; Ghana, Togo and Benin show "Import rules not yet
+  checked".
 - The VIN must be marked **verified** before a listing can be approved
   (migration 0047), which makes "the VIN is checked against U.S. records
   before a listing goes live" true.
 - Outside the code: Stripe business name and statement descriptor,
   Supabase SMTP sender name, `RESEND_FROM_ADDRESS` and
   `NEXT_PUBLIC_WHATSAPP_MESSAGE` in Netlify should all say "ShipMova".
+
+## Pre-launch cleanup
+
+Test data in the production database (previews and shipmova.com share one
+Supabase project) to remove before launch.
+
+- [ ] **Honda Accord test reservation `c960b47d-f727-4d51-a51e-ead9ca4d4066`**
+      (buyer `tbakare2+buyer2@gmail.com`, status `under_review`, ShipMova fee
+      marked paid) and its **completed shipment
+      `bc214ae9-f287-4e12-b100-ea8c33f8c286`** (Test Shipping Co, $1,835 rate,
+      $146.80 commission, `commission_charge_status = charged`, Stripe
+      PaymentIntent `pi_3UD7phLXeJirt4DU0omdA3sP`). Kept for now as the only
+      example of a completed, charged shipment. Delete the shipment first,
+      then the reservation (`shipment_requests.purchase_request_id` has no
+      cascade).
+      **Stripe mode: not yet confirmed.** Checked 2026-10-01: the
+      `sk_test_` key in local `.env.local` gets `resource_missing` for this
+      PaymentIntent, without Stripe's usual "a similar object exists in live
+      mode" hint, so it belongs to a different Stripe account than the local
+      key, not to that account's live mode. Production's key mode couldn't be
+      read from here. To settle it: in the Stripe dashboard, search
+      `pi_3UD7phLXeJirt4DU0omdA3sP` with the **Test mode** toggle on, then
+      off. If it's live, refund or write it off before deleting the record.

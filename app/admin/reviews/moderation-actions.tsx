@@ -4,6 +4,7 @@ import { type ComponentProps, useState } from "react";
 import { useFormStatus } from "react-dom";
 import { Button } from "@/components/ui/button";
 import { moderateReview, dismissReports } from "@/app/reviews/actions";
+import { inputClasses } from "@/components/ui/input-classes";
 
 function PendingButton({
   children,
@@ -37,7 +38,7 @@ export function ModerationActions({
             name="note"
             rows={2}
             placeholder="Internal note (optional) — why this was removed."
-            className="rounded border border-gray-200 bg-white px-3 py-2 text-sm text-black"
+            className={inputClasses({ multiline: true })}
           />
           <div className="flex items-center gap-3">
             <PendingButton variant="primary" size="sm" pendingLabel="Removing…">

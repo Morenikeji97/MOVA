@@ -4,6 +4,7 @@ import { type ComponentProps, useState } from "react";
 import { useFormStatus } from "react-dom";
 import { Button } from "@/components/ui/button";
 import { approveDisputeForRefund, denyDispute, markRefundCompleted } from "./actions";
+import { inputClasses } from "@/components/ui/input-classes";
 
 function PendingButton({
   children,
@@ -71,7 +72,7 @@ export function DisputeActions({
             min="0"
             step="0.01"
             placeholder="e.g. 2000.00"
-            className="h-10 w-48 rounded border border-gray-200 bg-white px-3 text-sm text-black"
+            className={inputClasses({ className: "w-48" })}
           />
         </label>
       ) : null}
@@ -87,7 +88,7 @@ export function DisputeActions({
           name="decision_reason"
           required
           rows={3}
-          className="rounded border border-gray-200 bg-white px-3 py-2 text-sm text-black"
+          className={inputClasses({ multiline: true })}
         />
       </label>
       <div className="flex items-center gap-3">

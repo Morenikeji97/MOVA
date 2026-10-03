@@ -1,6 +1,7 @@
 import { createClient } from "@/lib/supabase/server";
 import { buttonClasses } from "@/components/ui/button";
 import { markReferralFlagReviewed, updateReferralPayoutStatus } from "./actions";
+import { inputClasses } from "@/components/ui/input-classes";
 
 export const dynamic = "force-dynamic";
 
@@ -120,7 +121,7 @@ export default async function AdminReferralsPage() {
                     <input
                       name="payout_reference"
                       placeholder="tr_… / wire ref"
-                      className="h-9 rounded border border-gray-200 px-2 text-sm"
+                      className={inputClasses()}
                     />
                   </label>
                   <label className="flex flex-col gap-1">
@@ -128,7 +129,7 @@ export default async function AdminReferralsPage() {
                     <input
                       name="failure_reason"
                       placeholder="e.g. no bank details on file"
-                      className="h-9 rounded border border-gray-200 px-2 text-sm"
+                      className={inputClasses()}
                     />
                   </label>
                   <button

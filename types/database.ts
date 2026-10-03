@@ -341,17 +341,40 @@ export interface Database {
         }>;
         Relationships: [];
       };
+      fx_rates: {
+        Row: {
+          currency: string;
+          usd_rate: number;
+          provider_updated_at: string;
+          fetched_at: string;
+        };
+        Insert: {
+          currency: string;
+          usd_rate: number;
+          provider_updated_at: string;
+          fetched_at?: string;
+        };
+        Update: Partial<{
+          currency: string;
+          usd_rate: number;
+          provider_updated_at: string;
+          fetched_at: string;
+        }>;
+        Relationships: [];
+      };
       vehicle_photos: {
         Row: {
           id: string;
           vehicle_id: string;
           url: string;
+          thumb_url: string | null;
           sort_order: number;
           is_primary: boolean;
         };
         Insert: {
           vehicle_id: string;
           url: string;
+          thumb_url?: string | null;
           id?: string;
           sort_order?: number;
           is_primary?: boolean;
@@ -360,6 +383,7 @@ export interface Database {
           id: string;
           vehicle_id: string;
           url: string;
+          thumb_url: string | null;
           sort_order: number;
           is_primary: boolean;
         }>;

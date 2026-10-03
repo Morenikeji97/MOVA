@@ -6,6 +6,8 @@ export const MAX_LISTING_PHOTOS = 20;
 export type PhotoInput = {
   path: string;
   url: string;
+  /** ≈480px thumbnail (migration 0049); absent for older uploads. */
+  thumbUrl?: string;
   isPrimary: boolean;
 };
 
@@ -56,6 +58,7 @@ export async function reconcileListingPhotos(
       toInsert.map((photo) => ({
         vehicle_id: vehicleId,
         url: photo.url,
+        thumb_url: photo.thumbUrl ?? null,
         sort_order: photos.indexOf(photo),
         // Primary flag is finalized below, after every row (kept + new)
         // has been cleared to false — avoids a transient unique-index
