@@ -5,6 +5,7 @@ import { Loader2, VideoIcon, X } from "lucide-react";
 import { createClient } from "@/lib/supabase/client";
 import { cn } from "@/lib/utils";
 import { mediaUrl } from "@/lib/media-url";
+import { takeFiles } from "@/lib/file-input";
 
 export type VideoDraft = {
   /** Object key within the vehicle-videos bucket, e.g. "<uid>/<uuid>.mp4". */
@@ -117,6 +118,8 @@ export function VideoUploader({ value, onChange, disabled, error }: VideoUploade
           url: data.publicUrl,
           durationSeconds: Number.isFinite(duration) ? Math.round(duration) : null,
         });
+      } catch {
+        setFailure(`${file.name}: upload failed — check your connection and try again.`);
       } finally {
         setBusy(false);
       }
@@ -132,8 +135,8 @@ export function VideoUploader({ value, onChange, disabled, error }: VideoUploade
     await createClient().storage.from(BUCKET).remove([target.path]);
   }
 
-  function pickFile(list: FileList | null) {
-    const file = list?.[0];
+  function pickFile(files: File[]) {
+    const file = files[0];
     if (file) void upload(file);
   }
 
@@ -149,7 +152,7 @@ export function VideoUploader({ value, onChange, disabled, error }: VideoUploade
           onDrop={(e) => {
             e.preventDefault();
             setDragOver(false);
-            if (canAdd) pickFile(e.dataTransfer.files);
+            if (canAdd) pickFile(Array.from(e.dataTransfer.files));
           }}
           className={cn(
             "flex flex-col items-center justify-center gap-2 rounded-lg border-2 border-dashed px-6 py-8 text-center transition-colors",
@@ -179,11 +182,7 @@ export function VideoUploader({ value, onChange, disabled, error }: VideoUploade
             accept={ACCEPT}
             className="sr-only"
             disabled={!canAdd}
-            onChange={(e) => {
-              const { files } = e.target;
-              e.target.value = "";
-              pickFile(files);
-            }}
+            onChange={(e) => pickFile(takeFiles(e.target))}
           />
         </div>
       ) : (

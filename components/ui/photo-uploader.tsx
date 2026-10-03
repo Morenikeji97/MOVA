@@ -7,6 +7,7 @@ import { cn } from "@/lib/utils";
 import { mediaUrl } from "@/lib/media-url";
 import { resizePhoto } from "@/lib/image-resize";
 import { buttonClasses } from "@/components/ui/button";
+import { takeFiles } from "@/lib/file-input";
 
 export type PhotoDraft = {
   /** Object key within the vehicle-photos bucket, e.g. "<uid>/<uuid>.webp". */
@@ -34,6 +35,10 @@ type PhotoUploaderProps = {
   maxPhotos?: number;
   error?: string;
 };
+
+function isHeic(file: File): boolean {
+  return /^image\/hei[cf]/.test(file.type) || /\.hei[cf]$/i.test(file.name);
+}
 
 /** Keeps exactly one primary whenever the list is non-empty (first by default). */
 function withPrimary(list: PhotoDraft[]): PhotoDraft[] {
@@ -80,6 +85,12 @@ export function PhotoUploader({
         const batch = files.slice(0, Math.max(remaining, 0));
         for (const [i, file] of batch.entries()) {
           setProgress({ done: i, total: batch.length });
+          if (isHeic(file)) {
+            // iPhone's photo picker converts to JPEG for us; a HEIC only
+            // arrives from a computer, and only Safari can decode it.
+            errs.push(`${file.name}: HEIC photos aren't supported — export it as JPEG and try again.`);
+            continue;
+          }
           if (!ACCEPT.includes(file.type as (typeof ACCEPT)[number])) {
             errs.push(`${file.name}: unsupported format — use JPEG, PNG or WebP.`);
             continue;
@@ -104,23 +115,29 @@ export function PhotoUploader({
           const thumbPath = `${user.id}/${id}-thumb.${resized.thumb.ext}`;
           const bucket = supabase.storage.from(BUCKET);
 
-          const { error: upErr } = await bucket.upload(path, resized.full.blob, {
-            cacheControl: CACHE_SECONDS,
-            contentType: resized.full.type,
-            upsert: false,
-          });
-          if (upErr) {
-            errs.push(`${file.name}: ${upErr.message}`);
-            continue;
-          }
-          const { error: thumbErr } = await bucket.upload(thumbPath, resized.thumb.blob, {
-            cacheControl: CACHE_SECONDS,
-            contentType: resized.thumb.type,
-            upsert: false,
-          });
-          if (thumbErr) {
-            await bucket.remove([path]);
-            errs.push(`${file.name}: ${thumbErr.message}`);
+          try {
+            const { error: upErr } = await bucket.upload(path, resized.full.blob, {
+              cacheControl: CACHE_SECONDS,
+              contentType: resized.full.type,
+              upsert: false,
+            });
+            if (upErr) {
+              errs.push(`${file.name}: ${upErr.message}`);
+              continue;
+            }
+            const { error: thumbErr } = await bucket.upload(thumbPath, resized.thumb.blob, {
+              cacheControl: CACHE_SECONDS,
+              contentType: resized.thumb.type,
+              upsert: false,
+            });
+            if (thumbErr) {
+              await bucket.remove([path]);
+              errs.push(`${file.name}: ${thumbErr.message}`);
+              continue;
+            }
+          } catch {
+            // A dropped connection rejects instead of returning an error.
+            errs.push(`${file.name}: upload failed — check your connection and try again.`);
             continue;
           }
 
@@ -139,6 +156,9 @@ export function PhotoUploader({
 
         setFailures(errs);
         if (accepted.length > 0) onChange(withPrimary([...value, ...accepted]));
+      } catch {
+        // Nothing may fail silently: a picked photo either appears or explains itself.
+        setFailures(["Something went wrong uploading your photos. Please try again."]);
       } finally {
         setBusy(false);
         setProgress(null);
@@ -167,8 +187,7 @@ export function PhotoUploader({
     onChange(next);
   }
 
-  function pickFiles(list: FileList | null) {
-    const files = Array.from(list ?? []);
+  function pickFiles(files: File[]) {
     if (files.length) void upload(files);
   }
 
@@ -183,7 +202,7 @@ export function PhotoUploader({
         onDrop={(e) => {
           e.preventDefault();
           setDragOver(false);
-          if (canAdd) pickFiles(e.dataTransfer.files);
+          if (canAdd) pickFiles(Array.from(e.dataTransfer.files));
         }}
         className={cn(
           "flex flex-col items-center justify-center gap-2 rounded-lg border-2 border-dashed px-6 py-8 text-center transition-colors",
@@ -212,11 +231,7 @@ export function PhotoUploader({
           multiple
           className="sr-only"
           disabled={!canAdd}
-          onChange={(e) => {
-            const { files } = e.target;
-            e.target.value = "";
-            pickFiles(files);
-          }}
+          onChange={(e) => pickFiles(takeFiles(e.target))}
         />
       </div>
 
