@@ -22,6 +22,7 @@ import { WaitlistForm } from "@/components/ui/waitlist-form";
 import { ShippingEstimate } from "@/components/ui/shipping-estimate";
 import { ImportBadge } from "@/components/ui/import-badge";
 import { modelYearFrom } from "@/lib/import-rules";
+import { loadNigeriaRates } from "@/lib/import-rates";
 import { mediaUrl } from "@/lib/media-url";
 import { isPrelaunch } from "@/lib/prelaunch";
 import { MessageSeller } from "./message-seller";
@@ -121,6 +122,9 @@ export default async function VehicleDetailPage({
       .maybeSingle();
     existingConversationId = convo?.id ?? null;
   }
+
+  // Nigerian import rates for the landed-cost estimate (staff-edited, public).
+  const ngRates = await loadNigeriaRates(supabase);
 
   let shippingRates: PublicRate[] = [];
   let destinationCode = "NG";
@@ -284,6 +288,8 @@ export default async function VehicleDetailPage({
           modelYear={modelYearFrom(v.vin_model_year_code, v.year)}
           price={Number(v.price_usd)}
           feeResponsibility={v.fee_responsibility}
+          ngRates={ngRates.rates}
+          ngRatesCheckedAt={ngRates.lastVerifiedAt}
           className="mt-3 max-w-md"
         />
         <p className="mt-2 font-mono text-sm text-gray-500">

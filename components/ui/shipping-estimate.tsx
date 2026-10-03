@@ -20,6 +20,7 @@ import {
   ENGINE_SIZES,
   nigeriaLandedEstimate,
   type EngineSize,
+  type NigeriaRates,
 } from "@/lib/landed-cost";
 import type { FeeResponsibility } from "@/types/database";
 
@@ -29,6 +30,12 @@ const usd = new Intl.NumberFormat("en-US", {
   style: "currency",
   currency: "USD",
   maximumFractionDigits: 0,
+});
+const dateFmt = new Intl.DateTimeFormat("en-US", {
+  month: "short",
+  day: "numeric",
+  year: "numeric",
+  timeZone: "UTC",
 });
 const range = (r: Range) => `${usd.format(r.min)}–${usd.format(r.max)}`;
 
@@ -61,12 +68,18 @@ export function ShippingEstimate({
   modelYear,
   price,
   feeResponsibility,
+  ngRates,
+  ngRatesCheckedAt,
   className,
 }: {
   profileCountry: string | null;
   /** Car price and fee split — for the Nigeria landed-cost estimate. */
   price: number;
   feeResponsibility: FeeResponsibility;
+  /** Live rates from the import_rates table (lib/import-rates.ts). */
+  ngRates: NigeriaRates;
+  /** When staff last confirmed them; null when using the built-in defaults. */
+  ngRatesCheckedAt: string | null;
   /** From lib/import-rules.ts modelYearFrom — for the per-country import line. */
   modelYear: number | null;
   className?: string;
@@ -142,7 +155,12 @@ export function ShippingEstimate({
             you reserve.
           </p>
           {estimate.code === "NG" ? (
-            <NigeriaLandedCost price={price} feeResponsibility={feeResponsibility} />
+            <NigeriaLandedCost
+              price={price}
+              feeResponsibility={feeResponsibility}
+              rates={ngRates}
+              checkedAt={ngRatesCheckedAt}
+            />
           ) : (
             <p className="mt-3 text-xs text-gray-500">
               Import duty and clearing for {estimate.name} aren&rsquo;t estimated yet — ask
@@ -163,9 +181,13 @@ export function ShippingEstimate({
 function NigeriaLandedCost({
   price,
   feeResponsibility,
+  rates,
+  checkedAt,
 }: {
   price: number;
   feeResponsibility: FeeResponsibility;
+  rates: NigeriaRates;
+  checkedAt: string | null;
 }) {
   const [engine, setEngine] = useState<EngineSize>(DEFAULT_ENGINE_SIZE);
   const fees = feeBreakdown(price, feeResponsibility);
@@ -176,7 +198,9 @@ function NigeriaLandedCost({
     usPickup: US_PICKUP_TO_PORT,
     exportPaperwork: EXPORT_PAPERWORK,
     engine,
+    rates,
   });
+  const pct = (f: number) => `${Math.round(f * 1000) / 10}%`;
   const rng = (lo: number, hi: number) =>
     lo === hi ? usd.format(lo) : range({ min: lo, max: hi });
 
@@ -198,15 +222,15 @@ function NigeriaLandedCost({
         </select>
       </label>
       <dl className="mt-3 flex flex-col gap-1">
-        <Line label="Import duty (20%)" value={rng(e.low.importDuty, e.high.importDuty)} />
-        <Line label="NAC levy (5%)" value={rng(e.low.nacLevy, e.high.nacLevy)} />
+        <Line label={`Import duty (${pct(rates.importDuty)})`} value={rng(e.low.importDuty, e.high.importDuty)} />
+        <Line label={`NAC levy (${pct(rates.nacLevy)})`} value={rng(e.low.nacLevy, e.high.nacLevy)} />
         {e.high.greenTax > 0 ? (
           <Line label="Green tax (engine size)" value={rng(e.low.greenTax, e.high.greenTax)} />
         ) : null}
-        <Line label="Surcharge (7% of duty)" value={rng(e.low.surcharge, e.high.surcharge)} />
-        <Line label="ETLS levy (0.5%)" value={rng(e.low.etls, e.high.etls)} />
-        <Line label="Customs FOB charge (4%)" value={rng(e.low.fobCharge, e.high.fobCharge)} />
-        <Line label="VAT (7.5%)" value={rng(e.low.vat, e.high.vat)} />
+        <Line label={`Surcharge (${pct(rates.surchargeOfDuty)} of duty)`} value={rng(e.low.surcharge, e.high.surcharge)} />
+        <Line label={`ETLS levy (${pct(rates.etls)})`} value={rng(e.low.etls, e.high.etls)} />
+        <Line label={`Customs FOB charge (${pct(rates.fobCharge)})`} value={rng(e.low.fobCharge, e.high.fobCharge)} />
+        <Line label={`VAT (${pct(rates.vat)})`} value={rng(e.low.vat, e.high.vat)} />
         <Line label="Port & clearing agent (Lagos)" value={range(e.portAndClearing)} />
       </dl>
       <div className="mt-2 flex flex-wrap items-baseline justify-between gap-x-4 gap-y-1 border-t border-gray-200 pt-2 font-semibold text-black">
@@ -217,9 +241,11 @@ function NigeriaLandedCost({
         Car price, ShipMova and escrow fees, shipping, customs and clearing.
       </p>
       <p className="mt-3 text-xs text-gray-500">
-        Customs charges are based on 2026 published rates. Nigeria Customs values the
-        car itself, so the real duty can differ — confirm with your clearing agent.
-        ShipMova doesn&rsquo;t collect or pay customs charges.
+        {checkedAt
+          ? `Rates last checked ${dateFmt.format(new Date(checkedAt))}. `
+          : "Based on 2026 published rates. "}
+        Nigeria Customs values the car itself, so the real duty can differ — confirm
+        with your clearing agent. ShipMova doesn&rsquo;t collect or pay customs charges.
       </p>
     </div>
   );

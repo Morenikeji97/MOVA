@@ -1076,6 +1076,69 @@ export interface Database {
         }>;
         Relationships: [];
       };
+      /** Nigerian import-charge rates for the landed-cost estimate (0051). Admin-updated only. */
+      import_rates: {
+        Row: {
+          country: "NG";
+          import_duty_rate: number;
+          nac_levy_rate: number;
+          green_tax_under_2l_rate: number;
+          green_tax_2_to_4l_rate: number;
+          green_tax_4l_plus_rate: number;
+          surcharge_rate_of_duty: number;
+          etls_rate: number;
+          fob_charge_rate: number;
+          vat_rate: number;
+          insurance_rate: number;
+          port_clearing_min_usd: number;
+          port_clearing_max_usd: number;
+          source_note: string | null;
+          last_verified_at: string;
+          updated_by: string | null;
+          updated_at: string;
+        };
+        Insert: Record<string, never>;
+        Update: {
+          import_duty_rate?: number;
+          nac_levy_rate?: number;
+          green_tax_under_2l_rate?: number;
+          green_tax_2_to_4l_rate?: number;
+          green_tax_4l_plus_rate?: number;
+          surcharge_rate_of_duty?: number;
+          etls_rate?: number;
+          fob_charge_rate?: number;
+          vat_rate?: number;
+          insurance_rate?: number;
+          port_clearing_min_usd?: number;
+          port_clearing_max_usd?: number;
+          source_note?: string | null;
+          last_verified_at?: string;
+          updated_by?: string | null;
+          updated_at?: string;
+        };
+        Relationships: [];
+      };
+      /** Append-only admin audit trail (0001): admins insert and read, nobody updates. */
+      admin_actions_log: {
+        Row: {
+          id: string;
+          admin_id: string;
+          action_type: string;
+          target_table: string;
+          target_id: string | null;
+          notes: string | null;
+          created_at: string;
+        };
+        Insert: {
+          admin_id: string;
+          action_type: string;
+          target_table: string;
+          target_id?: string | null;
+          notes?: string | null;
+        };
+        Update: Record<string, never>;
+        Relationships: [];
+      };
       referral_payout_batches: {
         Row: {
           id: string;

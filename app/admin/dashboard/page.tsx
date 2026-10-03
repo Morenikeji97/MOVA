@@ -1,5 +1,6 @@
 import Link from "next/link";
 import { createClient } from "@/lib/supabase/server";
+import { STALE_AFTER_DAYS } from "@/lib/import-rates";
 
 export default async function AdminDashboard() {
   const supabase = await createClient();
@@ -54,6 +55,16 @@ export default async function AdminDashboard() {
     supabase.from("waitlist_signups").select("id", { count: "exact", head: true }),
   ]);
 
+  const { data: importRates } = await supabase
+    .from("import_rates")
+    .select("last_verified_at")
+    .eq("country", "NG")
+    .maybeSingle();
+  const ratesAgeDays = importRates
+    ? Math.floor((Date.now() - new Date(importRates.last_verified_at).getTime()) / 86_400_000)
+    : null;
+  const ratesStale = ratesAgeDays === null || ratesAgeDays > STALE_AFTER_DAYS;
+
   return (
     <main className="mx-auto max-w-4xl px-6 py-16">
       <h1 className="text-2xl font-semibold text-black">Admin Dashboard</h1>
@@ -73,6 +84,26 @@ export default async function AdminDashboard() {
           </p>
           <p className="mt-1 text-3xl font-semibold text-black">{waitlistCount ?? 0}</p>
           <p className="mt-1 text-sm text-black">Open the waitlist &rarr;</p>
+        </Link>
+        <Link
+          href="/admin/import-rates"
+          className={
+            ratesStale
+              ? "rounded-lg border border-red-300 bg-red-50 p-5 transition-colors hover:border-red-700"
+              : "rounded-lg border border-gray-200 bg-white p-5 transition-colors hover:border-black"
+          }
+        >
+          <p className="font-mono text-xs uppercase tracking-wider text-gray-500">
+            Nigeria import rates
+          </p>
+          <p className={ratesStale ? "mt-1 text-lg font-semibold text-red-700" : "mt-1 text-lg font-semibold text-black"}>
+            {ratesAgeDays === null
+              ? "Not set up"
+              : `Checked ${ratesAgeDays} day${ratesAgeDays === 1 ? "" : "s"} ago`}
+          </p>
+          <p className="mt-1 text-sm text-black">
+            {ratesStale ? "Due for a re-check" : "Review rates"} &rarr;
+          </p>
         </Link>
         <Link
           href="/admin/listings"
