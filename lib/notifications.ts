@@ -1,5 +1,5 @@
 import { createAdminClient } from "@/lib/supabase/admin";
-import { sendEmail, renderEmailShell } from "@/lib/email";
+import { sendEmail, renderEmailShell, escapeHtml } from "@/lib/email";
 import { checkRateLimit } from "@/lib/rate-limit";
 import { appUrl } from "@/lib/app-url";
 
@@ -343,3 +343,52 @@ export async function notifyDisputeDecision(disputeId: string): Promise<void> {
     }),
   });
 }
+
+// ── Shipper applications ─────────────────────────────────────────────────
+
+/**
+ * A shipper applied at /shipper/signup: confirm to the applicant, and alert
+ * every admin so the application is reviewed. Returns whether the
+ * applicant's confirmation was accepted by Resend, so the signup page can
+ * say so if it wasn't (the application itself is already saved).
+ */
+export async function notifyShipperApplication(
+  shipperId: string,
+): Promise<{ applicantEmailed: boolean }> {
+  const admin = createAdminClient();
+  const { data: shipper } = await admin
+    .from("shippers")
+    .select("company_name, contact_name, contact_email, status")
+    .eq("id", shipperId)
+    .maybeSingle();
+  if (!shipper) return { applicantEmailed: false };
+
+  const origin = await appUrl();
+  const applicantEmailed = await sendEmail({
+    to: shipper.contact_email,
+    subject: "We received your ShipMova shipper application",
+    html: renderEmailShell({
+      heading: "Application received",
+      bodyHtml: `<p style="margin:0 0 8px;">Thanks, ${escapeHtml(shipper.contact_name)}. Your application for ${escapeHtml(shipper.company_name)} is with the ShipMova team for review. We&rsquo;ll email you when it&rsquo;s approved.</p><p style="margin:0;">No fees for founding partners: ShipMova charges you nothing.</p>`,
+      ctaLabel: "About shipping with ShipMova",
+      ctaHref: `${origin}/shipper`,
+    }),
+  });
+
+  const { data: admins } = await admin.from("users").select("email").eq("role", "admin");
+  for (const a of admins ?? []) {
+    await sendEmail({
+      to: a.email,
+      subject: `New shipper application — ${shipper.company_name}`,
+      html: renderEmailShell({
+        heading: "New shipper application",
+        bodyHtml: `<p style="margin:0;">${escapeHtml(shipper.company_name)} (${escapeHtml(shipper.contact_email)}) applied to ship with ShipMova. It stays pending until you approve it.</p>`,
+        ctaLabel: "Review applications",
+        ctaHref: `${origin}/admin/shippers`,
+      }),
+    });
+  }
+
+  return { applicantEmailed };
+}
+

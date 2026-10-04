@@ -1,6 +1,6 @@
 import { test } from "node:test";
 import assert from "node:assert/strict";
-import { sendEmail, renderEmailShell } from "./email.ts";
+import { sendEmail, renderEmailShell, escapeHtml } from "./email.ts";
 
 test("renderEmailShell includes the heading and body", () => {
   const html = renderEmailShell({
@@ -38,4 +38,11 @@ test("sendEmail never throws when RESEND_API_KEY is unset — it no-ops", async 
   } finally {
     if (original !== undefined) process.env.RESEND_API_KEY = original;
   }
+});
+
+test("escapeHtml neutralises markup typed into a form", () => {
+  assert.equal(
+    escapeHtml(`<a href="x">Bob's & Co</a>`),
+    "&lt;a href=&quot;x&quot;&gt;Bob&#39;s &amp; Co&lt;/a&gt;",
+  );
 });

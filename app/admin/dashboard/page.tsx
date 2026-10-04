@@ -5,18 +5,7 @@ import { createClient } from "@/lib/supabase/server";
 export default async function AdminDashboard() {
   const supabase = await createClient();
 
-  const [
-    { count: userCount },
-    { count: pendingListings },
-    { count: openReservations },
-    { count: pendingShippers },
-    { count: shipmentRequests },
-    { count: blockedMessages },
-    { count: reviewQueue },
-    { count: openDisputes },
-    { count: referralAttention },
-    { count: waitlistCount },
-  ] = await Promise.all([
+  const results = await Promise.all([
     supabase.from("users").select("*", { count: "exact", head: true }),
     supabase
       .from("vehicles")
@@ -30,7 +19,9 @@ export default async function AdminDashboard() {
       .in("status", ["submitted", "under_review", "verified"]),
     supabase
       .from("shippers")
-      .select("*", { count: "exact", head: true })
+      // Not "*": the Stripe token columns aren't granted (0016), so a star
+      // select is refused and the count silently came back empty (0).
+      .select("id", { count: "exact", head: true })
       .eq("status", "pending"),
     supabase
       .from("shipment_requests")
@@ -55,15 +46,53 @@ export default async function AdminDashboard() {
     supabase.from("waitlist_signups").select("id", { count: "exact", head: true }),
   ]);
 
+  // A failed count must never read as 0 ("nothing pending"): show "—" and say
+  // which counts didn't load.
+  const COUNT_LABELS = [
+    "Total users",
+    "Listings pending review",
+    "Reservation requests",
+    "Shippers pending review",
+    "Shipment requests",
+    "Blocked messages",
+    "Reviews to moderate",
+    "Open disputes",
+    "Referral flags",
+    "Waitlist signups",
+  ];
+  const failedCounts = results.flatMap((r, i) => {
+    if (!r.error) return [];
+    console.error(`admin dashboard: "${COUNT_LABELS[i]}" count failed:`, r.error);
+    return [COUNT_LABELS[i]];
+  });
+  const [
+    userCount,
+    pendingListings,
+    openReservations,
+    pendingShippers,
+    shipmentRequests,
+    blockedMessages,
+    reviewQueue,
+    openDisputes,
+    referralAttention,
+    waitlistCount,
+  ] = results.map((r) => (r.error ? "—" : (r.count ?? 0)));
+
   return (
     <main className="mx-auto max-w-4xl px-6 py-16">
       <h1 className="text-2xl font-semibold text-black">Admin Dashboard</h1>
+      {failedCounts.length > 0 ? (
+        <p className="mt-4 rounded border border-copper-100 bg-copper-50 p-3 text-sm text-copper-700">
+          Couldn&rsquo;t load: {failedCounts.join(", ")}. Those show &ldquo;—&rdquo;,
+          not a real zero. Reload, and tell the developer if it persists.
+        </p>
+      ) : null}
       <div className="mt-6 grid grid-cols-2 gap-4 sm:grid-cols-3">
         <div className="rounded-lg border border-gray-200 bg-white p-5">
           <p className="font-mono text-xs uppercase tracking-wider text-gray-500">
             Total users
           </p>
-          <p className="mt-1 text-3xl font-semibold text-black">{userCount ?? 0}</p>
+          <p className="mt-1 text-3xl font-semibold text-black">{userCount}</p>
         </div>
         <Link
           href="/admin/waitlist"
@@ -72,7 +101,7 @@ export default async function AdminDashboard() {
           <p className="font-mono text-xs uppercase tracking-wider text-gray-500">
             Waitlist signups
           </p>
-          <p className="mt-1 text-3xl font-semibold text-black">{waitlistCount ?? 0}</p>
+          <p className="mt-1 text-3xl font-semibold text-black">{waitlistCount}</p>
           <p className="mt-1 text-sm text-black">Open the waitlist &rarr;</p>
         </Link>
         <Link
@@ -83,7 +112,7 @@ export default async function AdminDashboard() {
             Listings pending review
           </p>
           <p className="mt-1 text-3xl font-semibold text-black">
-            {pendingListings ?? 0}
+            {pendingListings}
           </p>
           <p className="mt-1 text-sm text-black">Open the review queue &rarr;</p>
         </Link>
@@ -95,7 +124,7 @@ export default async function AdminDashboard() {
             Reservation requests
           </p>
           <p className="mt-1 text-3xl font-semibold text-black">
-            {openReservations ?? 0}
+            {openReservations}
           </p>
           <p className="mt-1 text-sm text-black">
             Open the reservation queue &rarr;
@@ -109,7 +138,7 @@ export default async function AdminDashboard() {
             Shippers pending review
           </p>
           <p className="mt-1 text-3xl font-semibold text-black">
-            {pendingShippers ?? 0}
+            {pendingShippers}
           </p>
           <p className="mt-1 text-sm text-black">Open shipper review &rarr;</p>
         </Link>
@@ -121,7 +150,7 @@ export default async function AdminDashboard() {
             Shipment requests
           </p>
           <p className="mt-1 text-3xl font-semibold text-black">
-            {shipmentRequests ?? 0}
+            {shipmentRequests}
           </p>
           <p className="mt-1 text-sm text-black">
             {SHIPPER_FEES_ENABLED ? <>Shipments &amp; commission &rarr;</> : <>Open shipments &rarr;</>}
@@ -135,7 +164,7 @@ export default async function AdminDashboard() {
             Blocked contact-info attempts
           </p>
           <p className="mt-1 text-3xl font-semibold text-black">
-            {blockedMessages ?? 0}
+            {blockedMessages}
           </p>
           <p className="mt-1 text-sm text-black">Review flagged chat &rarr;</p>
         </Link>
@@ -147,7 +176,7 @@ export default async function AdminDashboard() {
             Reviews to moderate
           </p>
           <p className="mt-1 text-3xl font-semibold text-black">
-            {reviewQueue ?? 0}
+            {reviewQueue}
           </p>
           <p className="mt-1 text-sm text-black">Open the moderation queue &rarr;</p>
         </Link>
@@ -159,7 +188,7 @@ export default async function AdminDashboard() {
             Disputes needing attention
           </p>
           <p className="mt-1 text-3xl font-semibold text-black">
-            {openDisputes ?? 0}
+            {openDisputes}
           </p>
           <p className="mt-1 text-sm text-black">Open the dispute queue &rarr;</p>
         </Link>
@@ -171,7 +200,7 @@ export default async function AdminDashboard() {
             Referrals flagged for review
           </p>
           <p className="mt-1 text-3xl font-semibold text-black">
-            {referralAttention ?? 0}
+            {referralAttention}
           </p>
           <p className="mt-1 text-sm text-black">
             Review flags &amp; payouts &rarr;

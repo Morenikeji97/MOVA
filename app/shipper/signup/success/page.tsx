@@ -1,10 +1,27 @@
 import Link from "next/link";
 import { buttonClasses } from "@/components/ui/button";
 
-export default function ShipperSignupSuccessPage() {
+export default async function ShipperSignupSuccessPage({
+  searchParams,
+}: {
+  searchParams: Promise<Record<string, string | string[] | undefined>>;
+}) {
+  const emailFailed = (await searchParams).email === "failed";
   return (
     <main className="mx-auto flex min-h-screen max-w-md flex-col justify-center px-6 text-center">
       <h1 className="text-2xl font-semibold text-black">Application received</h1>
+      {emailFailed ? (
+        <p className="mt-3 rounded border border-copper-100 bg-copper-50 p-3 text-sm text-copper-700">
+          Your application is saved, but we couldn&rsquo;t send the confirmation
+          email. No need to apply again — ShipMova will contact you at the email you
+          gave once it&rsquo;s reviewed.
+        </p>
+      ) : (
+        <p className="mt-3 text-sm text-gray-500">
+          We&rsquo;ve emailed you a confirmation. Check spam or promotions if you
+          don&rsquo;t see it.
+        </p>
+      )}
       <p className="mt-3 text-gray-500">
         Thanks — your shipper application is with the ShipMova team for review.
         We&rsquo;ll be in touch by email once it&rsquo;s approved, and your rates
