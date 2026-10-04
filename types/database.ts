@@ -673,6 +673,7 @@ export interface Database {
           status: ShipperStatus;
           payment_status: ShipperPaymentStatus;
           terms_accepted_at: string | null;
+          terms_version: string | null;
           stripe_customer_id: string | null;
           stripe_payment_method_id: string | null;
           card_on_file: boolean;
@@ -695,6 +696,7 @@ export interface Database {
           status?: ShipperStatus;
           payment_status?: ShipperPaymentStatus;
           terms_accepted_at?: string | null;
+          terms_version?: string | null;
           stripe_customer_id?: string | null;
           stripe_payment_method_id?: string | null;
           card_on_file?: boolean;
@@ -717,6 +719,7 @@ export interface Database {
           status: ShipperStatus;
           payment_status: ShipperPaymentStatus;
           terms_accepted_at: string | null;
+          terms_version: string | null;
           stripe_customer_id: string | null;
           stripe_payment_method_id: string | null;
           card_on_file: boolean;

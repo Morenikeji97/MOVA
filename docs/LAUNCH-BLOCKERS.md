@@ -112,6 +112,15 @@ Supabase project) to remove before launch.
       on iPhone. Remove the listing with its photos and title file. (The 2012
       LR4 draft `2ff0684d` is real data, not test data.)
 
+- [ ] **Test shippers.** "Test Shipping Co" (`97e77a5a-ed27-4060-90e4-cf02c4554fbb`,
+      login `tbakare2+shipper@gmail.com`, approved, the only rate in the
+      database) **has a saved Stripe card** (customer + payment method) from
+      the old 8% signup; it was charged $146.80 once (see the Accord entry).
+      "test shipping" (`abd1d5a0-52e5-419b-9a27-e10801eb1bd5`, pending, no
+      card) was created 2026-10-04 to check shipper signup. Both are on v1
+      (commission) terms. With no shipper fees, nothing will charge the saved
+      card; before launch, delete both shippers and detach the card in Stripe.
+
 ## Planned next (Day 2, not started)
 
 - **"Preview listing" on each seller dashboard card.** A seller opens their own

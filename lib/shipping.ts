@@ -5,8 +5,28 @@ import type { ShipperPaymentStatus, ShippingMethod, VehicleSizeType } from "@/ty
  * ShipMova's commission on a completed shipment, as a whole-number percent. Stored
  * per-row on shipment_requests.commission_pct at selection time so historical
  * rows keep the rate they were created under, but new rows use this value.
+ *
+ * 0 = no shipper fees (founder's decision, 2026-10-04: "No fees for founding
+ * partners" until there's volume). At 0 nothing charges shippers or asks them
+ * for a card: completeShipment skips Stripe entirely, signup has no card step,
+ * and commission wording is hidden. The charging code stays in place so a fee
+ * can return by changing this one value (plus new shipper terms, see
+ * SHIPPER_TERMS_VERSION).
  */
-export const SHIPPER_COMMISSION_PCT = 8;
+export const SHIPPER_COMMISSION_PCT = 0;
+
+/** Whether shippers pay ShipMova anything at all. */
+export const SHIPPER_FEES_ENABLED = SHIPPER_COMMISSION_PCT > 0;
+
+/**
+ * Version of the terms a shipper accepts at signup, stored on
+ * shippers.terms_version (migration 0053). v1 = 8% commission on completed
+ * shipments with a card kept on file; v2 = no fees for founding partners.
+ */
+export const SHIPPER_TERMS_VERSION = "v2";
+
+/** The headline shown wherever shipper fees come up. */
+export const SHIPPER_NO_FEES_HEADLINE = "No fees for founding partners";
 
 /**
  * How many *unpaid* (charge failed) commissions a shipper may accumulate before

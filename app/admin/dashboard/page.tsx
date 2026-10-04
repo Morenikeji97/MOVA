@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { SHIPPER_FEES_ENABLED } from "@/lib/shipping";
 import { createClient } from "@/lib/supabase/server";
 
 export default async function AdminDashboard() {
@@ -123,7 +124,7 @@ export default async function AdminDashboard() {
             {shipmentRequests ?? 0}
           </p>
           <p className="mt-1 text-sm text-black">
-            Shipments &amp; commission &rarr;
+            {SHIPPER_FEES_ENABLED ? <>Shipments &amp; commission &rarr;</> : <>Open shipments &rarr;</>}
           </p>
         </Link>
         <Link

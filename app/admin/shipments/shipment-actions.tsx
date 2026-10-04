@@ -4,6 +4,7 @@ import { type ComponentProps } from "react";
 import { useFormStatus } from "react-dom";
 import { Button } from "@/components/ui/button";
 import { completeShipment } from "./actions";
+import { SHIPPER_FEES_ENABLED } from "@/lib/shipping";
 
 function PendingButton({
   children,
@@ -28,10 +29,9 @@ export function CompleteShipmentButton({
       <input type="hidden" name="id" value={shipmentId} />
       <PendingButton
         variant="primary"
-        size="sm"
-        pendingLabel="Completing & charging…"
+        pendingLabel={SHIPPER_FEES_ENABLED ? "Completing & charging…" : "Completing…"}
       >
-        Mark completed &amp; charge commission
+        {SHIPPER_FEES_ENABLED ? "Mark completed & charge commission" : "Mark completed"}
       </PendingButton>
     </form>
   );

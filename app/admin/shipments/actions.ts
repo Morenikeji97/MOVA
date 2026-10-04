@@ -5,7 +5,7 @@ import { createClient } from "@/lib/supabase/server";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { getStripe } from "@/lib/stripe";
 import { round2 } from "@/lib/fees";
-import { commissionOwed } from "@/lib/shipping";
+import { SHIPPER_FEES_ENABLED, commissionOwed } from "@/lib/shipping";
 import {
   applyStandingAfterFailure,
   maybeRestoreGoodStanding,
@@ -77,6 +77,18 @@ export async function completeShipment(formData: FormData): Promise<void> {
     .eq("id", id)
     .maybeSingle();
   if (!sr || sr.status !== "pending") return;
+
+  // No shipper fees (lib/shipping.ts): complete without touching Stripe, even
+  // for an older row saved with a non-zero commission_pct.
+  if (!SHIPPER_FEES_ENABLED) {
+    await admin
+      .from("shipment_requests")
+      .update({ status: "completed", commission_owed: 0 })
+      .eq("id", id)
+      .eq("status", "pending");
+    revalidate();
+    return;
+  }
 
   const { data: shipper } = await admin
     .from("shippers")

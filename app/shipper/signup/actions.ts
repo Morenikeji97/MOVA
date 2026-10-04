@@ -2,9 +2,7 @@
 
 import { redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
-import { getStripe } from "@/lib/stripe";
-import { appUrl } from "@/lib/app-url";
-import { isServiceCountry } from "@/lib/shipping";
+import { SHIPPER_TERMS_VERSION, isServiceCountry } from "@/lib/shipping";
 import { isUsState } from "@/lib/us-states";
 
 function str(v: FormDataEntryValue | null): string {
@@ -14,12 +12,11 @@ function str(v: FormDataEntryValue | null): string {
 /**
  * Shipper signup from /shipper/signup.
  *
- * 1. Records a `pending` shipper (company info + FMC OTI license + the accepted
- *    8%-commission terms, timestamped).
- * 2. Creates a Stripe Customer and a hosted Checkout session in `setup` mode to
- *    save a card for future off-session commission charges — nothing is charged
- *    now. The saved payment method + customer id are written back by the
- *    shipper-commission webhook on `checkout.session.completed`.
+ * Records a `pending` shipper (company info + FMC OTI license + the accepted
+ * shipper terms, versioned and timestamped) for admin review. No card and no
+ * Stripe: shippers pay nothing while SHIPPER_FEES_ENABLED is false
+ * (lib/shipping.ts). If fees return, a card step belongs back here — see git
+ * history for the Stripe setup-mode Checkout that used to follow the insert.
  *
  * Works for logged-out visitors (user_id stays null). Failures redirect back to
  * the form with an ?error code rather than throwing at the applicant.
@@ -75,6 +72,7 @@ export async function submitShipperSignup(formData: FormData): Promise<void> {
     service_areas: serviceAreas,
     status: "pending",
     terms_accepted_at: new Date().toISOString(),
+    terms_version: SHIPPER_TERMS_VERSION,
   });
 
   if (insertError) {
@@ -82,30 +80,5 @@ export async function submitShipperSignup(formData: FormData): Promise<void> {
     redirect("/shipper/signup?error=server");
   }
 
-  let redirectUrl: string | null = null;
-  try {
-    const stripe = getStripe();
-    const customer = await stripe.customers.create({
-      name: companyName,
-      email: contactEmail,
-      metadata: { shipper_id: shipperId },
-    });
-    const origin = await appUrl();
-    const session = await stripe.checkout.sessions.create({
-      mode: "setup",
-      customer: customer.id,
-      payment_method_types: ["card"],
-      metadata: { shipper_id: shipperId },
-      setup_intent_data: { metadata: { shipper_id: shipperId } },
-      success_url: `${origin}/shipper/signup/success`,
-      cancel_url: `${origin}/shipper/signup?error=card_cancelled`,
-    });
-    redirectUrl = session.url ?? null;
-  } catch (err) {
-    console.error("shipper signup Stripe setup failed:", err);
-    redirect("/shipper/signup?error=stripe");
-  }
-
-  if (!redirectUrl) redirect("/shipper/signup?error=stripe");
-  redirect(redirectUrl);
+  redirect("/shipper/signup/success");
 }

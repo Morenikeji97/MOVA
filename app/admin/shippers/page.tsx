@@ -1,7 +1,7 @@
 import { type ReactNode } from "react";
 import Link from "next/link";
 import { createClient } from "@/lib/supabase/server";
-import { countryName, vehicleSizeLabel, shippingMethodLabel } from "@/lib/shipping";
+import { SHIPPER_FEES_ENABLED, countryName, vehicleSizeLabel, shippingMethodLabel } from "@/lib/shipping";
 import type { ShipperPaymentStatus, ShippingMethod, VehicleSizeType } from "@/types/database";
 import {
   AddRateForm,
@@ -51,6 +51,7 @@ type ShipperRow = {
   status: string;
   payment_status: ShipperPaymentStatus;
   terms_accepted_at: string | null;
+  terms_version: string | null;
   card_on_file: boolean;
   rejection_reason: string | null;
   created_at: string;
@@ -79,10 +80,12 @@ function ShipperFacts({ s }: { s: ShipperRow }) {
       <Detail label="Ships to">
         {s.service_countries.map(countryName).join(", ") || "—"}
       </Detail>
-      <Detail label="Card on file">{s.card_on_file ? "Yes" : "No"}</Detail>
+      {SHIPPER_FEES_ENABLED ? (
+        <Detail label="Card on file">{s.card_on_file ? "Yes" : "No"}</Detail>
+      ) : null}
       <Detail label="Terms accepted">
         {s.terms_accepted_at
-          ? fmtDate.format(new Date(s.terms_accepted_at))
+          ? `${fmtDate.format(new Date(s.terms_accepted_at))}${s.terms_version ? ` · ${s.terms_version}` : ""}`
           : "Not recorded"}
       </Detail>
       <Detail label="Applied">
@@ -98,7 +101,7 @@ export default async function AdminShippersPage() {
   const { data: shipperRows } = await supabase
     .from("shippers")
     .select(
-      "id, company_name, contact_name, contact_email, contact_phone, fmc_oti_license_number, service_countries, status, payment_status, terms_accepted_at, card_on_file, rejection_reason, created_at",
+      "id, company_name, contact_name, contact_email, contact_phone, fmc_oti_license_number, service_countries, status, payment_status, terms_accepted_at, terms_version, card_on_file, rejection_reason, created_at",
     )
     .order("created_at", { ascending: true });
 
@@ -163,7 +166,7 @@ export default async function AdminShippersPage() {
                   </span>
                 </div>
                 <ShipperFacts s={s} />
-                {!s.card_on_file ? (
+                {SHIPPER_FEES_ENABLED && !s.card_on_file ? (
                   <p className="mt-2 text-sm text-copper-700">
                     No card on file yet — the applicant hasn&rsquo;t finished
                     Stripe card setup. Commission can&rsquo;t be auto-collected

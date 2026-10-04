@@ -5,7 +5,7 @@ import Link from "next/link";
 import { useSearchParams } from "next/navigation";
 import { useFormStatus } from "react-dom";
 import { Button } from "@/components/ui/button";
-import { SERVICE_COUNTRIES } from "@/lib/shipping";
+import { SERVICE_COUNTRIES, SHIPPER_NO_FEES_HEADLINE } from "@/lib/shipping";
 import { US_STATES } from "@/lib/us-states";
 import { submitShipperSignup } from "./actions";
 import { inputClasses } from "@/components/ui/input-classes";
@@ -16,10 +16,7 @@ const ERROR_COPY: Record<string, string> = {
   missing: "Please fill in the company name, contact name, email, and FMC OTI license number.",
   countries: "Select at least one country you ship to.",
   areas: "Select at least one US state you pick up vehicles from.",
-  terms: "You must accept the commission terms to sign up.",
-  card_cancelled:
-    "Card setup was cancelled. Your application is saved — you can add a card by signing up again with the same details.",
-  stripe: "We couldn't start card setup just now. Please try again.",
+  terms: "Please accept ShipMova's Terms & Conditions to apply.",
   server: "Something went wrong saving your application. Please try again.",
 };
 
@@ -27,7 +24,7 @@ function SubmitButton({ disabled }: { disabled: boolean }) {
   const { pending } = useFormStatus();
   return (
     <Button type="submit" disabled={pending || disabled}>
-      {pending ? "Starting card setup…" : "Continue to card setup"}
+      {pending ? "Submitting…" : "Submit application"}
     </Button>
   );
 }
@@ -139,6 +136,14 @@ function ShipperSignupForm() {
           </div>
         </fieldset>
 
+        <div className="rounded border border-verified-100 bg-verified-50 p-4 text-sm text-verified-600">
+          <p className="font-medium">{SHIPPER_NO_FEES_HEADLINE}</p>
+          <p className="mt-1">
+            ShipMova charges you nothing: no commission and no card on file. If that
+            ever changes, we&rsquo;ll tell you first and ask you to accept new terms.
+          </p>
+        </div>
+
         <label className="flex items-start gap-3 rounded border border-gray-200 bg-white p-4">
           <input
             type="checkbox"
@@ -146,19 +151,16 @@ function ShipperSignupForm() {
             required
             checked={termsAccepted}
             onChange={(e) => setTermsAccepted(e.target.checked)}
-            className="mt-0.5 h-4 w-4"
+            className="mt-0.5 h-5 w-5 shrink-0"
           />
           <span className="text-sm text-black">
-            I agree to pay ShipMova an 8% commission on completed shipments arranged
-            through the platform.
+            I agree to ShipMova&rsquo;s{" "}
+            <Link href="/terms" className="underline" target="_blank">
+              Terms &amp; Conditions
+            </Link>
+            .
           </span>
         </label>
-
-        <p className="text-sm text-gray-500">
-          Next you&rsquo;ll add a card on Stripe&rsquo;s secure page. Nothing is
-          charged now — it&rsquo;s kept on file so ShipMova can collect the 8%
-          commission after a shipment is completed.
-        </p>
 
         <div className="flex items-center gap-4">
           <SubmitButton disabled={!termsAccepted} />
