@@ -56,7 +56,7 @@ export default async function SellerReservationsPage() {
     ? await supabase
         .from("purchase_requests")
         .select(
-          "id, vehicle_id, status, created_at, vehicle_price_usd, mova_fee_payment_status",
+          "id, reference, vehicle_id, status, created_at, vehicle_price_usd, mova_fee_payment_status",
         )
         .in("vehicle_id", vehicleIds)
         .order("created_at", { ascending: false })
@@ -130,6 +130,7 @@ export default async function SellerReservationsPage() {
               >
                 <div className="flex items-start justify-between gap-4">
                   <div>
+                    <p className="font-mono text-xs text-gray-500">{r.reference}</p>
                     <h2 className="text-lg font-semibold text-black">
                       {vehicle ? (
                         <Link href={`/browse/${r.vehicle_id}`} className="hover:underline">

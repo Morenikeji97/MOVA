@@ -57,7 +57,7 @@ export default async function BuyerDashboard({
     supabase
       .from("purchase_requests")
       .select(
-        "id, vehicle_id, status, created_at, vehicle_price_usd, mova_fee_usd, mova_fee_payment_status, mova_fee_checkout_url, negotiated_price_usd, negotiated_price_status, shipping_rate_id, bank_transfer_rejection_reason",
+        "id, reference, vehicle_id, status, created_at, vehicle_price_usd, mova_fee_usd, mova_fee_payment_status, mova_fee_checkout_url, negotiated_price_usd, negotiated_price_status, shipping_rate_id, bank_transfer_rejection_reason",
       )
       .eq("buyer_id", user!.id)
       .order("created_at", { ascending: false }),
@@ -241,6 +241,7 @@ export default async function BuyerDashboard({
                 >
                   <div className="flex items-start justify-between gap-4">
                     <div>
+                      <p className="font-mono text-xs text-gray-500">{r.reference}</p>
                       <h3 className="font-semibold text-black">
                         {vehicle ? (
                           <Link

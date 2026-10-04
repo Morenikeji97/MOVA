@@ -1,6 +1,13 @@
 export type UserRole = "seller" | "buyer" | "admin";
 export type UserStatus = "active" | "suspended";
 export type VerificationStatus = "unverified" | "pending" | "verified" | "failed";
+/** Escrow.com stages an admin records (migration 0055). */
+export type EscrowStage =
+  | "escrow_opened"
+  | "escrow_funded"
+  | "inspection_passed"
+  | "handed_to_shipper"
+  | "escrow_released";
 export type VehicleStatus = "draft" | "pending_review" | "approved" | "rejected" | "sold" | "archived";
 export type VinVerificationStatus = "unverified" | "checking" | "verified" | "flagged";
 export type ShippingMethod = "roro" | "container";
@@ -572,6 +579,22 @@ export interface Database {
         }>;
         Relationships: [];
       };
+      transaction_status_history: {
+        Row: {
+          id: string;
+          seq: number;
+          purchase_request_id: string;
+          stage: string;
+          from_stage: string | null;
+          changed_by: string | null;
+          note: string | null;
+          created_at: string;
+        };
+        // Written only by database triggers (migration 0055); never by the app.
+        Insert: never;
+        Update: never;
+        Relationships: [];
+      };
       purchase_requests: {
         Row: {
           id: string;
@@ -598,6 +621,9 @@ export interface Database {
           bank_transfer_reviewed_by: string | null;
           bank_transfer_reviewed_at: string | null;
           bank_transfer_rejection_reason: string | null;
+          reference: string;
+          escrow_reference: string | null;
+          escrow_stage: EscrowStage | null;
           mova_fee_payment_method_fingerprint: string | null;
           created_at: string;
           updated_at: string;
@@ -627,6 +653,9 @@ export interface Database {
           bank_transfer_reviewed_by?: string | null;
           bank_transfer_reviewed_at?: string | null;
           bank_transfer_rejection_reason?: string | null;
+          reference?: string;
+          escrow_reference?: string | null;
+          escrow_stage?: EscrowStage | null;
           mova_fee_payment_method_fingerprint?: string | null;
           created_at?: string;
           updated_at?: string;
@@ -656,6 +685,9 @@ export interface Database {
           bank_transfer_reviewed_by: string | null;
           bank_transfer_reviewed_at: string | null;
           bank_transfer_rejection_reason: string | null;
+          reference: string;
+          escrow_reference: string | null;
+          escrow_stage: EscrowStage | null;
           mova_fee_payment_method_fingerprint: string | null;
           created_at: string;
           updated_at: string;

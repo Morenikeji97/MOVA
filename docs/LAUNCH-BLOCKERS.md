@@ -40,6 +40,18 @@ the copy can be changed instead if a feature is dropped.
       table ("Licensed escrow"), `/sell` ("How you get paid", "Paid at
       pickup", "No overseas payment risk"), `/shipper` ("buyer has already
       paid into escrow"), Terms §4, Buyer Protection §2 and §6.
+      **Questions for Escrow.com (partner call):**
+      - Can ShipMova open a **second escrow transaction, buyer → shipper,**
+        for the shipping price, alongside the car transaction?
+      - Can it release in stages: part at verified **pickup** (with the
+        original title), the rest at **delivery** / port handoff?
+      - Can the shipper payee be a US forwarder shipping to Nigeria, Ghana,
+        Togo or Benin, and is anything different when the buyer pays from
+        one of those countries?
+      - **What does it cost on a ~$1,500 shipment** (fee, who pays it, any
+        minimum), and on the typical car transaction?
+      - API/webhooks for status (funded, released) so ShipMova can show it
+        without staff re-typing it.
 
 - [ ] **In-person inspection before pickup.**
       No inspection step exists. Needs: inspector onboarding (the
@@ -113,7 +125,12 @@ Supabase project) to remove before launch.
       then the reservation (`shipment_requests.purchase_request_id` has no
       cascade).
       **Stripe mode: closed — test money** (founder, 2026-10-04). No refund
-      or write-off needed; just delete the rows.
+      or write-off needed; just delete the rows. Since migration 0055 it's
+      **SM-000001** and has stage history, which is append-only and blocks
+      deleting the reservation: as the database owner, disable trigger
+      `transaction_history_append_only`, delete its history rows, the
+      shipment and the reservation, then re-enable the trigger, in one
+      transaction.
 
 - [ ] **e2e test seller `tbakare2+e2e-webkit@gmail.com`**
       (user `ffc205b6-34a5-4849-bcd9-1e6150377d15`) and its **draft listing
@@ -136,22 +153,41 @@ Supabase project) to remove before launch.
       0054, 2026-10-04): `tbakare2+buyer`, `+buyer2`, `+ref1`, `+shipper` and
       `+e2e-webkit` (all `@gmail.com`). Excluded from admin counts. Not test:
       `tbakare2@gmail.com` (founder's seller account) and `tbakare2+admin`.
-      **Unknown, not flagged:** `tobs20450@yahoo.com` (seller) and
-      `adedayotoba35@gmail.com` (buyer) — confirm whether these are real.
       `+shipper3`/`+shipper4`/`+shipper5` never had logins (shipper signup
       only files an application).
+      **`tobs20450@yahoo.com`** (seller): not flagged, treated as real.
+
+- [ ] **Friend's accounts: `adedayotoba35@gmail.com` (buyer) and
+      `tobs20450@yahoo.com` (seller)** — the same person, helping test.
+      Both flagged as test 2026-10-04 (excluded from counts); **not to be
+      deleted.** The seller account has 1 listing and an identity check
+      left `pending` (test mode).
+      **On launch day: unflag both so they're active real users.** First
+      remove any test listings, deals and chats they created, and reset
+      any test-mode ID verification so he re-verifies in live mode.
 
 - [ ] **Flagged test shipper applications** (`shippers.is_test = true`):
       "Test Shipping Co" (`97e77a5a-…`, approved, `tbakare2+shipper`, the
       only shipping rate in the database, **saved Stripe test card** from the
       old 8% signup), "test shipping", "TESTSHIPPER3", "the test"
-      (`+shipper3`), "MOVATEST@#5" (`+shipper5`) and **"MOVATEST@#", which is
-      linked to the admin login `tbakare2+admin`** (applied while signed in as
-      admin) — delete that one first so the admin account never owns a
-      shipper. Before launch: delete all of them and detach the card in
-      Stripe.
+      (`+shipper3`) and "MOVATEST@#5" (`+shipper5`). ("MOVATEST@#", which was
+      linked to the admin login, was deleted 2026-10-04.) Before launch:
+      delete all of them and detach the card in Stripe.
 
-## Day 2 (in progress, branch `day2`)
+- [ ] **Restart SM- numbering so the first real deal is SM-000001.**
+      Safe as long as no real deal exists yet: the reference is a label only
+      (history and every link use the deal's id, nothing assumes the numbers
+      are consecutive), but it's unique, so the test deals must give up
+      their numbers first. On launch day, as the database owner, in one
+      transaction, after the other cleanup:
+      1. delete the remaining test deals, **or** keep them and rename their
+         references to `TEST-000001…` (disable trigger
+         `purchase_requests_reference` for that update only, then re-enable);
+      2. `alter sequence public.transaction_reference_seq restart with 1;`
+      3. check: `select max(reference) from purchase_requests where reference like 'SM-%'` returns nothing.
+      Never restart once a real deal has a number.
+
+## Day 2 (part 1 merged in PR #36; part 2 in progress, branch `day2-transactions`)
 
 - **"Preview listing" on each seller dashboard card.** A seller opens their own
   draft or pending listing exactly as buyers will see it. The listing page
