@@ -94,3 +94,13 @@ Supabase project) to remove before launch.
       read from here. To settle it: in the Stripe dashboard, search
       `pi_3UD7phLXeJirt4DU0omdA3sP` with the **Test mode** toggle on, then
       off. If it's live, refund or write it off before deleting the record.
+
+- [ ] **e2e test seller `tbakare2+e2e-webkit@gmail.com`**
+      (user `ffc205b6-34a5-4849-bcd9-1e6150377d15`) and its **draft listing
+      "TEST E2E WEBKIT — DELETE ME"** (`f1bdadbd-600e-488a-ba57-deb127109f10`,
+      VIN `JH4KA7561PC008269`, 3 photos under `vehicle-photos/ffc205b6-…/`).
+      Kept on purpose for `npm run e2e:photos` (WebKit photo upload test). Its
+      password lives only in `.env.local` / CI secrets, never in the repo.
+      Before launch: exclude it from every user and listing count (admin
+      dashboard "Total users" includes it today), or delete it and run the
+      e2e test against a staging project instead.

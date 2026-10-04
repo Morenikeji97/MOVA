@@ -9,9 +9,10 @@
 // Storage). Regression test for the silent iPhone upload failure fixed in
 // PR #32 (lib/file-input.ts).
 //
-// Needs a running site and a seller account whose terms are accepted:
-//   E2E_BASE_URL=http://localhost:3000 \
-//   E2E_SELLER_EMAIL=… E2E_SELLER_PASSWORD=… npm run e2e:photos
+// Needs a running site and a seller account whose terms are accepted.
+// E2E_SELLER_EMAIL / E2E_SELLER_PASSWORD come from .env.local (git-ignored)
+// or CI secrets — never commit them:
+//   E2E_BASE_URL=http://localhost:3000 npm run e2e:photos
 // One-time browser setup: npx playwright install --with-deps webkit
 
 import { webkit } from "playwright";
