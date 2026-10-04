@@ -157,9 +157,14 @@ Supabase project) to remove before launch.
       only files an application).
       **`tobs20450@yahoo.com`** (seller): not flagged, treated as real.
 
-- [ ] **`adedayotoba35@gmail.com`** (buyer) — a friend helping test. Flagged
-      as test 2026-10-04 (excluded from counts) but **ask before removing;
-      may become a real buyer.** If they stay, clear the flag instead.
+- [ ] **Friend's accounts: `adedayotoba35@gmail.com` (buyer) and
+      `tobs20450@yahoo.com` (seller)** — the same person, helping test.
+      Both flagged as test 2026-10-04 (excluded from counts); **not to be
+      deleted.** The seller account has 1 listing and an identity check
+      left `pending` (test mode).
+      **On launch day: unflag both so they're active real users.** First
+      remove any test listings, deals and chats they created, and reset
+      any test-mode ID verification so he re-verifies in live mode.
 
 - [ ] **Flagged test shipper applications** (`shippers.is_test = true`):
       "Test Shipping Co" (`97e77a5a-…`, approved, `tbakare2+shipper`, the
@@ -168,6 +173,19 @@ Supabase project) to remove before launch.
       (`+shipper3`) and "MOVATEST@#5" (`+shipper5`). ("MOVATEST@#", which was
       linked to the admin login, was deleted 2026-10-04.) Before launch:
       delete all of them and detach the card in Stripe.
+
+- [ ] **Restart SM- numbering so the first real deal is SM-000001.**
+      Safe as long as no real deal exists yet: the reference is a label only
+      (history and every link use the deal's id, nothing assumes the numbers
+      are consecutive), but it's unique, so the test deals must give up
+      their numbers first. On launch day, as the database owner, in one
+      transaction, after the other cleanup:
+      1. delete the remaining test deals, **or** keep them and rename their
+         references to `TEST-000001…` (disable trigger
+         `purchase_requests_reference` for that update only, then re-enable);
+      2. `alter sequence public.transaction_reference_seq restart with 1;`
+      3. check: `select max(reference) from purchase_requests where reference like 'SM-%'` returns nothing.
+      Never restart once a real deal has a number.
 
 ## Day 2 (part 1 merged in PR #36; part 2 in progress, branch `day2-transactions`)
 
