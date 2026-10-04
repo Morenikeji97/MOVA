@@ -24,7 +24,26 @@ function str(v: FormDataEntryValue | null): string {
  * Works for logged-out visitors (user_id stays null). Failures redirect back to
  * the form with an ?error code rather than throwing at the applicant.
  */
-export async function submitShipperSignup(formData: FormData): Promise<void> {
+export type ShipperSignupValues = {
+  company_name: string;
+  contact_name: string;
+  contact_email: string;
+  contact_phone: string;
+  fmc_oti_license_number: string;
+  service_countries: string[];
+  service_areas: string[];
+};
+
+/** What the form gets back on failure: which error, and everything typed. */
+export type ShipperSignupState = {
+  error: "missing" | "countries" | "areas" | "terms" | "server" | null;
+  values: ShipperSignupValues;
+};
+
+export async function submitShipperSignup(
+  _prev: ShipperSignupState,
+  formData: FormData,
+): Promise<ShipperSignupState> {
   const companyName = str(formData.get("company_name"));
   const contactName = str(formData.get("contact_name"));
   const contactEmail = str(formData.get("contact_email"));
@@ -41,18 +60,23 @@ export async function submitShipperSignup(formData: FormData): Promise<void> {
   // Checkbox: only present in the payload when ticked.
   const termsAccepted = formData.get("terms_accepted") != null;
 
+  // Errors come back to the same form with everything typed, so a phone
+  // user never has to fill it in again.
+  const values: ShipperSignupValues = {
+    company_name: companyName,
+    contact_name: contactName,
+    contact_email: contactEmail,
+    contact_phone: contactPhone,
+    fmc_oti_license_number: licenseNumber,
+    service_countries: serviceCountries,
+    service_areas: serviceAreas,
+  };
   if (!companyName || !contactName || !contactEmail || !licenseNumber) {
-    redirect("/shipper/signup?error=missing");
+    return { error: "missing", values };
   }
-  if (serviceCountries.length === 0) {
-    redirect("/shipper/signup?error=countries");
-  }
-  if (serviceAreas.length === 0) {
-    redirect("/shipper/signup?error=areas");
-  }
-  if (!termsAccepted) {
-    redirect("/shipper/signup?error=terms");
-  }
+  if (serviceCountries.length === 0) return { error: "countries", values };
+  if (serviceAreas.length === 0) return { error: "areas", values };
+  if (!termsAccepted) return { error: "terms", values };
 
   const supabase = await createClient();
   const {
@@ -90,7 +114,7 @@ export async function submitShipperSignup(formData: FormData): Promise<void> {
     insertFailed = true;
   }
   // redirect() works by throwing, so it stays outside the try/catch above.
-  if (insertFailed) redirect("/shipper/signup?error=server");
+  if (insertFailed) return { error: "server", values };
 
   // The application is saved. Confirm to the applicant and alert admins; if
   // the confirmation email didn't go out, the success page says so.
