@@ -2,10 +2,9 @@
 
 import { redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
-import { getStripe } from "@/lib/stripe";
-import { appUrl } from "@/lib/app-url";
-import { isServiceCountry } from "@/lib/shipping";
+import { SHIPPER_TERMS_VERSION, isServiceCountry } from "@/lib/shipping";
 import { isUsState } from "@/lib/us-states";
+import { notifyShipperApplication } from "@/lib/notifications";
 
 function str(v: FormDataEntryValue | null): string {
   return typeof v === "string" ? v.trim() : "";
@@ -14,12 +13,13 @@ function str(v: FormDataEntryValue | null): string {
 /**
  * Shipper signup from /shipper/signup.
  *
- * 1. Records a `pending` shipper (company info + FMC OTI license + the accepted
- *    8%-commission terms, timestamped).
- * 2. Creates a Stripe Customer and a hosted Checkout session in `setup` mode to
- *    save a card for future off-session commission charges — nothing is charged
- *    now. The saved payment method + customer id are written back by the
- *    shipper-commission webhook on `checkout.session.completed`.
+ * Records a `pending` shipper (company info + FMC OTI license + the accepted
+ * shipper terms, versioned and timestamped) for admin review, then emails the
+ * applicant a confirmation and every admin an alert. It creates an
+ * application only, not a login: the shipper makes an account after approval. No card and no
+ * Stripe: shippers pay nothing while SHIPPER_FEES_ENABLED is false
+ * (lib/shipping.ts). If fees return, a card step belongs back here — see git
+ * history for the Stripe setup-mode Checkout that used to follow the insert.
  *
  * Works for logged-out visitors (user_id stays null). Failures redirect back to
  * the form with an ?error code rather than throwing at the applicant.
@@ -63,49 +63,40 @@ export async function submitShipperSignup(formData: FormData): Promise<void> {
   // freshly-inserted anonymous row.
   const shipperId = crypto.randomUUID();
 
-  const { error: insertError } = await supabase.from("shippers").insert({
-    id: shipperId,
-    user_id: user?.id ?? null,
-    company_name: companyName,
-    contact_name: contactName,
-    contact_email: contactEmail,
-    contact_phone: contactPhone || null,
-    fmc_oti_license_number: licenseNumber,
-    service_countries: serviceCountries,
-    service_areas: serviceAreas,
-    status: "pending",
-    terms_accepted_at: new Date().toISOString(),
-  });
-
-  if (insertError) {
-    console.error("shipper signup insert failed:", insertError);
-    redirect("/shipper/signup?error=server");
-  }
-
-  let redirectUrl: string | null = null;
+  let insertFailed = false;
   try {
-    const stripe = getStripe();
-    const customer = await stripe.customers.create({
-      name: companyName,
-      email: contactEmail,
-      metadata: { shipper_id: shipperId },
+    const { error: insertError } = await supabase.from("shippers").insert({
+      id: shipperId,
+      user_id: user?.id ?? null,
+      company_name: companyName,
+      contact_name: contactName,
+      contact_email: contactEmail,
+      contact_phone: contactPhone || null,
+      fmc_oti_license_number: licenseNumber,
+      service_countries: serviceCountries,
+      service_areas: serviceAreas,
+      status: "pending",
+      terms_accepted_at: new Date().toISOString(),
+      terms_version: SHIPPER_TERMS_VERSION,
     });
-    const origin = await appUrl();
-    const session = await stripe.checkout.sessions.create({
-      mode: "setup",
-      customer: customer.id,
-      payment_method_types: ["card"],
-      metadata: { shipper_id: shipperId },
-      setup_intent_data: { metadata: { shipper_id: shipperId } },
-      success_url: `${origin}/shipper/signup/success`,
-      cancel_url: `${origin}/shipper/signup?error=card_cancelled`,
-    });
-    redirectUrl = session.url ?? null;
+    if (insertError) {
+      console.error("shipper signup insert failed:", insertError);
+      insertFailed = true;
+    }
   } catch (err) {
-    console.error("shipper signup Stripe setup failed:", err);
-    redirect("/shipper/signup?error=stripe");
+    // A thrown failure (e.g. network) must still reach the applicant as an
+    // error, never a blank page or a false "received".
+    console.error("shipper signup insert threw:", err);
+    insertFailed = true;
   }
+  // redirect() works by throwing, so it stays outside the try/catch above.
+  if (insertFailed) redirect("/shipper/signup?error=server");
 
-  if (!redirectUrl) redirect("/shipper/signup?error=stripe");
-  redirect(redirectUrl);
+  // The application is saved. Confirm to the applicant and alert admins; if
+  // the confirmation email didn't go out, the success page says so.
+  const { applicantEmailed } = await notifyShipperApplication(shipperId).catch((err) => {
+    console.error("shipper application emails failed:", err);
+    return { applicantEmailed: false };
+  });
+  redirect(applicantEmailed ? "/shipper/signup/success" : "/shipper/signup/success?email=failed");
 }

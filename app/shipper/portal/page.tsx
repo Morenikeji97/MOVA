@@ -3,7 +3,7 @@ import Link from "next/link";
 import { redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
 import { buttonClasses } from "@/components/ui/button";
-import { countryName } from "@/lib/shipping";
+import { SHIPPER_FEES_ENABLED, SHIPPER_NO_FEES_HEADLINE, countryName } from "@/lib/shipping";
 import type { ShipperPaymentStatus } from "@/types/database";
 import { AddRateForm, RateList, type ShipperRate } from "./portal-rates";
 import { ClaimButton, UpdateCardButton } from "./portal-actions";
@@ -189,31 +189,42 @@ export default async function ShipperPortalPage({
           Account linked. You can manage your rates below.
         </p>
       ) : null}
-      {card === "updated" ? (
+      {SHIPPER_FEES_ENABLED && card === "updated" ? (
         <p className="mt-4 rounded border border-verified-100 bg-verified-50 p-3 text-sm text-verified-600">
           Card updated — ShipMova will use it for future commission charges.
         </p>
       ) : null}
-      {card === "error" ? (
+      {SHIPPER_FEES_ENABLED && card === "error" ? (
         <p className="mt-4 rounded border border-copper-100 bg-copper-50 p-3 text-sm text-copper-700">
           We couldn&rsquo;t open Stripe just now. Please try again.
         </p>
       ) : null}
 
-      {/* Account standing */}
-      <section className={`mt-6 rounded-lg border p-4 ${standing.cls}`}>
-        <div className="flex flex-wrap items-center justify-between gap-3">
-          <p className="font-semibold">Account standing: {standing.label}</p>
-          <UpdateCardButton hasCard={linked.card_on_file} />
-        </div>
-        <p className="mt-1 text-sm">{standing.note}</p>
-        {!linked.card_on_file ? (
+      {/* Account standing. While shipper fees are off (lib/shipping.ts) there's
+          no card, no charge and so nothing that can change standing. */}
+      {SHIPPER_FEES_ENABLED ? (
+        <section className={`mt-6 rounded-lg border p-4 ${standing.cls}`}>
+          <div className="flex flex-wrap items-center justify-between gap-3">
+            <p className="font-semibold">Account standing: {standing.label}</p>
+            <UpdateCardButton hasCard={linked.card_on_file} />
+          </div>
+          <p className="mt-1 text-sm">{standing.note}</p>
+          {!linked.card_on_file ? (
+            <p className="mt-1 text-sm">
+              No card on file — add one so ShipMova can collect commission on completed
+              shipments.
+            </p>
+          ) : null}
+        </section>
+      ) : (
+        <section className="mt-6 rounded-lg border border-verified-100 bg-verified-50 p-4 text-verified-600">
+          <p className="font-semibold">{SHIPPER_NO_FEES_HEADLINE}</p>
           <p className="mt-1 text-sm">
-            No card on file — add one so ShipMova can collect commission on completed
-            shipments.
+            ShipMova charges you nothing: no commission and no card on file. Your
+            active rates are shown to buyers.
           </p>
-        ) : null}
-      </section>
+        </section>
+      )}
 
       {/* Rates */}
       <section className="mt-10">

@@ -1,9 +1,10 @@
 import type { Metadata } from "next";
 import Link from "next/link";
-import { BadgeCheck, FileCheck, MapPin, Receipt, Rocket } from "lucide-react";
+import { BadgeCheck, BadgeDollarSign, FileCheck, MapPin, Receipt, Rocket } from "lucide-react";
 import { buttonClasses } from "@/components/ui/button";
 import { BenefitsSection, type Benefit } from "@/components/ui/benefits-section";
 import { whatsappLink } from "@/lib/whatsapp";
+import { SHIPPER_NO_FEES_HEADLINE } from "@/lib/shipping";
 
 export const metadata: Metadata = {
   title: "Ship with ShipMova",
@@ -11,6 +12,11 @@ export const metadata: Metadata = {
 };
 
 const SHIPPER_BENEFITS: Benefit[] = [
+  {
+    icon: BadgeDollarSign,
+    title: SHIPPER_NO_FEES_HEADLINE,
+    body: "ShipMova charges you nothing: no commission and no card on file. ShipMova takes no cut of your shipping price.",
+  },
   {
     icon: Rocket,
     title: "Jobs that are ready to go",
@@ -39,8 +45,8 @@ const SHIPPER_BENEFITS: Benefit[] = [
 ];
 
 /**
- * Public shipper landing page. The signed-in shipper portal (rates, card on
- * file) lives at /shipper/portal; "Shipper sign in" goes there, and it
+ * Public shipper landing page. The signed-in shipper portal (rates, profile)
+ * lives at /shipper/portal; "Shipper sign in" goes there, and it
  * sends signed-out visitors to login first.
  */
 export default function ShipperLandingPage() {

@@ -15,7 +15,8 @@ import { Resend } from "resend";
  * `sendEmail` never throws. Every trigger point in this codebase (chat
  * messages, payments, reservations, reviews, disputes) must keep working
  * even if email sending is unconfigured, misconfigured, or the provider is
- * down — callers should never need a try/catch around this.
+ * down — callers should never need a try/catch around this. Returns whether
+ * Resend accepted the email, for callers that must tell the user if it didn't.
  */
 export async function sendEmail({
   to,
@@ -25,11 +26,11 @@ export async function sendEmail({
   to: string;
   subject: string;
   html: string;
-}): Promise<void> {
+}): Promise<boolean> {
   const apiKey = process.env.RESEND_API_KEY;
   if (!apiKey) {
     console.warn(`sendEmail: RESEND_API_KEY not set — skipping "${subject}" to ${to}`);
-    return;
+    return false;
   }
 
   try {
@@ -42,10 +43,23 @@ export async function sendEmail({
     });
     if (error) {
       console.error(`sendEmail: Resend rejected "${subject}" to ${to}:`, error);
+      return false;
     }
+    return true;
   } catch (err) {
     console.error(`sendEmail: failed to send "${subject}" to ${to}:`, err);
+    return false;
   }
+}
+
+/** Escapes text for HTML — anything a user typed must go through this. */
+export function escapeHtml(text: string): string {
+  return text
+    .replace(/&/g, "&amp;")
+    .replace(/</g, "&lt;")
+    .replace(/>/g, "&gt;")
+    .replace(/"/g, "&quot;")
+    .replace(/'/g, "&#39;");
 }
 
 /**

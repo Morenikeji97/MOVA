@@ -1,7 +1,7 @@
 import { type ReactNode } from "react";
 import Link from "next/link";
 import { createClient } from "@/lib/supabase/server";
-import { countryName } from "@/lib/shipping";
+import { SHIPPER_FEES_ENABLED, countryName } from "@/lib/shipping";
 import type {
   CommissionChargeStatus,
   ShipperPaymentStatus,
@@ -119,14 +119,24 @@ export default async function AdminShipmentsPage() {
         &larr; Admin dashboard
       </Link>
       <h1 className="mt-4 text-2xl font-semibold text-black">
-        Shipments &amp; commission
+        {SHIPPER_FEES_ENABLED ? <>Shipments &amp; commission</> : "Shipments"}
       </h1>
       <p className="mt-2 text-sm text-gray-500">
-        Every buyer&rarr;shipper shipment request, and what each shipper owes
-        ShipMova in commission.
+        {SHIPPER_FEES_ENABLED ? (
+          <>
+            Every buyer&rarr;shipper shipment request, and what each shipper owes
+            ShipMova in commission.
+          </>
+        ) : (
+          <>
+            Every buyer&rarr;shipper shipment request. Shippers pay ShipMova
+            nothing: no fees for founding partners.
+          </>
+        )}
       </p>
 
-      {/* Per-shipper commission summary */}
+      {/* Per-shipper commission summary (only while shipper fees are on) */}
+      {SHIPPER_FEES_ENABLED ? (
       <section className="mt-8">
         <h2 className="font-mono text-xs uppercase tracking-wider text-gray-500">
           Per-shipper commission
@@ -190,6 +200,7 @@ export default async function AdminShipmentsPage() {
           </div>
         )}
       </section>
+      ) : null}
 
       {/* All shipment requests */}
       <section className="mt-12">
@@ -214,6 +225,10 @@ export default async function AdminShipmentsPage() {
                 : null;
               const chargeStatus =
                 r.commission_charge_status as CommissionChargeStatus;
+              // Commission details only while fees are on, or for an older
+              // row that actually carried one.
+              const showCommission =
+                SHIPPER_FEES_ENABLED || Number(r.commission_owed) > 0;
 
               return (
                 <li
@@ -224,7 +239,7 @@ export default async function AdminShipmentsPage() {
                     <div>
                       <h3 className="text-lg font-semibold text-black">
                         {shipper?.company_name ?? "Shipper unavailable"}
-                        {shipper && !shipper.card_on_file ? (
+                        {SHIPPER_FEES_ENABLED && shipper && !shipper.card_on_file ? (
                           <span className="ml-2 align-middle text-xs font-normal text-copper-700">
                             no card on file
                           </span>
@@ -234,9 +249,13 @@ export default async function AdminShipmentsPage() {
                         {rate
                           ? `${rate.origin_region} → ${countryName(rate.destination_country)} · `
                           : ""}
-                        Rate {money(Number(r.agreed_rate), r.currency)} ·
-                        Commission {r.commission_pct}% ={" "}
-                        {money(Number(r.commission_owed), r.currency)}
+                        Rate {money(Number(r.agreed_rate), r.currency)}
+                        {showCommission ? (
+                          <>
+                            {" "}· Commission {r.commission_pct}% ={" "}
+                            {money(Number(r.commission_owed), r.currency)}
+                          </>
+                        ) : null}
                       </p>
                     </div>
                     <div className="flex flex-col items-end gap-1">
@@ -249,6 +268,7 @@ export default async function AdminShipmentsPage() {
                       >
                         {r.status === "completed" ? "Completed" : "Pending"}
                       </span>
+                      {showCommission ? (
                       <span
                         className={`text-xs font-medium ${
                           chargeStatus === "charged"
@@ -260,6 +280,7 @@ export default async function AdminShipmentsPage() {
                       >
                         {CHARGE_LABEL[chargeStatus]}
                       </span>
+                      ) : null}
                     </div>
                   </div>
 
@@ -268,18 +289,22 @@ export default async function AdminShipmentsPage() {
                     <Detail label="Requested">
                       {fmtDate.format(new Date(r.created_at))}
                     </Detail>
-                    <Detail label="Charge ref">
-                      <span className="font-mono text-xs">
-                        {r.stripe_charge_id ?? "—"}
-                      </span>
-                    </Detail>
-                    <Detail label="Shipper standing">
-                      {shipper
-                        ? PAYMENT_STATUS_LABEL[
-                            shipper.payment_status as ShipperPaymentStatus
-                          ]
-                        : "—"}
-                    </Detail>
+                    {showCommission ? (
+                      <>
+                        <Detail label="Charge ref">
+                          <span className="font-mono text-xs">
+                            {r.stripe_charge_id ?? "—"}
+                          </span>
+                        </Detail>
+                        <Detail label="Shipper standing">
+                          {shipper
+                            ? PAYMENT_STATUS_LABEL[
+                                shipper.payment_status as ShipperPaymentStatus
+                              ]
+                            : "—"}
+                        </Detail>
+                      </>
+                    ) : null}
                   </dl>
 
                   {r.status === "pending" ? (
