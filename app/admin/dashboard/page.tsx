@@ -1,48 +1,85 @@
 import Link from "next/link";
 import { SHIPPER_FEES_ENABLED } from "@/lib/shipping";
 import { createClient } from "@/lib/supabase/server";
+import { excludeIds, loadTestIds } from "@/lib/test-accounts";
 
 export default async function AdminDashboard() {
   const supabase = await createClient();
 
+  // Test logins and test shipper applications (migration 0054) are left out
+  // of every count below.
+  const test = await loadTestIds(supabase);
+  const u = test.userIds;
+
   const results = await Promise.all([
-    supabase.from("users").select("*", { count: "exact", head: true }),
-    supabase
-      .from("vehicles")
-      // Not "*": vin and the document paths aren't readable with the anon
-      // key (migration 0037), so a star select on vehicles is refused.
-      .select("id", { count: "exact", head: true })
-      .eq("status", "pending_review"),
-    supabase
-      .from("purchase_requests")
-      .select("*", { count: "exact", head: true })
-      .in("status", ["submitted", "under_review", "verified"]),
+    supabase.from("users").select("id", { count: "exact", head: true }).eq("is_test_account", false),
+    excludeIds(
+      supabase
+        .from("vehicles")
+        // Not "*": vin and the document paths aren't readable with the anon
+        // key (migration 0037), so a star select on vehicles is refused.
+        .select("id", { count: "exact", head: true })
+        .eq("status", "pending_review"),
+      "seller_id",
+      u,
+    ),
+    excludeIds(
+      supabase
+        .from("purchase_requests")
+        .select("id", { count: "exact", head: true })
+        .in("status", ["submitted", "under_review", "verified"]),
+      "buyer_id",
+      u,
+    ),
     supabase
       .from("shippers")
       // Not "*": the Stripe token columns aren't granted (0016), so a star
       // select is refused and the count silently came back empty (0).
       .select("id", { count: "exact", head: true })
-      .eq("status", "pending"),
-    supabase
-      .from("shipment_requests")
-      .select("*", { count: "exact", head: true }),
-    supabase
-      .from("messages")
-      .select("*", { count: "exact", head: true })
-      .eq("blocked_attempt", true),
-    supabase
-      .from("reviews")
-      .select("*", { count: "exact", head: true })
-      .in("status", ["pending", "flagged"]),
-    supabase
-      .from("disputes")
-      .select("*", { count: "exact", head: true })
-      .in("status", ["open", "approved_pending_refund"]),
-    supabase
-      .from("referral_credits")
-      .select("*", { count: "exact", head: true })
-      .eq("flag_status", "flagged")
-      .is("flag_reviewed_at", null),
+      .eq("status", "pending")
+      .eq("is_test", false),
+    excludeIds(
+      excludeIds(
+        supabase.from("shipment_requests").select("id", { count: "exact", head: true }),
+        "buyer_id",
+        u,
+      ),
+      "shipper_id",
+      test.shipperIds,
+    ),
+    excludeIds(
+      supabase
+        .from("messages")
+        .select("id", { count: "exact", head: true })
+        .eq("blocked_attempt", true),
+      "sender_id",
+      u,
+    ),
+    excludeIds(
+      supabase
+        .from("reviews")
+        .select("id", { count: "exact", head: true })
+        .in("status", ["pending", "flagged"]),
+      "reviewer_id",
+      u,
+    ),
+    excludeIds(
+      supabase
+        .from("disputes")
+        .select("id", { count: "exact", head: true })
+        .in("status", ["open", "approved_pending_refund"]),
+      "reporter_id",
+      u,
+    ),
+    excludeIds(
+      supabase
+        .from("referral_credits")
+        .select("id", { count: "exact", head: true })
+        .eq("flag_status", "flagged")
+        .is("flag_reviewed_at", null),
+      "referrer_id",
+      u,
+    ),
     supabase.from("waitlist_signups").select("id", { count: "exact", head: true }),
   ]);
 
@@ -81,6 +118,10 @@ export default async function AdminDashboard() {
   return (
     <main className="mx-auto max-w-4xl px-6 py-16">
       <h1 className="text-2xl font-semibold text-black">Admin Dashboard</h1>
+      <p className="mt-1 text-sm text-gray-500">
+        Counts leave out test accounts ({test.userIds.length}) and test shipper
+        applications ({test.shipperIds.length}).
+      </p>
       {failedCounts.length > 0 ? (
         <p className="mt-4 rounded border border-copper-100 bg-copper-50 p-3 text-sm text-copper-700">
           Couldn&rsquo;t load: {failedCounts.join(", ")}. Those show &ldquo;—&rdquo;,
