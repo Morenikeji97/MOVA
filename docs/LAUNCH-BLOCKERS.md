@@ -59,6 +59,32 @@ the copy can be changed instead if a feature is dropped.
       Copy that depends on it: `/clearing-agents` ("Buyers sent your way",
       "Rewards for partners"), How It Works step 7 ("…or one we recommend").
 
+- [ ] **Live Stripe keys on launch day.** Every Stripe key in Netlify
+      (`STRIPE_SECRET_KEY`, publishable key, and all webhook secrets) is test
+      mode today. Switch to live keys and live webhook endpoints the day
+      ShipMova launches, then make one real low-value payment end to end.
+
+- [ ] **Re-verify every seller's ID in live mode.** Stripe Identity checks
+      done so far ran in test mode, which doesn't verify a real document. At
+      launch, reset `seller_profiles` identity status and have each seller
+      verify again under the live keys before their listings go live.
+
+- [ ] **Find which Resend key Supabase SMTP uses before deleting "Onboarding".**
+      The app uses `RESEND_API_KEY` in Netlify (new, sending-only). Supabase
+      Auth sends signup/reset emails through Resend SMTP with its own key
+      (Authentication → Emails → SMTP Settings). In Resend, compare each key's
+      "Last used" with a known auth email (e.g. 2026-10-04 15:52 UTC). If
+      "Onboarding" is the SMTP key: make a new sending-only key, put it in
+      Supabase, test a password reset, then delete "Onboarding".
+
+- [ ] **A separate Supabase staging project for tests.**
+      Production and every deploy preview share one database today, so any
+      test that needs an approved listing, a reservation or a payment state
+      either touches live data or can't run. Needs: a staging project with
+      the same migrations, previews and `npm run e2e:photos` pointed at it,
+      and seed data (test seller, buyer, approved listing, shipper rate).
+      Then the e2e test seller and other test rows can leave production.
+
 ## Also true today, but worth re-checking at launch
 
 - Import rules exist for **Nigeria only**. Copy says "Nigeria (more
@@ -86,14 +112,8 @@ Supabase project) to remove before launch.
       example of a completed, charged shipment. Delete the shipment first,
       then the reservation (`shipment_requests.purchase_request_id` has no
       cascade).
-      **Stripe mode: not yet confirmed.** Checked 2026-10-01: the
-      `sk_test_` key in local `.env.local` gets `resource_missing` for this
-      PaymentIntent, without Stripe's usual "a similar object exists in live
-      mode" hint, so it belongs to a different Stripe account than the local
-      key, not to that account's live mode. Production's key mode couldn't be
-      read from here. To settle it: in the Stripe dashboard, search
-      `pi_3UD7phLXeJirt4DU0omdA3sP` with the **Test mode** toggle on, then
-      off. If it's live, refund or write it off before deleting the record.
+      **Stripe mode: closed — test money** (founder, 2026-10-04). No refund
+      or write-off needed; just delete the rows.
 
 - [ ] **e2e test seller `tbakare2+e2e-webkit@gmail.com`**
       (user `ffc205b6-34a5-4849-bcd9-1e6150377d15`) and its **draft listing
@@ -112,26 +132,68 @@ Supabase project) to remove before launch.
       on iPhone. Remove the listing with its photos and title file. (The 2012
       LR4 draft `2ff0684d` is real data, not test data.)
 
-- [ ] **Test shippers.** "Test Shipping Co" (`97e77a5a-ed27-4060-90e4-cf02c4554fbb`,
-      login `tbakare2+shipper@gmail.com`, approved, the only rate in the
-      database) **has a saved Stripe card** (customer + payment method) from
-      the old 8% signup; it was charged $146.80 once (see the Accord entry).
-      "test shipping" (`abd1d5a0-52e5-419b-9a27-e10801eb1bd5`, pending, no
-      card) was created 2026-10-04 to check shipper signup. Both are on v1
-      (commission) terms. With no shipper fees, nothing will charge the saved
-      card; before launch, delete both shippers and detach the card in Stripe.
+- [ ] **Flagged test accounts** (`users.is_test_account = true`, migration
+      0054, 2026-10-04): `tbakare2+buyer`, `+buyer2`, `+ref1`, `+shipper` and
+      `+e2e-webkit` (all `@gmail.com`). Excluded from admin counts. Not test:
+      `tbakare2@gmail.com` (founder's seller account) and `tbakare2+admin`.
+      **Unknown, not flagged:** `tobs20450@yahoo.com` (seller) and
+      `adedayotoba35@gmail.com` (buyer) — confirm whether these are real.
+      `+shipper3`/`+shipper4`/`+shipper5` never had logins (shipper signup
+      only files an application).
 
-## Planned next (Day 2, not started)
+- [ ] **Flagged test shipper applications** (`shippers.is_test = true`):
+      "Test Shipping Co" (`97e77a5a-…`, approved, `tbakare2+shipper`, the
+      only shipping rate in the database, **saved Stripe test card** from the
+      old 8% signup), "test shipping", "TESTSHIPPER3", "the test"
+      (`+shipper3`), "MOVATEST@#5" (`+shipper5`) and **"MOVATEST@#", which is
+      linked to the admin login `tbakare2+admin`** (applied while signed in as
+      admin) — delete that one first so the admin account never owns a
+      shipper. Before launch: delete all of them and detach the card in
+      Stripe.
+
+## Day 2 (in progress, branch `day2`)
 
 - **"Preview listing" on each seller dashboard card.** A seller opens their own
   draft or pending listing exactly as buyers will see it. The listing page
   only shows approved cars today, so this needs an owner-only preview path,
   with RLS still deciding what the seller can read.
-- **Test-account flag on users.** Mark accounts like the e2e test seller as
-  test data and exclude them from every admin count and metric (admin
-  dashboard "Total users" includes them today). The flag must be admin-only:
-  owner-write RLS on `users` doesn't restrict columns, so it needs the same
-  guard-trigger treatment as other admin-only fields.
+- **Test-account flag on users and shipper applications** (migration 0054,
+  applied 2026-10-04). Admin-only via the guard triggers; admin counts leave
+  flagged rows out.
+- **Keep typed fields when a form errors.** Forms that redirect with
+  `?error=` (shipper signup first) lose everything typed; on a phone that
+  means retyping the whole form. Return the error to the same form and keep
+  the values instead.
+- **Transaction reference and stage history** (MVP NOW #3): `SM-000001`
+  references, append-only stage history written by triggers, escrow
+  reference/stage fields.
+
+## Day 3 (proposal, not started): buyers never pay shippers directly
+
+Today the buyer pays the shipper directly, outside ShipMova (Terms §4.4).
+That's the one payment ShipMova can't protect, and the riskiest for a buyer
+sending money abroad to a company they've never met. Proposal:
+
+1. **Escrow.com for shipping too (recommended for launch).** When the buyer
+   picks a shipper, ShipMova opens a second Escrow.com transaction: buyer →
+   shipper, for the quoted shipping price. Escrow.com releases it to the
+   shipper in two steps (e.g. a share at verified pickup with the original
+   title, the rest at proof of delivery / handoff at the port). Same
+   principle as the car price: ShipMova never holds the money, and it fits
+   the escrow flow buyers already go through. Cost: Escrow.com's fee on the
+   shipping amount, and one more transaction for the buyer to fund.
+2. **Stripe Connect, later at volume.** Shippers onboard as connected
+   accounts; the buyer pays shipping by card through ShipMova; Stripe holds
+   the transfer until pickup/delivery is confirmed. Cheaper and smoother for
+   buyers, but it makes ShipMova a payment facilitator for shipping (KYC on
+   shippers, payout disputes, chargebacks), so not before there's volume.
+
+Either way: shipper rates stay quoted on ShipMova, the "Selected shipper" step
+becomes "fund shipping", stage history gets `shipping_funded` /
+`shipping_released`, and Terms §4.4 and the shipper terms (v3) change.
+**To check before building:** whether Escrow.com supports the two-step
+release and a shipper payee in Nigeria-bound shipments, and whether any
+FMC/OTI rule requires the forwarder to be paid directly.
 
 ## Post-launch (decided, don't build before launch)
 

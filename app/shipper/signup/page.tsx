@@ -1,13 +1,13 @@
 "use client";
 
-import { Suspense, useState } from "react";
+import { Suspense, useActionState, useState } from "react";
 import Link from "next/link";
 import { useSearchParams } from "next/navigation";
 import { useFormStatus } from "react-dom";
 import { Button } from "@/components/ui/button";
 import { SERVICE_COUNTRIES, SHIPPER_NO_FEES_HEADLINE } from "@/lib/shipping";
 import { US_STATES } from "@/lib/us-states";
-import { submitShipperSignup } from "./actions";
+import { submitShipperSignup, type ShipperSignupState } from "./actions";
 import { inputClasses } from "@/components/ui/input-classes";
 
 const inputClass = inputClasses();
@@ -29,9 +29,27 @@ function SubmitButton({ disabled }: { disabled: boolean }) {
   );
 }
 
+const INITIAL: ShipperSignupState = {
+  error: null,
+  values: {
+    company_name: "",
+    contact_name: "",
+    contact_email: "",
+    contact_phone: "",
+    fmc_oti_license_number: "",
+    service_countries: [],
+    service_areas: [],
+  },
+};
+
 function ShipperSignupForm() {
   const searchParams = useSearchParams();
-  const error = searchParams.get("error");
+  // The action returns errors (with everything typed) rather than
+  // redirecting; ?error= still works for links into the page.
+  const [state, formAction] = useActionState(submitShipperSignup, INITIAL);
+  const error = state.error ?? searchParams.get("error");
+  const errorText = error ? (ERROR_COPY[error] ?? "Please check the form and try again.") : null;
+  const v = state.values;
   const [termsAccepted, setTermsAccepted] = useState(false);
 
   return (
@@ -52,38 +70,41 @@ function ShipperSignupForm() {
 
       {error ? (
         <p className="mt-6 rounded border border-copper-100 bg-copper-50 p-3 text-sm text-copper-700">
-          {ERROR_COPY[error] ?? "Please check the form and try again."}
+          {errorText}
         </p>
       ) : null}
 
-      <form action={submitShipperSignup} className="mt-8 flex flex-col gap-5">
+      <form action={formAction} className="mt-8 flex flex-col gap-5">
         <label className="flex flex-col gap-1">
           <span className="text-sm text-gray-500">Company name</span>
-          <input name="company_name" required className={inputClass} />
+          <input name="company_name" required defaultValue={v.company_name} autoComplete="organization" className={inputClass} />
         </label>
 
         <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
           <label className="flex flex-col gap-1">
             <span className="text-sm text-gray-500">Contact name</span>
-            <input name="contact_name" required className={inputClass} />
+            <input name="contact_name" required defaultValue={v.contact_name} autoComplete="name" className={inputClass} />
           </label>
           <label className="flex flex-col gap-1">
             <span className="text-sm text-gray-500">Contact email</span>
             <input
               type="email"
               name="contact_email"
+              defaultValue={v.contact_email}
+              autoComplete="email"
               required
               className={inputClass}
             />
           </label>
           <label className="flex flex-col gap-1">
             <span className="text-sm text-gray-500">Contact phone</span>
-            <input name="contact_phone" className={inputClass} />
+            <input name="contact_phone" type="tel" defaultValue={v.contact_phone} autoComplete="tel" className={inputClass} />
           </label>
           <label className="flex flex-col gap-1">
             <span className="text-sm text-gray-500">FMC OTI license number</span>
             <input
               name="fmc_oti_license_number"
+              defaultValue={v.fmc_oti_license_number}
               required
               className={inputClass}
             />
@@ -102,6 +123,7 @@ function ShipperSignupForm() {
                   type="checkbox"
                   name="service_countries"
                   value={c.code}
+                  defaultChecked={v.service_countries.includes(c.code)}
                   className="h-4 w-4"
                 />
                 {c.name}
@@ -128,6 +150,7 @@ function ShipperSignupForm() {
                   type="checkbox"
                   name="service_areas"
                   value={code}
+                  defaultChecked={v.service_areas.includes(code)}
                   className="h-4 w-4"
                 />
                 {name}
@@ -164,6 +187,15 @@ function ShipperSignupForm() {
 
         <div className="flex items-center gap-4">
           <SubmitButton disabled={!termsAccepted} />
+        </div>
+        {/* Repeated by the button: after tapping Submit on a phone you're at
+            the bottom of the form, not looking at the top. */}
+        {errorText ? (
+          <p role="alert" className="text-sm text-copper-700">
+            {errorText}
+          </p>
+        ) : null}
+        <div className="flex items-center gap-4">
           <Link
             href="/shipper/portal"
             className="text-sm text-gray-500 hover:text-black"

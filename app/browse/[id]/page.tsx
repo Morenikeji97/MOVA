@@ -39,6 +39,14 @@ function Spec({ label, children }: { label: string; children: ReactNode }) {
   );
 }
 
+const PREVIEW_STATUS_LABEL: Partial<Record<string, string>> = {
+  draft: "draft",
+  pending_review: "waiting for ShipMova's review",
+  rejected: "not approved — see your listings",
+  sold: "sold",
+  archived: "removed",
+};
+
 export default async function VehicleDetailPage({
   params,
 }: {
@@ -47,19 +55,20 @@ export default async function VehicleDetailPage({
   const { id } = await params;
   const supabase = await createClient();
 
-  const { data: v } = await supabase
-    .from("vehicles")
-    .select(VEHICLE_DETAIL_COLUMNS)
-    .eq("id", id)
-    .eq("status", "approved")
-    .maybeSingle();
-
-  if (!v) notFound();
-
-  // Reserve CTA state depends on who's viewing.
-  const {
+  const [{ data: v }, {
     data: { user },
-  } = await supabase.auth.getUser();
+  }] = await Promise.all([
+    supabase.from("vehicles").select(VEHICLE_DETAIL_COLUMNS).eq("id", id).maybeSingle(),
+    supabase.auth.getUser(),
+  ]);
+
+  // Buyers only ever see approved listings. The seller may also open their
+  // own draft / pending / rejected listing here ("Preview listing" on the
+  // seller dashboard) to see exactly what buyers will see. RLS already limits
+  // which rows each viewer can read; this keeps non-approved ones owner-only
+  // even for viewers RLS lets further (admins use the review queue).
+  const isPreview = !!v && v.status !== "approved" && !!user && v.seller_id === user.id;
+  if (!v || (v.status !== "approved" && !isPreview)) notFound();
 
   let reserveState: ReserveState = "anonymous";
   let requestStatus: string | null = null;
@@ -249,6 +258,19 @@ export default async function VehicleDetailPage({
   return (
     <div className="min-h-screen bg-white">
       <main className="mx-auto max-w-4xl px-6 py-12">
+        {isPreview ? (
+          <div className="mb-6 rounded-lg border border-marine-700 bg-marine-50 p-4 text-sm text-marine-700">
+            <p className="font-medium">
+              Preview — buyers can&rsquo;t see this listing yet ({PREVIEW_STATUS_LABEL[v.status] ?? v.status}).
+            </p>
+            <p className="mt-1">
+              This is exactly how it will look once it&rsquo;s approved.{" "}
+              <Link href="/seller/listings" className="underline">
+                Back to my listings
+              </Link>
+            </p>
+          </div>
+        ) : null}
         <Link
           href="/browse"
           className="font-mono text-xs uppercase tracking-wider text-gray-500 hover:text-black"

@@ -80,6 +80,7 @@ export interface Database {
           referred_by: string | null;
           signup_ip: string | null;
           signup_device_fingerprint: string | null;
+          is_test_account: boolean;
           created_at: string;
         };
         Insert: {
@@ -99,6 +100,7 @@ export interface Database {
           referred_by?: string | null;
           signup_ip?: string | null;
           signup_device_fingerprint?: string | null;
+          is_test_account?: boolean;
           created_at?: string;
         };
         Update: Partial<{
@@ -113,6 +115,7 @@ export interface Database {
           referred_by: string | null;
           signup_ip: string | null;
           signup_device_fingerprint: string | null;
+          is_test_account: boolean;
           created_at: string;
         }>;
         Relationships: [];
@@ -674,6 +677,7 @@ export interface Database {
           payment_status: ShipperPaymentStatus;
           terms_accepted_at: string | null;
           terms_version: string | null;
+          is_test: boolean;
           stripe_customer_id: string | null;
           stripe_payment_method_id: string | null;
           card_on_file: boolean;
@@ -697,6 +701,7 @@ export interface Database {
           payment_status?: ShipperPaymentStatus;
           terms_accepted_at?: string | null;
           terms_version?: string | null;
+          is_test?: boolean;
           stripe_customer_id?: string | null;
           stripe_payment_method_id?: string | null;
           card_on_file?: boolean;
@@ -720,6 +725,7 @@ export interface Database {
           payment_status: ShipperPaymentStatus;
           terms_accepted_at: string | null;
           terms_version: string | null;
+          is_test: boolean;
           stripe_customer_id: string | null;
           stripe_payment_method_id: string | null;
           card_on_file: boolean;

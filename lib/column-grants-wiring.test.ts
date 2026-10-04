@@ -35,6 +35,6 @@ test('no select("*") on tables that only have column grants', () => {
 test("shipper signup sends the application emails and reports failures", () => {
   const src = readFileSync("app/shipper/signup/actions.ts", "utf8");
   assert.match(src, /notifyShipperApplication\(/);
-  assert.match(src, /error=server/);
+  assert.match(src, /error: "server"/);
   assert.match(src, /email=failed/);
 });

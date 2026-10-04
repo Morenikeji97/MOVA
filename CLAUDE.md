@@ -32,4 +32,13 @@ Mobile engineering rules:
 - Before calling a UI change done, check it at 360px, 320px and one desktop
   width, and say so in the PR description.
 
+Test data and the shared database (standing rule):
+- Production and every deploy preview share ONE Supabase project.
+- Never make test data visible on shipmova.com (approving a test listing, or
+  any other row the public can see) without asking the founder first.
+- Never act as the founder's admin account in the database (e.g. setting
+  request.jwt.claims to their user id / aal2) without asking first.
+- Private test data (drafts, uploads that are cleaned up) is fine; list
+  anything kept under "Pre-launch cleanup" in docs/LAUNCH-BLOCKERS.md.
+
 Known gaps and priorities: docs/architecture-review.md.

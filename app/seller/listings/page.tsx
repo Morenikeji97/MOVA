@@ -199,9 +199,17 @@ export default async function SellerListingsPage() {
                     <SubmitForReviewButton />
                   </form>
                 ) : null}
+                {/* Opens the listing page exactly as buyers see it; for a
+                    listing that isn't live yet, only its seller can. */}
+                <Link
+                  href={`/browse/${v.id}`}
+                  className={buttonClasses({ variant: "secondary" })}
+                >
+                  {v.status === "approved" ? "View listing" : "Preview listing"}
+                </Link>
                 <Link
                   href={`/seller/listings/${v.id}/photos`}
-                  className={buttonClasses({ variant: "secondary", size: "sm" })}
+                  className={buttonClasses({ variant: "secondary" })}
                 >
                   Edit photos
                 </Link>
