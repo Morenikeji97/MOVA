@@ -59,6 +59,14 @@ the copy can be changed instead if a feature is dropped.
       Copy that depends on it: `/clearing-agents` ("Buyers sent your way",
       "Rewards for partners"), How It Works step 7 ("…or one we recommend").
 
+- [ ] **A separate Supabase staging project for tests.**
+      Production and every deploy preview share one database today, so any
+      test that needs an approved listing, a reservation or a payment state
+      either touches live data or can't run. Needs: a staging project with
+      the same migrations, previews and `npm run e2e:photos` pointed at it,
+      and seed data (test seller, buyer, approved listing, shipper rate).
+      Then the e2e test seller and other test rows can leave production.
+
 ## Also true today, but worth re-checking at launch
 
 - Import rules exist for **Nigeria only**. Copy says "Nigeria (more
