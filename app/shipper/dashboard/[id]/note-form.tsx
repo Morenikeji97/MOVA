@@ -4,6 +4,7 @@ import { useRef } from "react";
 import { useFormStatus } from "react-dom";
 import { Button } from "@/components/ui/button";
 import { addShipmentNote } from "../actions";
+import { inputClasses } from "@/components/ui/input-classes";
 
 function SubmitButton() {
   const { pending } = useFormStatus();
@@ -35,7 +36,7 @@ export function NoteForm({ shipmentId }: { shipmentId: string }) {
           required
           rows={3}
           placeholder="e.g. Picked up from the seller, on the way to the port."
-          className="rounded border border-gray-200 px-3 py-2 text-sm"
+          className={inputClasses({ multiline: true })}
         />
       </label>
       <div>

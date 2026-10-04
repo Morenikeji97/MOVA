@@ -3,6 +3,7 @@
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { verifyBuyerIdentity } from "@/app/buyer/kyc/actions";
+import { inputClasses } from "@/components/ui/input-classes";
 
 const LABEL: Record<"nin" | "bvn", string> = {
   nin: "NIN",
@@ -49,7 +50,7 @@ export function KycVerifyForm({ kind }: { kind: "nin" | "bvn" }) {
         pattern="[0-9]{11}"
         maxLength={11}
         placeholder={`11-digit ${LABEL[kind]}`}
-        className="w-44 rounded border border-gray-300 px-2 py-1 font-mono text-sm"
+        className={inputClasses({ className: "w-44 font-mono" })}
         disabled={pending}
         required
       />

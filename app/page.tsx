@@ -5,6 +5,8 @@ import { VerifiedBadge } from "@/components/ui/verified-badge";
 import { VinData } from "@/components/ui/vin-data";
 import { VehicleCard } from "@/components/ui/vehicle-card";
 import { loadRecentApprovedListings } from "@/lib/listings";
+import { getFxRates } from "@/lib/fx";
+import { FxNote } from "@/components/ui/fx-note";
 import { SELLER_SPLITS_FEE_BADGE } from "@/lib/fees";
 import { isPrelaunch } from "@/lib/prelaunch";
 import { WaitlistForm } from "@/components/ui/waitlist-form";
@@ -59,10 +61,10 @@ export default async function Home() {
   // Live inventory for the listings grid — most recent approved listings,
   // newest first, same source as /browse.
   const supabase = await createClient();
-  const { rows: listings, thumbByVehicle } = await loadRecentApprovedListings(
-    supabase,
-    8,
-  );
+  const [{ rows: listings, thumbByVehicle }, fx] = await Promise.all([
+    loadRecentApprovedListings(supabase, 8),
+    getFxRates(),
+  ]);
 
   return (
     <main className="min-h-screen bg-white">
@@ -146,10 +148,12 @@ export default async function Home() {
                   <VehicleCard
                     vehicle={v}
                     thumbnailUrl={thumbByVehicle.get(v.id) ?? null}
+                    fx={fx}
                   />
                 </li>
               ))}
             </ul>
+            <FxNote fx={fx} className="mt-4" />
           </>
         ) : (
           <>

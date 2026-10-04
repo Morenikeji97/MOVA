@@ -8,9 +8,9 @@ import { Button } from "@/components/ui/button";
 import { SERVICE_COUNTRIES } from "@/lib/shipping";
 import { US_STATES } from "@/lib/us-states";
 import { submitShipperSignup } from "./actions";
+import { inputClasses } from "@/components/ui/input-classes";
 
-const inputClass =
-  "h-11 rounded border border-gray-200 bg-white px-3 text-black";
+const inputClass = inputClasses();
 
 const ERROR_COPY: Record<string, string> = {
   missing: "Please fill in the company name, contact name, email, and FMC OTI license number.",

@@ -62,12 +62,70 @@ the copy can be changed instead if a feature is dropped.
 ## Also true today, but worth re-checking at launch
 
 - Import rules exist for **Nigeria only**. Copy says "Nigeria (more
-  countries coming)"; Ghana, Togo and Benin show "Import rules not yet
-  checked". Two older lines still say "your country" — homepage "Import
-  check" and How It Works step 1 — and should match before launch.
+  countries coming)", including the homepage "Import check" card and How
+  It Works step 1; Ghana, Togo and Benin show "Import rules not yet
+  checked".
 - The VIN must be marked **verified** before a listing can be approved
   (migration 0047), which makes "the VIN is checked against U.S. records
   before a listing goes live" true.
 - Outside the code: Stripe business name and statement descriptor,
   Supabase SMTP sender name, `RESEND_FROM_ADDRESS` and
   `NEXT_PUBLIC_WHATSAPP_MESSAGE` in Netlify should all say "ShipMova".
+
+## Pre-launch cleanup
+
+Test data in the production database (previews and shipmova.com share one
+Supabase project) to remove before launch.
+
+- [ ] **Honda Accord test reservation `c960b47d-f727-4d51-a51e-ead9ca4d4066`**
+      (buyer `tbakare2+buyer2@gmail.com`, status `under_review`, ShipMova fee
+      marked paid) and its **completed shipment
+      `bc214ae9-f287-4e12-b100-ea8c33f8c286`** (Test Shipping Co, $1,835 rate,
+      $146.80 commission, `commission_charge_status = charged`, Stripe
+      PaymentIntent `pi_3UD7phLXeJirt4DU0omdA3sP`). Kept for now as the only
+      example of a completed, charged shipment. Delete the shipment first,
+      then the reservation (`shipment_requests.purchase_request_id` has no
+      cascade).
+      **Stripe mode: not yet confirmed.** Checked 2026-10-01: the
+      `sk_test_` key in local `.env.local` gets `resource_missing` for this
+      PaymentIntent, without Stripe's usual "a similar object exists in live
+      mode" hint, so it belongs to a different Stripe account than the local
+      key, not to that account's live mode. Production's key mode couldn't be
+      read from here. To settle it: in the Stripe dashboard, search
+      `pi_3UD7phLXeJirt4DU0omdA3sP` with the **Test mode** toggle on, then
+      off. If it's live, refund or write it off before deleting the record.
+
+- [ ] **e2e test seller `tbakare2+e2e-webkit@gmail.com`**
+      (user `ffc205b6-34a5-4849-bcd9-1e6150377d15`) and its **draft listing
+      "TEST E2E WEBKIT — DELETE ME"** (`f1bdadbd-600e-488a-ba57-deb127109f10`,
+      VIN `JH4KA7561PC008269`, 3 photos under `vehicle-photos/ffc205b6-…/`).
+      Kept on purpose for `npm run e2e:photos` (WebKit photo upload test). Its
+      password lives only in `.env.local` / CI secrets, never in the repo.
+      Before launch: exclude it from every user and listing count (admin
+      dashboard "Total users" includes it today), or delete it and run the
+      e2e test against a staging project instead.
+
+- [ ] **"TEST – DELETE ME" 2015 Toyota Camry** (`a850b815-8303-4468-8747-d2843969b756`,
+      VIN `4T1BF1FK6FU918273`, draft, seller `tbakare2@gmail.com`) and its
+      **fake title file** `vehicle-title-photos/bff57c0a-c762-4b7d-82d4-1129f3b7a2da/34073b90-c3c1-4171-a7ef-c9ee431022a7.jpg`,
+      plus any photos uploaded to it. Created 2026-10-04 to retest photo upload
+      on iPhone. Remove the listing with its photos and title file. (The 2012
+      LR4 draft `2ff0684d` is real data, not test data.)
+
+## Planned next (Day 2, not started)
+
+- **"Preview listing" on each seller dashboard card.** A seller opens their own
+  draft or pending listing exactly as buyers will see it. The listing page
+  only shows approved cars today, so this needs an owner-only preview path,
+  with RLS still deciding what the seller can read.
+- **Test-account flag on users.** Mark accounts like the e2e test seller as
+  test data and exclude them from every admin count and metric (admin
+  dashboard "Total users" includes them today). The flag must be admin-only:
+  owner-write RLS on `users` doesn't restrict columns, so it needs the same
+  guard-trigger treatment as other admin-only fields.
+
+## Post-launch (decided, don't build before launch)
+
+- **Phone video upgrades:** separate Record / Choose buttons, a 60-second
+  limit, and moving video to Cloudflare Stream or Mux.
+

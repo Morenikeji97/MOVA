@@ -130,7 +130,7 @@ export default async function AdminListingReviewPage() {
     vehicleIds.length
       ? supabase
           .from("vehicle_photos")
-          .select("vehicle_id, url, is_primary, sort_order")
+          .select("vehicle_id, url, thumb_url, is_primary, sort_order")
           .in("vehicle_id", vehicleIds)
           .order("sort_order", { ascending: true })
       : null,
@@ -163,10 +163,10 @@ export default async function AdminListingReviewPage() {
     }
   }
 
-  const photosByVehicle = new Map<string, { url: string; is_primary: boolean }[]>();
+  const photosByVehicle = new Map<string, { url: string; thumb_url: string | null; is_primary: boolean }[]>();
   for (const p of photosRes?.data ?? []) {
     const list = photosByVehicle.get(p.vehicle_id) ?? [];
-    list.push({ url: p.url, is_primary: p.is_primary });
+    list.push({ url: p.url, thumb_url: p.thumb_url, is_primary: p.is_primary });
     photosByVehicle.set(p.vehicle_id, list);
   }
 
@@ -300,8 +300,10 @@ export default async function AdminListingReviewPage() {
                       // eslint-disable-next-line @next/next/no-img-element
                       <img
                         key={i}
-                        src={mediaUrl(p.url)}
+                        src={mediaUrl(p.thumb_url ?? p.url)}
                         alt={`${v.year} ${v.make} ${v.model} photo ${i + 1}`}
+                        loading="lazy"
+                        decoding="async"
                         className={cn(
                           "h-28 w-40 shrink-0 rounded border object-cover",
                           p.is_primary ? "border-black" : "border-gray-200"
