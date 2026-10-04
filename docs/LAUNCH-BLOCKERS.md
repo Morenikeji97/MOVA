@@ -40,6 +40,18 @@ the copy can be changed instead if a feature is dropped.
       table ("Licensed escrow"), `/sell` ("How you get paid", "Paid at
       pickup", "No overseas payment risk"), `/shipper` ("buyer has already
       paid into escrow"), Terms §4, Buyer Protection §2 and §6.
+      **Questions for Escrow.com (partner call):**
+      - Can ShipMova open a **second escrow transaction, buyer → shipper,**
+        for the shipping price, alongside the car transaction?
+      - Can it release in stages: part at verified **pickup** (with the
+        original title), the rest at **delivery** / port handoff?
+      - Can the shipper payee be a US forwarder shipping to Nigeria, Ghana,
+        Togo or Benin, and is anything different when the buyer pays from
+        one of those countries?
+      - **What does it cost on a ~$1,500 shipment** (fee, who pays it, any
+        minimum), and on the typical car transaction?
+      - API/webhooks for status (funded, released) so ShipMova can show it
+        without staff re-typing it.
 
 - [ ] **In-person inspection before pickup.**
       No inspection step exists. Needs: inspector onboarding (the
@@ -136,22 +148,23 @@ Supabase project) to remove before launch.
       0054, 2026-10-04): `tbakare2+buyer`, `+buyer2`, `+ref1`, `+shipper` and
       `+e2e-webkit` (all `@gmail.com`). Excluded from admin counts. Not test:
       `tbakare2@gmail.com` (founder's seller account) and `tbakare2+admin`.
-      **Unknown, not flagged:** `tobs20450@yahoo.com` (seller) and
-      `adedayotoba35@gmail.com` (buyer) — confirm whether these are real.
       `+shipper3`/`+shipper4`/`+shipper5` never had logins (shipper signup
       only files an application).
+      **`tobs20450@yahoo.com`** (seller): not flagged, treated as real.
+
+- [ ] **`adedayotoba35@gmail.com`** (buyer) — a friend helping test. Flagged
+      as test 2026-10-04 (excluded from counts) but **ask before removing;
+      may become a real buyer.** If they stay, clear the flag instead.
 
 - [ ] **Flagged test shipper applications** (`shippers.is_test = true`):
       "Test Shipping Co" (`97e77a5a-…`, approved, `tbakare2+shipper`, the
       only shipping rate in the database, **saved Stripe test card** from the
       old 8% signup), "test shipping", "TESTSHIPPER3", "the test"
-      (`+shipper3`), "MOVATEST@#5" (`+shipper5`) and **"MOVATEST@#", which is
-      linked to the admin login `tbakare2+admin`** (applied while signed in as
-      admin) — delete that one first so the admin account never owns a
-      shipper. Before launch: delete all of them and detach the card in
-      Stripe.
+      (`+shipper3`) and "MOVATEST@#5" (`+shipper5`). ("MOVATEST@#", which was
+      linked to the admin login, was deleted 2026-10-04.) Before launch:
+      delete all of them and detach the card in Stripe.
 
-## Day 2 (in progress, branch `day2`)
+## Day 2 (part 1 merged in PR #36; part 2 in progress, branch `day2-transactions`)
 
 - **"Preview listing" on each seller dashboard card.** A seller opens their own
   draft or pending listing exactly as buyers will see it. The listing page
