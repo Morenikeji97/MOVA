@@ -104,3 +104,28 @@ Supabase project) to remove before launch.
       Before launch: exclude it from every user and listing count (admin
       dashboard "Total users" includes it today), or delete it and run the
       e2e test against a staging project instead.
+
+- [ ] **"TEST – DELETE ME" 2015 Toyota Camry** (`a850b815-8303-4468-8747-d2843969b756`,
+      VIN `4T1BF1FK6FU918273`, draft, seller `tbakare2@gmail.com`) and its
+      **fake title file** `vehicle-title-photos/bff57c0a-c762-4b7d-82d4-1129f3b7a2da/34073b90-c3c1-4171-a7ef-c9ee431022a7.jpg`,
+      plus any photos uploaded to it. Created 2026-10-04 to retest photo upload
+      on iPhone. Remove the listing with its photos and title file. (The 2012
+      LR4 draft `2ff0684d` is real data, not test data.)
+
+## Planned next (Day 2, not started)
+
+- **"Preview listing" on each seller dashboard card.** A seller opens their own
+  draft or pending listing exactly as buyers will see it. The listing page
+  only shows approved cars today, so this needs an owner-only preview path,
+  with RLS still deciding what the seller can read.
+- **Test-account flag on users.** Mark accounts like the e2e test seller as
+  test data and exclude them from every admin count and metric (admin
+  dashboard "Total users" includes them today). The flag must be admin-only:
+  owner-write RLS on `users` doesn't restrict columns, so it needs the same
+  guard-trigger treatment as other admin-only fields.
+
+## Post-launch (decided, don't build before launch)
+
+- **Phone video upgrades:** separate Record / Choose buttons, a 60-second
+  limit, and moving video to Cloudflare Stream or Mux.
+
