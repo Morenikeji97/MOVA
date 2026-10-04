@@ -298,29 +298,55 @@ export async function rejectBankTransferPayment(formData: FormData): Promise<voi
   await notifyBankTransferRejected(id, reason);
 }
 
+export type RecordEscrowResult = { ok: boolean; message: string } | null;
+
 /**
  * Record what Escrow.com reports for this transaction: its reference and
  * the current stage (lib/escrow.ts). The stage history trigger (migration
  * 0055) logs every change with the admin who made it. RLS "purchase
  * requests admin update" plus requireAdmin (code-checked admin) gate it.
+ *
+ * Reports back to the form: success only once the saved values are read
+ * back from the database, otherwise the reason. Never silent.
  */
-export async function recordEscrow(formData: FormData): Promise<void> {
+export async function recordEscrow(
+  _prev: RecordEscrowResult,
+  formData: FormData,
+): Promise<RecordEscrowResult> {
   const id = formData.get("id");
-  if (typeof id !== "string" || id.length === 0) return;
+  if (typeof id !== "string" || id.length === 0) {
+    return { ok: false, message: "Not saved: the form is missing the reservation. Reload and try again." };
+  }
   const stageRaw = formData.get("escrow_stage");
+  if (stageRaw !== "" && !isEscrowStage(stageRaw)) {
+    return { ok: false, message: "Not saved: unknown escrow stage." };
+  }
   const stage = isEscrowStage(stageRaw) ? stageRaw : null;
+  const reference = cleanEscrowReference(formData.get("escrow_reference"));
 
   const supabase = await requireAdmin();
-  if (!supabase) return;
+  if (!supabase) {
+    return { ok: false, message: "Not saved: your admin session has ended. Sign in again." };
+  }
 
-  const { error } = await supabase
+  const { data, error } = await supabase
     .from("purchase_requests")
-    .update({
-      escrow_stage: stage,
-      escrow_reference: cleanEscrowReference(formData.get("escrow_reference")),
-    })
-    .eq("id", id);
-  if (error) console.error("recordEscrow failed:", error);
+    .update({ escrow_stage: stage, escrow_reference: reference })
+    .eq("id", id)
+    .select("escrow_stage, escrow_reference");
+  if (error) {
+    console.error("recordEscrow failed:", error);
+    return { ok: false, message: `Not saved: ${error.message}` };
+  }
+  const saved = data?.[0];
+  if (!saved || saved.escrow_stage !== stage || saved.escrow_reference !== reference) {
+    console.error("recordEscrow: update matched no row or didn't stick", { id, data });
+    return {
+      ok: false,
+      message: "Not saved: the database didn't accept the change. Reload, enter your code if asked, and try again.",
+    };
+  }
 
   revalidatePath("/admin/reservations");
+  return { ok: true, message: "Saved — recorded in this deal's history." };
 }
