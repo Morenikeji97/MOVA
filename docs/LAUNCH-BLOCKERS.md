@@ -125,7 +125,12 @@ Supabase project) to remove before launch.
       then the reservation (`shipment_requests.purchase_request_id` has no
       cascade).
       **Stripe mode: closed — test money** (founder, 2026-10-04). No refund
-      or write-off needed; just delete the rows.
+      or write-off needed; just delete the rows. Since migration 0055 it's
+      **SM-000001** and has stage history, which is append-only and blocks
+      deleting the reservation: as the database owner, disable trigger
+      `transaction_history_append_only`, delete its history rows, the
+      shipment and the reservation, then re-enable the trigger, in one
+      transaction.
 
 - [ ] **e2e test seller `tbakare2+e2e-webkit@gmail.com`**
       (user `ffc205b6-34a5-4849-bcd9-1e6150377d15`) and its **draft listing
