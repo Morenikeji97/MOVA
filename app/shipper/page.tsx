@@ -15,7 +15,7 @@ const SHIPPER_BENEFITS: Benefit[] = [
   {
     icon: BadgeDollarSign,
     title: SHIPPER_NO_FEES_HEADLINE,
-    body: "ShipMova charges you nothing: no commission and no card on file. You set your rates and keep every dollar.",
+    body: "ShipMova charges you nothing: no commission and no card on file. ShipMova takes no cut of your shipping price.",
   },
   {
     icon: Rocket,
