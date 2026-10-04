@@ -8,6 +8,7 @@ import { loadFullVins } from "@/lib/listings";
 import { isPrelaunch } from "@/lib/prelaunch";
 import type { FeeResponsibility, PurchaseRequestStatus } from "@/types/database";
 import { ReservationActions } from "./reservation-actions";
+import { EscrowForm } from "./escrow-form";
 import { mediaUrl } from "@/lib/media-url";
 
 const usd = new Intl.NumberFormat("en-US", {
@@ -57,7 +58,7 @@ export default async function AdminReservationsPage() {
   const { data: requests } = await supabase
     .from("purchase_requests")
     .select(
-      "id, vehicle_id, buyer_id, status, created_at, vehicle_price_usd, mova_fee_usd, mova_fee_payment_status, mova_fee_checkout_url, shipping_rate_id, bank_transfer_proof_path, bank_transfer_proof_uploaded_at, fee_payment_requested_at, bank_transfer_reviewed_at",
+      "id, reference, escrow_reference, escrow_stage, vehicle_id, buyer_id, status, created_at, vehicle_price_usd, mova_fee_usd, mova_fee_payment_status, mova_fee_checkout_url, shipping_rate_id, bank_transfer_proof_path, bank_transfer_proof_uploaded_at, fee_payment_requested_at, bank_transfer_reviewed_at",
     )
     .in("status", OPEN_STATUSES)
     .order("created_at", { ascending: true });
@@ -176,6 +177,7 @@ export default async function AdminReservationsPage() {
               >
                 <div className="flex items-start justify-between gap-4">
                   <div>
+                    <p className="font-mono text-sm font-medium text-black">{r.reference}</p>
                     <h2 className="text-lg font-semibold text-black">
                       {vehicle ? (
                         <Link
@@ -310,6 +312,11 @@ export default async function AdminReservationsPage() {
                   feePaid={r.mova_fee_payment_status === "paid"}
                   awaitingBankVerification={awaitingBankVerification}
                   prelaunch={prelaunch}
+                />
+                <EscrowForm
+                  requestId={r.id}
+                  escrowReference={r.escrow_reference}
+                  escrowStage={r.escrow_stage}
                 />
               </li>
             );

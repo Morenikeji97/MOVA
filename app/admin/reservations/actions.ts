@@ -13,6 +13,7 @@ import {
 } from "@/lib/notifications";
 import { evaluateReferralQualification } from "@/lib/referral-credit";
 import { requireAdminMfa } from "@/lib/admin-mfa";
+import { cleanEscrowReference, isEscrowStage } from "@/lib/escrow";
 
 /**
  * Admin actions for the reservation queue (purchase_requests). Bound to
@@ -295,4 +296,31 @@ export async function rejectBankTransferPayment(formData: FormData): Promise<voi
   revalidatePath("/buyer/dashboard");
 
   await notifyBankTransferRejected(id, reason);
+}
+
+/**
+ * Record what Escrow.com reports for this transaction: its reference and
+ * the current stage (lib/escrow.ts). The stage history trigger (migration
+ * 0055) logs every change with the admin who made it. RLS "purchase
+ * requests admin update" plus requireAdmin (code-checked admin) gate it.
+ */
+export async function recordEscrow(formData: FormData): Promise<void> {
+  const id = formData.get("id");
+  if (typeof id !== "string" || id.length === 0) return;
+  const stageRaw = formData.get("escrow_stage");
+  const stage = isEscrowStage(stageRaw) ? stageRaw : null;
+
+  const supabase = await requireAdmin();
+  if (!supabase) return;
+
+  const { error } = await supabase
+    .from("purchase_requests")
+    .update({
+      escrow_stage: stage,
+      escrow_reference: cleanEscrowReference(formData.get("escrow_reference")),
+    })
+    .eq("id", id);
+  if (error) console.error("recordEscrow failed:", error);
+
+  revalidatePath("/admin/reservations");
 }

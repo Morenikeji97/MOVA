@@ -64,7 +64,7 @@ export default async function AdminShipmentsPage() {
   const { data: requestRows } = await supabase
     .from("shipment_requests")
     .select(
-      "id, shipper_id, buyer_id, agreed_rate, currency, commission_pct, commission_owed, commission_charge_status, stripe_charge_id, status, created_at, shipping_rate_id",
+      "id, purchase_request_id, shipper_id, buyer_id, agreed_rate, currency, commission_pct, commission_owed, commission_charge_status, stripe_charge_id, status, created_at, shipping_rate_id",
     )
     .order("created_at", { ascending: false });
 
@@ -75,7 +75,9 @@ export default async function AdminShipmentsPage() {
     ...new Set(requests.map((r) => r.shipping_rate_id).filter((v): v is string => !!v)),
   ];
 
-  const [shippersRes, buyersRes, ratesRes] = await Promise.all([
+  const prIds = [...new Set(requests.map((r) => r.purchase_request_id))];
+
+  const [shippersRes, buyersRes, ratesRes, prsRes] = await Promise.all([
     shipperIds.length
       ? supabase
           .from("shippers")
@@ -91,11 +93,17 @@ export default async function AdminShipmentsPage() {
           .select("id, origin_region, destination_country")
           .in("id", rateIds)
       : null,
+    // Every shipment belongs to a transaction (purchase_request_id is NOT
+    // NULL); show its SM- reference.
+    prIds.length
+      ? supabase.from("purchase_requests").select("id, reference").in("id", prIds)
+      : null,
   ]);
 
   const shipperById = new Map((shippersRes?.data ?? []).map((s) => [s.id, s]));
   const buyerById = new Map((buyersRes?.data ?? []).map((b) => [b.id, b]));
   const rateById = new Map((ratesRes?.data ?? []).map((r) => [r.id, r]));
+  const referenceByPr = new Map((prsRes?.data ?? []).map((p) => [p.id, p.reference]));
 
   // Per-shipper commission roll-up.
   const totalsByShipper = new Map<string, ShipperTotals>();
@@ -237,6 +245,9 @@ export default async function AdminShipmentsPage() {
                 >
                   <div className="flex flex-wrap items-start justify-between gap-3">
                     <div>
+                      <p className="font-mono text-sm font-medium text-black">
+                        {referenceByPr.get(r.purchase_request_id) ?? "—"}
+                      </p>
                       <h3 className="text-lg font-semibold text-black">
                         {shipper?.company_name ?? "Shipper unavailable"}
                         {SHIPPER_FEES_ENABLED && shipper && !shipper.card_on_file ? (
