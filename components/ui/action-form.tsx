@@ -1,6 +1,6 @@
 "use client";
 
-import { createContext, useActionState, useContext, useTransition, type ReactNode } from "react";
+import { createContext, useActionState, useContext, useTransition, type ReactNode, type Ref } from "react";
 import { useFormStatus } from "react-dom";
 import type { ActionResult } from "@/lib/action-result";
 
@@ -29,12 +29,15 @@ export function ActionForm({
   children,
   className,
   onSaved,
+  ref,
 }: {
   action: (prev: ActionResult, formData: FormData) => Promise<ActionResult>;
   children: ReactNode;
   className?: string;
   /** Called after a confirmed save (e.g. to clear a reason box). */
   onSaved?: () => void;
+  /** For forms that submit themselves (e.g. a select's onChange → requestSubmit()). */
+  ref?: Ref<HTMLFormElement>;
 }) {
   const [result, run] = useActionState(async (prev: ActionResult, fd: FormData) => {
     const r = await action(prev, fd);
@@ -45,6 +48,7 @@ export function ActionForm({
 
   return (
     <form
+      ref={ref}
       className={className}
       onSubmit={(e) => {
         e.preventDefault();

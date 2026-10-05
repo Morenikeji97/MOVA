@@ -1,7 +1,10 @@
 "use client";
 
-import { type ComponentProps, useActionState, useRef, useState } from "react";
-import { useFormStatus } from "react-dom";
+import { ActionForm, useActionPending } from "@/components/ui/action-form";
+
+import { inputClasses } from "@/components/ui/input-classes";
+
+import { type ComponentProps, useRef, useState } from "react";
 import { Button } from "@/components/ui/button";
 import {
   canApproveListing,
@@ -35,7 +38,7 @@ function PendingButton({
   disabled,
   ...props
 }: ComponentProps<typeof Button> & { pendingLabel: string }) {
-  const { pending } = useFormStatus();
+  const pending = useActionPending();
   return (
     <Button type="submit" disabled={pending || disabled} {...props}>
       {pending ? pendingLabel : children}
@@ -61,7 +64,6 @@ export function ReviewActions({
   photoCount: number;
 }) {
   const [rejecting, setRejecting] = useState(false);
-  const [approveResult, approveAction] = useActionState(approveListing, null);
   const vinFormRef = useRef<HTMLFormElement>(null);
   const identityFormRef = useRef<HTMLFormElement>(null);
   const flagged = vinVerificationStatus === "flagged";
@@ -103,7 +105,7 @@ export function ReviewActions({
         </a>{" "}
         (NMVTIS title brand) before approving.
       </p>
-      <form
+      <ActionForm
         ref={vinFormRef}
         action={setVinVerificationStatus}
         className="mt-2 flex flex-wrap items-center gap-2"
@@ -115,7 +117,7 @@ export function ReviewActions({
             name="vin_verification_status"
             defaultValue={vinVerificationStatus}
             onChange={() => vinFormRef.current?.requestSubmit()}
-            className="h-9 rounded border border-gray-200 bg-white px-2 text-sm text-black"
+            className={inputClasses()}
           >
             {(Object.keys(VIN_STATUS_LABEL) as VinVerificationStatus[]).map((s) => (
               <option key={s} value={s}>
@@ -124,7 +126,7 @@ export function ReviewActions({
             ))}
           </select>
         </label>
-      </form>
+      </ActionForm>
       {flagged ? (
         <p className="mt-2 text-sm text-copper-700">
           VIN flagged — this listing can&rsquo;t be approved until the status
@@ -134,7 +136,7 @@ export function ReviewActions({
         <p className="mt-2 text-sm text-copper-700">{VIN_NOT_VERIFIED_APPROVAL_MESSAGE}</p>
       ) : null}
 
-      <form
+      <ActionForm
         ref={identityFormRef}
         action={setTitleIdentityMatchConfirmed}
         className="mt-3"
@@ -151,13 +153,13 @@ export function ReviewActions({
             defaultChecked={titleIdentityMatchConfirmed}
             disabled={!documentsReady}
             onChange={() => identityFormRef.current?.requestSubmit()}
-            className="h-4 w-4 rounded border-gray-200"
+            className="h-5 w-5 rounded border-gray-200"
           />
           {notTitledOwner
             ? "Title and authorization document names match seller’s verified identity"
             : "Title photo matches seller’s verified identity"}
         </label>
-      </form>
+      </ActionForm>
       {!documentsReady ? (
         <p className="mt-1 text-sm text-copper-700">
           {!hasTitleDocument
@@ -172,7 +174,7 @@ export function ReviewActions({
       ) : null}
 
       {rejecting ? (
-        <form action={rejectListing} className="flex flex-col gap-2">
+        <ActionForm action={rejectListing} className="flex flex-col gap-2">
           <input type="hidden" name="id" value={vehicleId} />
           <label className="flex flex-col gap-1">
             <span className="text-sm text-gray-500">
@@ -183,7 +185,7 @@ export function ReviewActions({
               required
               rows={3}
               placeholder="Tell the seller what needs to change before this can be approved."
-              className="rounded border border-gray-200 bg-white px-3 py-2 text-black"
+              className={inputClasses({ multiline: true })}
             />
           </label>
           <div className="flex items-center gap-3">
@@ -198,10 +200,10 @@ export function ReviewActions({
               Cancel
             </button>
           </div>
-        </form>
+        </ActionForm>
       ) : (
         <div className="flex flex-wrap items-center gap-3">
-          <form action={approveAction}>
+          <ActionForm action={approveListing}>
             <input type="hidden" name="id" value={vehicleId} />
             <PendingButton
               variant="primary"
@@ -211,7 +213,7 @@ export function ReviewActions({
             >
               Approve
             </PendingButton>
-          </form>
+          </ActionForm>
           <Button
             type="button"
             variant="secondary"
@@ -222,11 +224,6 @@ export function ReviewActions({
           </Button>
           {photoCount === 0 ? (
             <p className="w-full text-sm text-copper-700">{NO_PHOTOS_APPROVAL_MESSAGE}</p>
-          ) : null}
-          {approveResult && !approveResult.ok ? (
-            <p role="alert" className="w-full text-sm text-copper-700">
-              {approveResult.error}
-            </p>
           ) : null}
         </div>
       )}
