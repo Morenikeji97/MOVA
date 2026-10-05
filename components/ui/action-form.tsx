@@ -1,6 +1,6 @@
 "use client";
 
-import { createContext, useActionState, useContext, useTransition, type ReactNode, type Ref } from "react";
+import { createContext, useActionState, useContext, useRef, useTransition, type ReactNode, type Ref } from "react";
 import { useFormStatus } from "react-dom";
 import type { ActionResult } from "@/lib/action-result";
 
@@ -29,6 +29,7 @@ export function ActionForm({
   children,
   className,
   onSaved,
+  resetOnSaved = false,
   ref,
 }: {
   action: (prev: ActionResult, formData: FormData) => Promise<ActionResult>;
@@ -36,12 +37,18 @@ export function ActionForm({
   className?: string;
   /** Called after a confirmed save (e.g. to clear a reason box). */
   onSaved?: () => void;
+  /** Clear the fields after a confirmed save (e.g. an "add" form). Never on failure. */
+  resetOnSaved?: boolean;
   /** For forms that submit themselves (e.g. a select's onChange → requestSubmit()). */
   ref?: Ref<HTMLFormElement>;
 }) {
+  const submitted = useRef<HTMLFormElement | null>(null);
   const [result, run] = useActionState(async (prev: ActionResult, fd: FormData) => {
     const r = await action(prev, fd);
-    if (r?.ok) onSaved?.();
+    if (r?.ok) {
+      if (resetOnSaved) submitted.current?.reset();
+      onSaved?.();
+    }
     return r;
   }, null);
   const [pending, startTransition] = useTransition();
@@ -52,6 +59,7 @@ export function ActionForm({
       className={className}
       onSubmit={(e) => {
         e.preventDefault();
+        submitted.current = e.currentTarget;
         const fd = new FormData(e.currentTarget);
         // Keep which button was pressed (e.g. name="action" value="publish"),
         // which FormData(form) leaves out.

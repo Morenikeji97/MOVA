@@ -1,7 +1,8 @@
 "use client";
 
+import { ActionForm, useActionPending } from "@/components/ui/action-form";
+
 import { type ComponentProps, useState } from "react";
-import { useFormStatus } from "react-dom";
 import { Button } from "@/components/ui/button";
 import {
   SERVICE_COUNTRIES,
@@ -47,7 +48,7 @@ function PendingButton({
   pendingLabel,
   ...props
 }: ComponentProps<typeof Button> & { pendingLabel: string }) {
-  const { pending } = useFormStatus();
+  const pending = useActionPending();
   return (
     <Button type="submit" disabled={pending} {...props}>
       {pending ? pendingLabel : children}
@@ -139,8 +140,9 @@ function RateFields({ rate }: { rate?: ShipperRate }) {
 
 export function AddRateForm() {
   return (
-    <form
+    <ActionForm
       action={addShipperRate}
+      resetOnSaved
       className="mt-4 grid grid-cols-1 gap-2 rounded-lg border border-gray-200 bg-white p-4 sm:grid-cols-2"
     >
       <p className="font-mono text-xs uppercase tracking-wider text-gray-500 sm:col-span-2">
@@ -152,7 +154,7 @@ export function AddRateForm() {
           Add rate
         </PendingButton>
       </div>
-    </form>
+    </ActionForm>
   );
 }
 
@@ -162,8 +164,9 @@ function RateRow({ rate }: { rate: ShipperRate }) {
   if (editing) {
     return (
       <li className="rounded-lg border border-black bg-white p-4">
-        <form
+        <ActionForm
           action={updateShipperRate}
+          onSaved={() => setEditing(false)}
           className="grid grid-cols-1 gap-2 sm:grid-cols-2"
         >
           <input type="hidden" name="id" value={rate.id} />
@@ -180,7 +183,7 @@ function RateRow({ rate }: { rate: ShipperRate }) {
               Cancel
             </button>
           </div>
-        </form>
+        </ActionForm>
       </li>
     );
   }
@@ -213,7 +216,7 @@ function RateRow({ rate }: { rate: ShipperRate }) {
         >
           Edit
         </Button>
-        <form action={setShipperRateActive}>
+        <ActionForm action={setShipperRateActive}>
           <input type="hidden" name="id" value={rate.id} />
           <input
             type="hidden"
@@ -227,13 +230,13 @@ function RateRow({ rate }: { rate: ShipperRate }) {
           >
             {rate.active ? "Hide" : "Show"}
           </PendingButton>
-        </form>
-        <form action={deleteShipperRate}>
+        </ActionForm>
+        <ActionForm action={deleteShipperRate}>
           <input type="hidden" name="id" value={rate.id} />
           <PendingButton variant="ghost" size="sm" pendingLabel="Removing…">
             Delete
           </PendingButton>
-        </form>
+        </ActionForm>
       </div>
     </li>
   );

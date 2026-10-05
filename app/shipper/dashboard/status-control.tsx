@@ -1,6 +1,7 @@
 "use client";
 
-import { useFormStatus } from "react-dom";
+import { ActionForm, useActionPending } from "@/components/ui/action-form";
+
 import { updateShippingStatus } from "./actions";
 import type { ShipmentShippingStatus } from "@/types/database";
 import { cn } from "@/lib/utils";
@@ -23,7 +24,7 @@ function StatusButton({
   label: string;
   active: boolean;
 }) {
-  const { pending } = useFormStatus();
+  const pending = useActionPending();
   return (
     <button
       type="submit"
@@ -56,7 +57,7 @@ export function ShippingStatusControl({
   current: ShipmentShippingStatus;
 }) {
   return (
-    <form action={updateShippingStatus} className="flex flex-wrap gap-2">
+    <ActionForm action={updateShippingStatus} className="flex flex-wrap gap-2">
       <input type="hidden" name="shipmentId" value={shipmentId} />
       {STEPS.map((step) => (
         <StatusButton
@@ -67,6 +68,6 @@ export function ShippingStatusControl({
           active={step.value === current}
         />
       ))}
-    </form>
+    </ActionForm>
   );
 }

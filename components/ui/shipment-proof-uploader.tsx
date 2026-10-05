@@ -74,7 +74,13 @@ export function ShipmentProofUploader({
       formData.set("shipmentId", shipmentId);
       formData.set("kind", kind);
       formData.set("storagePath", path);
-      await addProofPhoto(formData);
+      const result = await addProofPhoto(formData);
+      if (!result?.ok) {
+        // Don't leave an orphaned file behind a record that wasn't saved.
+        await supabase.storage.from(BUCKET).remove([path]);
+        setError(result?.message ?? "Not saved: the photo couldn't be recorded. Try again.");
+        return;
+      }
       router.refresh();
     } finally {
       setBusy(false);
