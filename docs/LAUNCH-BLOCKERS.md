@@ -76,6 +76,20 @@ the copy can be changed instead if a feature is dropped.
       mode today. Switch to live keys and live webhook endpoints the day
       ShipMova launches, then make one real low-value payment end to end.
 
+- [ ] **Buyer ID check goes live: Dojah live keys + require ID at reservation.**
+      Buyers sign up and browse without an ID; they verify their NIN (or
+      BVN) once, before their first reservation. Until launch Dojah is in
+      sandbox, so the dashboard says "ID verification opens at launch" and
+      nothing is sent to Dojah (lib/id-verification.ts). On launch day, in
+      this order:
+      1. Netlify: `DOJAH_BASE_URL=https://api.dojah.io` plus live
+         `DOJAH_SECRET_KEY` / `DOJAH_APP_ID`; redeploy. The NIN form appears.
+      2. Verify one real NIN end to end.
+      3. `update public.platform_settings set require_buyer_id_check = true where id;`
+         — from then the database refuses a reservation from an unverified
+         buyer (migration 0057). Doing this before step 1 would block every
+         reservation, since nobody could verify.
+
 - [ ] **Re-verify every seller's ID in live mode.** Stripe Identity checks
       done so far ran in test mode, which doesn't verify a real document. At
       launch, reset `seller_profiles` identity status and have each seller
@@ -173,6 +187,18 @@ Supabase project) to remove before launch.
       (`+shipper3`) and "MOVATEST@#5" (`+shipper5`). ("MOVATEST@#", which was
       linked to the admin login, was deleted 2026-10-04.) Before launch:
       delete all of them and detach the card in Stripe.
+
+- [ ] **Pamz — `kundaparks@yahoo.com` (buyer)** — a tester. Flagged as test
+      2026-10-05 (excluded from counts); **not to be deleted.** He tried his
+      real NIN 3 times against Dojah's sandbox (all failed). It was **not
+      stored by ShipMova** — no column holds ID numbers and the rate-limit
+      rows hold only his user id — and his NIN status was reset to
+      `unverified`. Dojah's sandbox did receive it: ask Dojah whether
+      sandbox lookups are retained and to delete them. He's using Dojah's
+      test NIN `70123456789` for now.
+      **On launch day:** reset his ID verification (`nin/bvn_verification_status`
+      → `unverified`, `verification_status` → `unverified`) so he re-verifies
+      with his real NIN in live mode, then unflag him.
 
 - [ ] **Restart SM- numbering so the first real deal is SM-000001.**
       Safe as long as no real deal exists yet: the reference is a label only

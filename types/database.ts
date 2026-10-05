@@ -1298,6 +1298,11 @@ export interface Database {
       };
     };
     Functions: {
+      /** Whether reserving needs a verified buyer ID (0057). */
+      is_buyer_id_check_required: {
+        Args: Record<string, never>;
+        Returns: boolean;
+      };
       /** Writes one admin audit entry as the calling admin (0056). */
       log_admin_action: {
         Args: {

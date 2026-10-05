@@ -14,6 +14,7 @@ import { FeePaymentOptions } from "@/components/ui/fee-payment-options";
 import { WaitlistForm } from "@/components/ui/waitlist-form";
 import { isPrelaunch } from "@/lib/prelaunch";
 import type { FeeResponsibility } from "@/types/database";
+import { isIdVerificationLive } from "@/lib/id-verification";
 
 const usdCents = new Intl.NumberFormat("en-US", {
   style: "currency",
@@ -123,13 +124,21 @@ export default async function BuyerDashboard({
       <p className="mt-2 text-gray-500">Signed in as {user?.email}</p>
       {profile?.verification_status === "verified" ? (
         <p className="mt-1 text-sm text-verified-600">Identity verified.</p>
+      ) : !isIdVerificationLive() ? (
+        // Dojah is still in sandbox: no form, so no real NIN goes to a test system.
+        <div className="mt-3 rounded border border-gray-200 p-4">
+          <p className="text-sm font-medium text-black">ID verification opens at launch</p>
+          <p className="mt-1 text-sm text-gray-500">
+            You can browse and save cars now. You&rsquo;ll verify your NIN once,
+            before your first reservation.
+          </p>
+        </div>
       ) : (
         <div className="mt-3 space-y-2 rounded border border-gray-200 p-4">
           <p className="text-sm font-medium text-black">Verify your identity</p>
           <p className="text-sm text-gray-500">
-            Verifying your NIN or BVN unlocks your ShipMova referral rewards and
-            speeds up reservation review. Either one is enough — you don’t
-            need both.
+            You need a verified NIN (or BVN) before your first reservation. It also
+            unlocks your ShipMova referral rewards. Either one is enough.
           </p>
           {profile?.nin_verification_status !== "verified" ? (
             <KycVerifyForm kind="nin" />

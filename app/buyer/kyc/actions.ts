@@ -7,6 +7,7 @@ import { checkRateLimit, RATE_LIMIT_MESSAGE } from "@/lib/rate-limit";
 import { lookupNin, lookupBvn } from "@/lib/dojah";
 import { isValidNinOrBvn, overallBuyerVerificationStatus } from "@/lib/kyc";
 import { evaluateReferralQualification } from "@/lib/referral-credit";
+import { ID_CHECK_OPENS_AT_LAUNCH, isIdVerificationLive } from "@/lib/id-verification";
 
 export type KycVerifyResult =
   | { ok: true; verified: boolean }
@@ -16,6 +17,11 @@ export async function verifyBuyerIdentity(
   kind: "nin" | "bvn",
   formData: FormData,
 ): Promise<KycVerifyResult> {
+  // Never send a real ID number to Dojah's sandbox (lib/id-verification.ts).
+  if (!isIdVerificationLive()) {
+    return { ok: false, error: ID_CHECK_OPENS_AT_LAUNCH };
+  }
+
   const value = formData.get("value");
   if (typeof value !== "string" || !isValidNinOrBvn(value)) {
     return {
