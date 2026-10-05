@@ -19,6 +19,11 @@ const ID_EXEMPT_PATHS = [
   "/terms",
   "/policies",
   "/waitlist",
+  // Shippers sign in with an ordinary (buyer-role) account — there's no
+  // shipper role — so the shipper application, portal and dashboard must
+  // work without a buyer ID. Nothing under /shipper is a buyer feature;
+  // chat and reserving still check the ID server-side.
+  "/shipper",
 ];
 
 export function isIdExempt(path: string): boolean {
