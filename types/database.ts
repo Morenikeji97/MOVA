@@ -8,6 +8,8 @@ export type EscrowStage =
   | "inspection_passed"
   | "handed_to_shipper"
   | "escrow_released";
+export type IdCountry = "NG" | "GH" | "TG" | "BJ";
+export type IdMethod = "ng_nin" | "gh_card" | "document";
 export type VehicleStatus = "draft" | "pending_review" | "approved" | "rejected" | "sold" | "archived";
 export type VinVerificationStatus = "unverified" | "checking" | "verified" | "flagged";
 export type ShippingMethod = "roro" | "container";
@@ -179,6 +181,17 @@ export interface Database {
           verification_status: VerificationStatus;
           policy_accepted_at: string | null;
           policy_version: string | null;
+          id_country: IdCountry | null;
+          id_method: IdMethod | null;
+          id_legal_name: string | null;
+          id_record_name: string | null;
+          id_name_match: "match" | "close" | "mismatch" | null;
+          id_document_type: "national_id" | "passport" | null;
+          id_document_path: string | null;
+          id_review_note: string | null;
+          id_reviewed_by: string | null;
+          id_reviewed_at: string | null;
+          id_verified_at: string | null;
           created_at: string;
         };
         Insert: {
@@ -193,6 +206,17 @@ export interface Database {
           verification_status?: VerificationStatus;
           policy_accepted_at?: string | null;
           policy_version?: string | null;
+          id_country?: IdCountry | null;
+          id_method?: IdMethod | null;
+          id_legal_name?: string | null;
+          id_record_name?: string | null;
+          id_name_match?: "match" | "close" | "mismatch" | null;
+          id_document_type?: "national_id" | "passport" | null;
+          id_document_path?: string | null;
+          id_review_note?: string | null;
+          id_reviewed_by?: string | null;
+          id_reviewed_at?: string | null;
+          id_verified_at?: string | null;
           created_at?: string;
         };
         Update: Partial<{
@@ -207,6 +231,17 @@ export interface Database {
           verification_status: VerificationStatus;
           policy_accepted_at: string | null;
           policy_version: string | null;
+          id_country: IdCountry | null;
+          id_method: IdMethod | null;
+          id_legal_name: string | null;
+          id_record_name: string | null;
+          id_name_match: "match" | "close" | "mismatch" | null;
+          id_document_type: "national_id" | "passport" | null;
+          id_document_path: string | null;
+          id_review_note: string | null;
+          id_reviewed_by: string | null;
+          id_reviewed_at: string | null;
+          id_verified_at: string | null;
           created_at: string;
         }>;
         Relationships: [];
@@ -1298,6 +1333,16 @@ export interface Database {
       };
     };
     Functions: {
+      /** What a seller may see about a buyer's ID check (0058); null if not allowed. */
+      buyer_id_summary: {
+        Args: { p_buyer_id: string };
+        Returns: string | null;
+      };
+      /** Whether reserving needs a verified buyer ID (0057). */
+      is_buyer_id_check_required: {
+        Args: Record<string, never>;
+        Returns: boolean;
+      };
       /** Writes one admin audit entry as the calling admin (0056). */
       log_admin_action: {
         Args: {

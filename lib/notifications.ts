@@ -392,3 +392,47 @@ export async function notifyShipperApplication(
   return { applicantEmailed };
 }
 
+
+// ── Buyer ID review ──────────────────────────────────────────────────────
+
+/** A buyer's ID needs the founder's review (name mismatch or Togo/Benin photo). */
+export async function notifyBuyerIdReview(buyerId: string, reason: string): Promise<void> {
+  const admin = createAdminClient();
+  const [{ data: buyer }, { data: admins }] = await Promise.all([
+    admin.from("users").select("email").eq("id", buyerId).maybeSingle(),
+    admin.from("users").select("email").eq("role", "admin"),
+  ]);
+  const origin = await appUrl();
+  for (const a of admins ?? []) {
+    await sendEmail({
+      to: a.email,
+      subject: "A buyer's ID needs your review",
+      html: renderEmailShell({
+        heading: "Buyer ID to review",
+        bodyHtml: `<p style="margin:0;">${escapeHtml(buyer?.email ?? "A buyer")}: ${escapeHtml(reason)}. Their account stays on hold until you decide.</p>`,
+        ctaLabel: "Review buyer IDs",
+        ctaHref: `${origin}/admin/buyer-ids`,
+      }),
+    });
+  }
+}
+
+/** Tells a buyer the outcome of an admin ID review. */
+export async function notifyBuyerIdDecision(buyerId: string, approved: boolean, note: string | null): Promise<boolean> {
+  const admin = createAdminClient();
+  const { data: buyer } = await admin.from("users").select("email").eq("id", buyerId).maybeSingle();
+  if (!buyer?.email) return false;
+  const origin = await appUrl();
+  return sendEmail({
+    to: buyer.email,
+    subject: approved ? "Your ShipMova ID is verified" : "We couldn't verify your ID",
+    html: renderEmailShell({
+      heading: approved ? "You're verified" : "ID not verified yet",
+      bodyHtml: approved
+        ? `<p style="margin:0;">Thanks — your ID is verified. Your ShipMova account is ready to use.</p>`
+        : `<p style="margin:0;">We couldn't verify your ID${note ? `: ${escapeHtml(note)}` : ""}. Please try again from your account.</p>`,
+      ctaLabel: approved ? "Browse cars" : "Verify your ID",
+      ctaHref: `${origin}${approved ? "/browse" : "/buyer/verify-id"}`,
+    }),
+  });
+}

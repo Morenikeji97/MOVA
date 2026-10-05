@@ -8,7 +8,8 @@
     "start": "next start",
     "lint": "next lint",
     "test": "node --test --experimental-strip-types \"lib/**/*.test.ts\"",
-    "e2e:photos": "node --env-file-if-exists=.env.local e2e/photo-upload.webkit.mjs"
+    "e2e:photos": "node --env-file-if-exists=.env.local e2e/photo-upload.webkit.mjs",
+    "e2e:buyer-id": "node --env-file-if-exists=.env.local e2e/buyer-id.webkit.mjs"
   },
   "dependencies": {
     "@hookform/resolvers": "^3.9.1",

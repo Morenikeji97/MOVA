@@ -2,6 +2,7 @@ import { type NextRequest, NextResponse } from "next/server";
 import { updateSession } from "@/lib/supabase/middleware";
 import { TERMS_ACCEPT_PATH } from "@/lib/terms";
 import { MFA_PATH, isMfaExempt } from "@/lib/admin-mfa-paths";
+import { VERIFY_ID_PATH, isIdExempt } from "@/lib/id-gate-paths";
 
 const ROLE_PREFIXES: { prefix: string; role: "seller" | "buyer" | "admin" }[] = [
   { prefix: "/seller", role: "seller" },
@@ -29,7 +30,7 @@ function isPolicyExempt(path: string): boolean {
 }
 
 export async function middleware(request: NextRequest) {
-  const { supabaseResponse, user, role, needsPolicyAcceptance, adminMfaVerified } =
+  const { supabaseResponse, user, role, needsPolicyAcceptance, adminMfaVerified, needsIdVerification } =
     await updateSession(request);
   const path = request.nextUrl.pathname;
 
@@ -53,6 +54,15 @@ export async function middleware(request: NextRequest) {
   if (user && needsPolicyAcceptance && !isPolicyExempt(path)) {
     const url = new URL(TERMS_ACCEPT_PATH, request.url);
     url.searchParams.set("next", path);
+    return NextResponse.redirect(url);
+  }
+
+  // A buyer's account isn't usable until their ID is verified: no member
+  // browsing, chat or reserving. Server actions are let through here and
+  // check for themselves (chat and reserve refuse an unverified buyer).
+  if (user && needsIdVerification && !isIdExempt(path) && !request.headers.has("next-action")) {
+    const url = new URL(VERIFY_ID_PATH, request.url);
+    url.searchParams.set("next", path + request.nextUrl.search);
     return NextResponse.redirect(url);
   }
 

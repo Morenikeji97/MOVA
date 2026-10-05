@@ -81,6 +81,15 @@ export default async function AdminDashboard() {
       u,
     ),
     supabase.from("waitlist_signups").select("id", { count: "exact", head: true }),
+    excludeIds(
+      supabase
+        .from("buyer_profiles")
+        .select("user_id", { count: "exact", head: true })
+        .eq("verification_status", "pending")
+        .not("id_method", "is", null),
+      "user_id",
+      u,
+    ),
   ]);
 
   // A failed count must never read as 0 ("nothing pending"): show "—" and say
@@ -96,6 +105,7 @@ export default async function AdminDashboard() {
     "Open disputes",
     "Referral flags",
     "Waitlist signups",
+    "Buyer IDs to review",
   ];
   const failedCounts = results.flatMap((r, i) => {
     if (!r.error) return [];
@@ -113,6 +123,7 @@ export default async function AdminDashboard() {
     openDisputes,
     referralAttention,
     waitlistCount,
+    buyerIdsToReview,
   ] = results.map((r) => (r.error ? "—" : (r.count ?? 0)));
 
   return (
@@ -156,6 +167,16 @@ export default async function AdminDashboard() {
             {pendingListings}
           </p>
           <p className="mt-1 text-sm text-black">Open the review queue &rarr;</p>
+        </Link>
+        <Link
+          href="/admin/buyer-ids"
+          className="rounded-lg border border-gray-200 bg-white p-5 transition-colors hover:border-black"
+        >
+          <p className="font-mono text-xs uppercase tracking-wider text-gray-500">
+            Buyer IDs to review
+          </p>
+          <p className="mt-1 text-3xl font-semibold text-black">{buyerIdsToReview}</p>
+          <p className="mt-1 text-sm text-black">Open the ID queue &rarr;</p>
         </Link>
         <Link
           href="/admin/reservations"
