@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { ActionForm } from "@/components/ui/action-form";
 import { createClient } from "@/lib/supabase/server";
 import { VEHICLE_DETAIL_COLUMNS, loadFullVins } from "@/lib/listings";
 import { canSubmitForReview } from "@/lib/listings-review";
@@ -194,10 +195,10 @@ export default async function SellerListingsPage() {
                   notTitledOwner: v.not_titled_owner,
                   hasAuthorizationDocument: v.has_authorization_document,
                 }) ? (
-                  <form action={submitForReview}>
+                  <ActionForm action={submitForReview}>
                     <input type="hidden" name="id" value={v.id} />
                     <SubmitForReviewButton />
-                  </form>
+                  </ActionForm>
                 ) : null}
                 {/* Opens the listing page exactly as buyers see it; for a
                     listing that isn't live yet, only its seller can. */}

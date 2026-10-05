@@ -1,7 +1,8 @@
 "use client";
 
+import { ActionForm, useActionPending } from "@/components/ui/action-form";
+
 import { useState } from "react";
-import { useFormStatus } from "react-dom";
 import { Button } from "@/components/ui/button";
 import { SERVICE_COUNTRIES } from "@/lib/shipping";
 import { US_STATES } from "@/lib/us-states";
@@ -9,7 +10,7 @@ import { updateShipperProfile } from "./actions";
 import { inputClasses } from "@/components/ui/input-classes";
 
 function SubmitButton() {
-  const { pending } = useFormStatus();
+  const pending = useActionPending();
   return (
     <Button type="submit" disabled={pending}>
       {pending ? "Saving…" : "Save changes"}
@@ -30,17 +31,9 @@ export function ShipperProfileForm({
 }) {
   const [selected, setSelected] = useState(new Set(serviceCountries));
   const [selectedAreas, setSelectedAreas] = useState(new Set(serviceAreas));
-  const [saved, setSaved] = useState(false);
 
   return (
-    <form
-      action={async (formData) => {
-        await updateShipperProfile(formData);
-        setSaved(true);
-      }}
-      onChange={() => setSaved(false)}
-      className="flex flex-col gap-4"
-    >
+    <ActionForm action={updateShipperProfile} className="flex flex-col gap-4">
       <label className="flex flex-col gap-1">
         <span className="text-sm text-gray-500">Company name</span>
         <input
@@ -131,13 +124,9 @@ export function ShipperProfileForm({
           })}
         </div>
       </fieldset>
-
-      {saved ? (
-        <p className="text-sm text-verified-600">Saved.</p>
-      ) : null}
       <div>
         <SubmitButton />
       </div>
-    </form>
+    </ActionForm>
   );
 }

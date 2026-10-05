@@ -8,6 +8,7 @@ import {
   canSellerArchive,
   type PurchaseRequestSnapshot,
 } from "@/lib/listing-removal";
+import { SESSION_ENDED, checkWrite, notSaved, saved, type ActionResult } from "@/lib/action-result";
 
 /**
  * Move one of the seller's own draft listings into the review queue.
@@ -21,15 +22,15 @@ import {
  * reject the update outright. Those constraints remain the real backstop —
  * this is defense in depth, not a substitute for them.
  */
-export async function submitForReview(formData: FormData): Promise<void> {
+export async function submitForReview(_prev: ActionResult, formData: FormData): Promise<ActionResult> {
   const id = formData.get("id");
-  if (typeof id !== "string" || id.length === 0) return;
+  if (typeof id !== "string" || id.length === 0) return notSaved("the form is missing the listing. Reload and try again.");
 
   const supabase = await createClient();
   const {
     data: { user },
   } = await supabase.auth.getUser();
-  if (!user) return;
+  if (!user) return notSaved(SESSION_ENDED);
 
   const { data: listing } = await supabase
     .from("vehicles")
@@ -38,7 +39,7 @@ export async function submitForReview(formData: FormData): Promise<void> {
     .eq("seller_id", user.id)
     .eq("status", "draft")
     .maybeSingle();
-  if (!listing) return;
+  if (!listing) return notSaved("this listing isn't one of your drafts any more — reload to see it.");
   if (
     !canSubmitForReview({
       hasTitleDocument: listing.has_title_document,
@@ -46,19 +47,26 @@ export async function submitForReview(formData: FormData): Promise<void> {
       hasAuthorizationDocument: listing.has_authorization_document,
     })
   ) {
-    return;
+    return notSaved("add your title photo (or authorization document) first.");
   }
 
   // The seller_id / status filters keep this to the caller's own drafts;
   // the vehicles RLS policy enforces the same ownership check server-side.
-  await supabase
+  // The vehicles guard keeps the old status for a change it doesn't allow,
+  // so read back what was saved.
+  const res = await supabase
     .from("vehicles")
     .update({ status: "pending_review" })
     .eq("id", id)
     .eq("seller_id", user.id)
-    .eq("status", "draft");
+    .eq("status", "draft")
+    .select("status");
+  const bad = checkWrite(res, "this listing isn't a draft any more — reload to see it.");
+  if (bad) return bad;
+  if (res.data?.[0]?.status !== "pending_review") return notSaved("the listing couldn't be moved to review.");
 
   revalidatePath("/seller/listings");
+  return saved("Submitted — ShipMova will review it before it goes live.");
 }
 
 export type RemoveListingResult = { ok: true } | { ok: false; error: string };

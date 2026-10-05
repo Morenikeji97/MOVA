@@ -248,6 +248,15 @@ export default async function AdminDashboard() {
           </p>
         </Link>
         <Link
+          href="/admin/audit"
+          className="rounded-lg border border-gray-200 bg-white p-5 transition-colors hover:border-black"
+        >
+          <p className="font-mono text-xs uppercase tracking-wider text-gray-500">
+            Audit log
+          </p>
+          <p className="mt-1 text-sm text-black">Who did what &rarr;</p>
+        </Link>
+        <Link
           href="/admin/security"
           className="rounded-lg border border-gray-200 bg-white p-5 transition-colors hover:border-black"
         >

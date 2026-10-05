@@ -8,6 +8,7 @@ import { getStripe } from "@/lib/stripe";
 import { appUrl } from "@/lib/app-url";
 import { isServiceCountry, isVehicleSizeType, isShippingMethod } from "@/lib/shipping";
 import type { ShippingMethod, VehicleSizeType } from "@/types/database";
+import { checkWrite, notSaved, saved, type ActionResult } from "@/lib/action-result";
 
 function str(v: FormDataEntryValue | null): string {
   return typeof v === "string" ? v.trim() : "";
@@ -79,13 +80,14 @@ export async function claimShipper(): Promise<void> {
     redirect("/shipper/portal?claim=failed");
   }
 
-  const { error } = await admin
+  const { data: linked, error } = await admin
     .from("shippers")
     .update({ user_id: user.id })
     .eq("id", shipper.id)
-    .is("user_id", null);
-  if (error) {
-    console.error("claimShipper link failed:", error);
+    .is("user_id", null)
+    .select("id");
+  if (error || !linked || linked.length === 0) {
+    console.error("claimShipper link failed:", error ?? "no row linked");
     redirect("/shipper/portal?claim=failed");
   }
 
@@ -103,8 +105,8 @@ interface RateFields {
   currency: string;
 }
 
-/** Parse + validate the shared rate form fields; null if anything is invalid. */
-function readRateFields(formData: FormData): RateFields | null {
+/** Parse + validate the shared rate form fields; the reason if anything is invalid. */
+function readRateFields(formData: FormData): RateFields | string {
   const originRegion = str(formData.get("origin_region"));
   const destinationCountry = str(formData.get("destination_country"));
   const vehicleSizeType = str(formData.get("vehicle_size_type"));
@@ -112,11 +114,11 @@ function readRateFields(formData: FormData): RateFields | null {
   const price = Number(str(formData.get("price")));
   const currency = str(formData.get("currency")).toUpperCase() || "USD";
 
-  if (!originRegion || !destinationCountry) return null;
-  if (!isServiceCountry(destinationCountry)) return null;
-  if (!isVehicleSizeType(vehicleSizeType)) return null;
-  if (!isShippingMethod(shippingMethod)) return null;
-  if (!Number.isFinite(price) || price < 0) return null;
+  if (!originRegion) return "add the pickup region.";
+  if (!isServiceCountry(destinationCountry)) return "choose a destination country.";
+  if (!isVehicleSizeType(vehicleSizeType)) return "choose a vehicle size.";
+  if (!isShippingMethod(shippingMethod)) return "choose a shipping method.";
+  if (!Number.isFinite(price) || price < 0) return "the price must be a number, 0 or more.";
 
   return {
     origin_region: originRegion,
@@ -130,74 +132,92 @@ function readRateFields(formData: FormData): RateFields | null {
 }
 
 /** Add a rate for the signed-in shipper. */
-export async function addShipperRate(formData: FormData): Promise<void> {
+const NOT_APPROVED = "your shipper account isn't approved and linked yet, or your session ended. Sign in again.";
+
+export async function addShipperRate(_prev: ActionResult, formData: FormData): Promise<ActionResult> {
   const ctx = await requireApprovedShipper();
-  if (!ctx) return;
+  if (!ctx) return notSaved(NOT_APPROVED);
 
   const fields = readRateFields(formData);
-  if (!fields) return;
+  if (typeof fields === "string") return notSaved(fields);
 
-  await ctx.supabase
+  const res = await ctx.supabase
     .from("shipping_rates")
-    .insert({ shipper_id: ctx.shipperId, ...fields });
+    .insert({ shipper_id: ctx.shipperId, ...fields })
+    .select("id");
+  const bad = checkWrite(res);
+  if (bad) return bad;
 
   revalidateRateViews();
+  return saved("Rate added — buyers can see it.");
 }
 
 /** Edit one of the signed-in shipper's rates. */
-export async function updateShipperRate(formData: FormData): Promise<void> {
+export async function updateShipperRate(_prev: ActionResult, formData: FormData): Promise<ActionResult> {
   const ctx = await requireApprovedShipper();
-  if (!ctx) return;
+  if (!ctx) return notSaved(NOT_APPROVED);
 
   const id = str(formData.get("id"));
-  if (!id) return;
+  if (!id) return notSaved("the form is missing the rate. Reload and try again.");
   const fields = readRateFields(formData);
-  if (!fields) return;
+  if (typeof fields === "string") return notSaved(fields);
 
   // RLS confines this to the shipper's own rows; the shipper_id filter is
   // belt-and-braces.
-  await ctx.supabase
+  const res = await ctx.supabase
     .from("shipping_rates")
     .update(fields)
     .eq("id", id)
-    .eq("shipper_id", ctx.shipperId);
+    .eq("shipper_id", ctx.shipperId)
+    .select("id");
+  const bad = checkWrite(res, "this rate wasn't found — reload to see your rates.");
+  if (bad) return bad;
 
   revalidateRateViews();
+  return saved("Rate updated.");
 }
 
 /** Show/hide one of the signed-in shipper's rates from buyers. */
-export async function setShipperRateActive(formData: FormData): Promise<void> {
+export async function setShipperRateActive(_prev: ActionResult, formData: FormData): Promise<ActionResult> {
   const ctx = await requireApprovedShipper();
-  if (!ctx) return;
+  if (!ctx) return notSaved(NOT_APPROVED);
 
   const id = str(formData.get("id"));
-  if (!id) return;
+  if (!id) return notSaved("the form is missing the rate. Reload and try again.");
   const active = str(formData.get("active")) === "true";
 
-  await ctx.supabase
+  const res = await ctx.supabase
     .from("shipping_rates")
     .update({ active })
     .eq("id", id)
-    .eq("shipper_id", ctx.shipperId);
+    .eq("shipper_id", ctx.shipperId)
+    .select("id");
+  const bad = checkWrite(res, "this rate wasn't found — reload to see your rates.");
+  if (bad) return bad;
 
   revalidateRateViews();
+  return saved(active ? "Rate shown to buyers." : "Rate hidden from buyers.");
 }
 
 /** Permanently remove one of the signed-in shipper's rates. */
-export async function deleteShipperRate(formData: FormData): Promise<void> {
+export async function deleteShipperRate(_prev: ActionResult, formData: FormData): Promise<ActionResult> {
   const ctx = await requireApprovedShipper();
-  if (!ctx) return;
+  if (!ctx) return notSaved(NOT_APPROVED);
 
   const id = str(formData.get("id"));
-  if (!id) return;
+  if (!id) return notSaved("the form is missing the rate. Reload and try again.");
 
-  await ctx.supabase
+  const res = await ctx.supabase
     .from("shipping_rates")
     .delete()
     .eq("id", id)
-    .eq("shipper_id", ctx.shipperId);
+    .eq("shipper_id", ctx.shipperId)
+    .select("id");
+  const bad = checkWrite(res, "this rate was already removed — reload to see your rates.");
+  if (bad) return bad;
 
   revalidateRateViews();
+  return saved("Rate removed.");
 }
 
 /**

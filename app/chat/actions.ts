@@ -299,16 +299,26 @@ export async function proposeNegotiatedPrice(
     };
   }
 
-  const { error } = await supabase
+  // The reservation guard keeps the old values for a proposal it doesn't
+  // allow (e.g. a price was already accepted), so read back what was saved.
+  const { data: savedRow, error } = await supabase
     .from("purchase_requests")
     .update({
       negotiated_price_usd: priceUsd,
       negotiated_price_status: "proposed",
     })
-    .eq("id", pr.id);
+    .eq("id", pr.id)
+    .select("negotiated_price_status, negotiated_price_usd");
   if (error) {
     console.error("proposeNegotiatedPrice: update failed", error);
-    return { ok: false, error: "Couldn't send that price. Please try again." };
+    return { ok: false, error: `Not sent: ${error.message}` };
+  }
+  const row = savedRow?.[0];
+  if (!row || row.negotiated_price_status !== "proposed" || Number(row.negotiated_price_usd) !== priceUsd) {
+    return {
+      ok: false,
+      error: "Not sent: this reservation can't take a new price now (it may already be accepted or closed). Reload to see it.",
+    };
   }
 
   revalidatePath(`/seller/messages/${conversationId}`);
@@ -347,13 +357,17 @@ export async function acceptNegotiatedPrice(
     return { ok: false, error: "There's no price offer to accept right now." };
   }
 
-  const { error } = await supabase
+  const { data: savedRow, error } = await supabase
     .from("purchase_requests")
     .update({ negotiated_price_status: "accepted" })
-    .eq("id", pr.id);
+    .eq("id", pr.id)
+    .select("negotiated_price_status");
   if (error) {
     console.error("acceptNegotiatedPrice: update failed", error);
-    return { ok: false, error: "Couldn't accept that price. Please try again." };
+    return { ok: false, error: `Not accepted: ${error.message}` };
+  }
+  if (savedRow?.[0]?.negotiated_price_status !== "accepted") {
+    return { ok: false, error: "Not accepted: the offer changed meanwhile. Reload to see it." };
   }
 
   revalidatePath("/buyer/dashboard");

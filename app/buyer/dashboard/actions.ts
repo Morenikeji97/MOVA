@@ -140,17 +140,27 @@ export async function submitBankTransferProof(
     return { ok: false, error: "Upload didn't complete. Please try again." };
   }
 
-  const { error } = await supabase
+  // The reservation guard only accepts a proof while the fee is pending (or
+  // after a rejection) and keeps the old values otherwise: read back.
+  const { data: savedRow, error } = await supabase
     .from("purchase_requests")
     .update({
       payment_method: "bank_transfer",
       mova_fee_payment_status: "pending_manual_verification",
       bank_transfer_proof_path: proofPath,
     })
-    .eq("id", purchaseRequestId);
+    .eq("id", purchaseRequestId)
+    .select("mova_fee_payment_status, bank_transfer_proof_path");
   if (error) {
     console.error("submitBankTransferProof: update failed", error);
-    return { ok: false, error: "Couldn't record your transfer. Please try again." };
+    return { ok: false, error: `Not recorded: ${error.message}` };
+  }
+  const row = savedRow?.[0];
+  if (!row || row.mova_fee_payment_status !== "pending_manual_verification" || row.bank_transfer_proof_path !== proofPath) {
+    return {
+      ok: false,
+      error: "Not recorded: this reservation isn't waiting for a fee payment any more. Reload to see its status.",
+    };
   }
 
   revalidatePath("/buyer/dashboard");

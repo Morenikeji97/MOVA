@@ -1,7 +1,8 @@
 "use client";
 
+import { ActionForm, useActionPending } from "@/components/ui/action-form";
+
 import { type ComponentProps, useState } from "react";
-import { useFormStatus } from "react-dom";
 import { Button } from "@/components/ui/button";
 import {
   confirmBankTransferPayment,
@@ -17,7 +18,7 @@ function PendingButton({
   pendingLabel,
   ...props
 }: ComponentProps<typeof Button> & { pendingLabel: string }) {
-  const { pending } = useFormStatus();
+  const pending = useActionPending();
   return (
     <Button type="submit" disabled={pending} {...props}>
       {pending ? pendingLabel : children}
@@ -53,12 +54,12 @@ export function ReservationActions({
   return (
     <div className="mt-4 flex flex-wrap items-center gap-3 border-t border-gray-200 pt-4">
       {canReview ? (
-        <form action={markReservationUnderReview}>
+        <ActionForm action={markReservationUnderReview}>
           <input type="hidden" name="id" value={requestId} />
           <PendingButton variant="secondary" size="sm" pendingLabel="Updating…">
             Mark under review
           </PendingButton>
-        </form>
+        </ActionForm>
       ) : null}
       {canRequestFee && prelaunch ? (
         <span className="text-sm text-copper-700">
@@ -66,12 +67,12 @@ export function ReservationActions({
         </span>
       ) : null}
       {canRequestFee && !prelaunch ? (
-        <form action={requestFeePayment}>
+        <ActionForm action={requestFeePayment}>
           <input type="hidden" name="id" value={requestId} />
           <PendingButton variant="secondary" size="sm" pendingLabel="Generating…">
             {feeLinkSent ? "Regenerate fee link" : "Request fee payment"}
           </PendingButton>
-        </form>
+        </ActionForm>
       ) : null}
       {blockedOnShipping ? (
         <span className="text-sm text-copper-700">
@@ -81,12 +82,12 @@ export function ReservationActions({
 
       {awaitingBankVerification && !rejectingBankTransfer ? (
         <>
-          <form action={confirmBankTransferPayment}>
+          <ActionForm action={confirmBankTransferPayment}>
             <input type="hidden" name="id" value={requestId} />
             <PendingButton variant="primary" size="sm" pendingLabel="Confirming…">
               Payment confirmed
             </PendingButton>
-          </form>
+          </ActionForm>
           <Button
             type="button"
             variant="secondary"
@@ -103,15 +104,15 @@ export function ReservationActions({
         </span>
       ) : null}
 
-      <form action={releaseReservation}>
+      <ActionForm action={releaseReservation}>
         <input type="hidden" name="id" value={requestId} />
         <PendingButton variant="primary" size="sm" pendingLabel="Releasing…">
           Release
         </PendingButton>
-      </form>
+      </ActionForm>
 
       {rejectingBankTransfer ? (
-        <form
+        <ActionForm
           action={rejectBankTransferPayment}
           className="flex w-full flex-col gap-2 pt-1"
         >
@@ -140,7 +141,7 @@ export function ReservationActions({
               Cancel
             </button>
           </div>
-        </form>
+        </ActionForm>
       ) : null}
     </div>
   );

@@ -1,7 +1,8 @@
 "use client";
 
+import { ActionForm, useActionPending } from "@/components/ui/action-form";
+
 import { type ComponentProps, useState } from "react";
-import { useFormStatus } from "react-dom";
 import { Button } from "@/components/ui/button";
 import { approveDisputeForRefund, denyDispute, markRefundCompleted } from "./actions";
 import { inputClasses } from "@/components/ui/input-classes";
@@ -11,7 +12,7 @@ function PendingButton({
   pendingLabel,
   ...props
 }: ComponentProps<typeof Button> & { pendingLabel: string }) {
-  const { pending } = useFormStatus();
+  const pending = useActionPending();
   return (
     <Button type="submit" disabled={pending} {...props}>
       {pending ? pendingLabel : children}
@@ -32,7 +33,7 @@ export function DisputeActions({
 
   if (status === "approved_pending_refund") {
     return (
-      <form action={markRefundCompleted} className="mt-4 border-t border-gray-200 pt-4">
+      <ActionForm action={markRefundCompleted} className="mt-4 border-t border-gray-200 pt-4">
         <input type="hidden" name="id" value={disputeId} />
         <PendingButton variant="primary" size="sm" pendingLabel="Recording…">
           Mark refund completed
@@ -41,7 +42,7 @@ export function DisputeActions({
           Only after you&rsquo;ve actually processed the refund manually (Stripe
           dashboard, or a manual bank transfer) — this just records that it&rsquo;s done.
         </p>
-      </form>
+      </ActionForm>
     );
   }
 
@@ -61,7 +62,7 @@ export function DisputeActions({
   const action = mode === "approve" ? approveDisputeForRefund : denyDispute;
 
   return (
-    <form action={action} className="mt-4 flex flex-col gap-2 border-t border-gray-200 pt-4">
+    <ActionForm action={action} className="mt-4 flex flex-col gap-2 border-t border-gray-200 pt-4">
       <input type="hidden" name="id" value={disputeId} />
       {mode === "approve" ? (
         <label className="flex flex-col gap-1">
@@ -107,6 +108,6 @@ export function DisputeActions({
           Cancel
         </button>
       </div>
-    </form>
+    </ActionForm>
   );
 }

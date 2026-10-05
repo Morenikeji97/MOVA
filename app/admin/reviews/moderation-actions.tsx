@@ -1,7 +1,8 @@
 "use client";
 
+import { ActionForm, useActionPending } from "@/components/ui/action-form";
+
 import { type ComponentProps, useState } from "react";
-import { useFormStatus } from "react-dom";
 import { Button } from "@/components/ui/button";
 import { moderateReview, dismissReports } from "@/app/reviews/actions";
 import { inputClasses } from "@/components/ui/input-classes";
@@ -11,7 +12,7 @@ function PendingButton({
   pendingLabel,
   ...props
 }: ComponentProps<typeof Button> & { pendingLabel: string }) {
-  const { pending } = useFormStatus();
+  const pending = useActionPending();
   return (
     <Button type="submit" disabled={pending} {...props}>
       {pending ? pendingLabel : children}
@@ -31,7 +32,7 @@ export function ModerationActions({
   return (
     <div className="mt-4 flex flex-wrap items-start gap-3 border-t border-gray-200 pt-4">
       {removing ? (
-        <form action={moderateReview} className="flex w-full flex-col gap-2">
+        <ActionForm action={moderateReview} className="flex w-full flex-col gap-2">
           <input type="hidden" name="id" value={reviewId} />
           <input type="hidden" name="action" value="remove" />
           <textarea
@@ -52,16 +53,16 @@ export function ModerationActions({
               Cancel
             </button>
           </div>
-        </form>
+        </ActionForm>
       ) : (
         <>
-          <form action={moderateReview}>
+          <ActionForm action={moderateReview}>
             <input type="hidden" name="id" value={reviewId} />
             <input type="hidden" name="action" value="publish" />
             <PendingButton variant="primary" size="sm" pendingLabel="Publishing…">
               Publish
             </PendingButton>
-          </form>
+          </ActionForm>
           <Button
             type="button"
             variant="secondary"
@@ -71,12 +72,12 @@ export function ModerationActions({
             Remove
           </Button>
           {isFlagged ? (
-            <form action={dismissReports}>
+            <ActionForm action={dismissReports}>
               <input type="hidden" name="reviewId" value={reviewId} />
               <PendingButton variant="ghost" size="sm" pendingLabel="Dismissing…">
                 Keep &amp; dismiss reports
               </PendingButton>
-            </form>
+            </ActionForm>
           ) : null}
         </>
       )}

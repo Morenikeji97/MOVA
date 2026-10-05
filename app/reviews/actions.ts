@@ -6,7 +6,9 @@ import { scanForContactInfo, CONTACT_INFO_BLOCK_MESSAGE } from "@/lib/chat-filte
 import { REVIEW_COMMENT_MAX } from "@/lib/reviews";
 import { notifyNewReview } from "@/lib/notifications";
 import type { ReviewType } from "@/types/database";
-import { requireAdminMfa } from "@/lib/admin-mfa";
+import { requireAdmin } from "@/lib/admin-auth";
+import { logAdminAction } from "@/lib/admin-audit";
+import { SESSION_ENDED, checkWrite, notSaved, savedWithAudit, type ActionResult } from "@/lib/action-result";
 
 export interface SubmitReviewInput {
   reviewType: ReviewType;
@@ -164,34 +166,19 @@ export async function reportReview(
 
 // ── Admin moderation (form actions) ──────────────────────────────────────────
 
-async function requireAdmin() {
-  const supabase = await createClient();
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
-  if (!user) return null;
-  const { data: profile } = await supabase
-    .from("users")
-    .select("role")
-    .eq("id", user.id)
-    .single();
-  if (profile?.role !== "admin") return null;
-  await requireAdminMfa(supabase);
-  return { supabase, adminId: user.id };
-}
 
 /** Publish or remove a review from the moderation queue. */
-export async function moderateReview(formData: FormData): Promise<void> {
+export async function moderateReview(_prev: ActionResult, formData: FormData): Promise<ActionResult> {
   const id = formData.get("id");
   const action = formData.get("action");
   const note = formData.get("note");
-  if (typeof id !== "string" || !id) return;
-  if (action !== "publish" && action !== "remove") return;
+  if (typeof id !== "string" || !id) return notSaved("the form is missing the review. Reload and try again.");
+  if (action !== "publish" && action !== "remove") return notSaved("choose Publish or Remove.");
 
   const ctx = await requireAdmin();
-  if (!ctx) return;
+  if (!ctx) return notSaved(SESSION_ENDED);
 
-  await ctx.supabase
+  const res = await ctx.supabase
     .from("reviews")
     .update({
       status: action === "publish" ? "published" : "removed",
@@ -200,7 +187,10 @@ export async function moderateReview(formData: FormData): Promise<void> {
       moderation_note: typeof note === "string" && note.trim() ? note.trim() : null,
     })
     .eq("id", id)
-    .in("status", ["pending", "flagged"]);
+    .in("status", ["pending", "flagged"])
+    .select("id");
+  const bad = checkWrite(res, "this review was already moderated — reload to see it.");
+  if (bad) return bad;
 
   // Close any open reports on this review.
   await ctx.supabase
@@ -213,24 +203,28 @@ export async function moderateReview(formData: FormData): Promise<void> {
     .eq("review_id", id)
     .eq("status", "open");
 
+  const audit = await logAdminAction(ctx.supabase, `review.${action}`, { table: "reviews", id }, {
+    note: typeof note === "string" && note.trim() ? note.trim() : null,
+  });
   revalidatePath("/admin/reviews");
   revalidatePath("/admin/dashboard");
 
   if (action === "publish") {
     await notifyNewReview(id);
   }
+  return savedWithAudit(action === "publish" ? "Review published." : "Review removed.", audit);
 }
 
 /** Dismiss a report without changing the review (keeps it published). */
-export async function dismissReports(formData: FormData): Promise<void> {
+export async function dismissReports(_prev: ActionResult, formData: FormData): Promise<ActionResult> {
   const reviewId = formData.get("reviewId");
-  if (typeof reviewId !== "string" || !reviewId) return;
+  if (typeof reviewId !== "string" || !reviewId) return notSaved("the form is missing the review. Reload and try again.");
 
   const ctx = await requireAdmin();
-  if (!ctx) return;
+  if (!ctx) return notSaved(SESSION_ENDED);
 
   // A flagged-but-kept review goes back to published.
-  await ctx.supabase
+  const res = await ctx.supabase
     .from("reviews")
     .update({
       status: "published",
@@ -238,7 +232,10 @@ export async function dismissReports(formData: FormData): Promise<void> {
       moderated_at: new Date().toISOString(),
     })
     .eq("id", reviewId)
-    .eq("status", "flagged");
+    .eq("status", "flagged")
+    .select("id");
+  const bad = checkWrite(res, "this review isn't flagged any more — reload to see it.");
+  if (bad) return bad;
 
   await ctx.supabase
     .from("review_reports")
@@ -250,6 +247,8 @@ export async function dismissReports(formData: FormData): Promise<void> {
     .eq("review_id", reviewId)
     .eq("status", "open");
 
+  const audit = await logAdminAction(ctx.supabase, "review.dismiss_reports", { table: "reviews", id: reviewId });
   revalidatePath("/admin/reviews");
   revalidatePath("/admin/dashboard");
+  return savedWithAudit("Reports dismissed — the review stays published.", audit);
 }

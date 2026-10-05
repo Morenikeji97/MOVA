@@ -1,13 +1,13 @@
 "use client";
 
-import { useRef } from "react";
-import { useFormStatus } from "react-dom";
+import { ActionForm, useActionPending } from "@/components/ui/action-form";
+
 import { Button } from "@/components/ui/button";
 import { addShipmentNote } from "../actions";
 import { inputClasses } from "@/components/ui/input-classes";
 
 function SubmitButton() {
-  const { pending } = useFormStatus();
+  const pending = useActionPending();
   return (
     <Button type="submit" size="sm" disabled={pending}>
       {pending ? "Posting…" : "Post update"}
@@ -16,16 +16,8 @@ function SubmitButton() {
 }
 
 export function NoteForm({ shipmentId }: { shipmentId: string }) {
-  const formRef = useRef<HTMLFormElement>(null);
   return (
-    <form
-      ref={formRef}
-      action={async (formData) => {
-        await addShipmentNote(formData);
-        formRef.current?.reset();
-      }}
-      className="flex flex-col gap-2"
-    >
+    <ActionForm action={addShipmentNote} resetOnSaved className="flex flex-col gap-2">
       <input type="hidden" name="shipmentId" value={shipmentId} />
       <label className="flex flex-col gap-1">
         <span className="text-sm text-gray-500">
@@ -42,6 +34,6 @@ export function NoteForm({ shipmentId }: { shipmentId: string }) {
       <div>
         <SubmitButton />
       </div>
-    </form>
+    </ActionForm>
   );
 }

@@ -3,6 +3,7 @@
 import { revalidatePath } from "next/cache";
 import { createClient } from "@/lib/supabase/server";
 import { SHIPPER_COMMISSION_PCT, commissionOwed } from "@/lib/shipping";
+import { SESSION_ENDED, notSaved, saved, type ActionResult } from "@/lib/action-result";
 
 function str(v: FormDataEntryValue | null): string {
   return typeof v === "string" ? v.trim() : "";
@@ -32,24 +33,24 @@ function str(v: FormDataEntryValue | null): string {
  * The rate is validated against shipper_rates_public, which already excludes
  * suspended and non-approved shippers.
  */
-export async function selectShippingRate(formData: FormData): Promise<void> {
+export async function selectShippingRate(_prev: ActionResult, formData: FormData): Promise<ActionResult> {
   const rateId = str(formData.get("rateId"));
   const vehicleId = str(formData.get("vehicleId"));
   const purchaseRequestId = str(formData.get("purchaseRequestId"));
-  if (!rateId || !purchaseRequestId) return;
+  if (!rateId || !purchaseRequestId) return notSaved("the form is incomplete. Reload and try again.");
 
   const supabase = await createClient();
   const {
     data: { user },
   } = await supabase.auth.getUser();
-  if (!user) return;
+  if (!user) return notSaved(SESSION_ENDED);
 
   const { data: profile } = await supabase
     .from("users")
     .select("role, phone, whatsapp_number, email")
     .eq("id", user.id)
     .single();
-  if (profile?.role !== "buyer") return;
+  if (profile?.role !== "buyer") return notSaved("only the buyer can choose a shipper.");
 
   // The purchase_request must actually be this buyer's.
   const { data: purchaseRequest } = await supabase
@@ -58,7 +59,7 @@ export async function selectShippingRate(formData: FormData): Promise<void> {
     .eq("id", purchaseRequestId)
     .eq("buyer_id", user.id)
     .maybeSingle();
-  if (!purchaseRequest) return;
+  if (!purchaseRequest) return notSaved("this reservation isn't yours.");
 
   // Already picked (any shipper) — see the doc comment above.
   const { data: alreadySelected } = await supabase
@@ -68,7 +69,7 @@ export async function selectShippingRate(formData: FormData): Promise<void> {
     .maybeSingle();
   if (alreadySelected) {
     if (vehicleId) revalidatePath(`/browse/${vehicleId}`);
-    return;
+    return notSaved("you've already chosen a shipper for this reservation. To change it, contact ShipMova support.");
   }
 
   const { data: rate } = await supabase
@@ -76,7 +77,7 @@ export async function selectShippingRate(formData: FormData): Promise<void> {
     .select("rate_id, shipper_id, price, currency")
     .eq("rate_id", rateId)
     .maybeSingle();
-  if (!rate || !rate.shipper_id) return;
+  if (!rate || !rate.shipper_id) return notSaved("that rate is no longer available. Reload to see current rates.");
 
   const { data: shipper } = await supabase
     .from("shippers")
@@ -90,7 +91,7 @@ export async function selectShippingRate(formData: FormData): Promise<void> {
     shipper.status !== "approved" ||
     shipper.payment_status === "suspended"
   ) {
-    return;
+    return notSaved("that shipper isn't taking bookings right now. Choose another.");
   }
 
   const { data: buyerProfile } = await supabase
@@ -139,7 +140,7 @@ export async function selectShippingRate(formData: FormData): Promise<void> {
   });
   if (error) {
     console.error("selectShippingRate insert failed:", error);
-    return;
+    return notSaved(error.message);
   }
 
   // Locks in the buyer's choice on the reservation itself — this is what
@@ -148,11 +149,21 @@ export async function selectShippingRate(formData: FormData): Promise<void> {
   // purchase_requests_guard_negotiation trigger (0018): only settable
   // pre-invoice, and only to a rate matching this vehicle's size class —
   // both already true here, but the trigger is the actual enforcement.
-  await supabase
+  // The reservation guard only lets the buyer set this before an invoice
+  // and for a rate matching the car's size, so read back what was saved.
+  const locked = await supabase
     .from("purchase_requests")
     .update({ shipping_rate_id: rate.rate_id })
-    .eq("id", purchaseRequestId);
+    .eq("id", purchaseRequestId)
+    .select("shipping_rate_id");
 
   if (vehicleId) revalidatePath(`/browse/${vehicleId}`);
   revalidatePath("/buyer/dashboard");
+  if (locked.error || locked.data?.[0]?.shipping_rate_id !== rate.rate_id) {
+    console.error("selectShippingRate: rate not locked on reservation", locked.error);
+    return notSaved(
+      "the shipper was contacted, but your reservation didn't record the rate. Contact ShipMova support before paying.",
+    );
+  }
+  return saved(`Shipper selected: ${shipper.company_name}. Their contact details are below.`);
 }

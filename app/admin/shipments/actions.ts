@@ -1,7 +1,6 @@
 "use server";
 
 import { revalidatePath } from "next/cache";
-import { createClient } from "@/lib/supabase/server";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { getStripe } from "@/lib/stripe";
 import { round2 } from "@/lib/fees";
@@ -10,27 +9,14 @@ import {
   applyStandingAfterFailure,
   maybeRestoreGoodStanding,
 } from "@/lib/shipper-billing";
-import { requireAdminMfa } from "@/lib/admin-mfa";
+import { requireAdmin } from "@/lib/admin-auth";
+import { logAdminAction } from "@/lib/admin-audit";
+import { SESSION_ENDED, checkWrite, notSaved, savedWithAudit, type ActionResult } from "@/lib/action-result";
 
 function str(v: FormDataEntryValue | null): string {
   return typeof v === "string" ? v.trim() : "";
 }
 
-async function requireAdmin(): Promise<boolean> {
-  const supabase = await createClient();
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
-  if (!user) return false;
-  const { data: profile } = await supabase
-    .from("users")
-    .select("role")
-    .eq("id", user.id)
-    .single();
-  if (profile?.role !== "admin") return false;
-  await requireAdminMfa(supabase);
-  return true;
-}
 
 /** Pull a PaymentIntent id out of a thrown Stripe off-session card error. */
 function extractPaymentIntentId(err: unknown): string | null {
@@ -62,10 +48,14 @@ function revalidate() {
  * Runs through the service role because it must read the shippers.stripe_*
  * token columns, which are not granted to the authenticated role.
  */
-export async function completeShipment(formData: FormData): Promise<void> {
+export async function completeShipment(
+  _prev: ActionResult,
+  formData: FormData,
+): Promise<ActionResult> {
   const id = str(formData.get("id"));
-  if (!id) return;
-  if (!(await requireAdmin())) return;
+  if (!id) return notSaved("the form is missing the shipment. Reload and try again.");
+  const ctx = await requireAdmin();
+  if (!ctx) return notSaved(SESSION_ENDED);
 
   const admin = createAdminClient();
 
@@ -76,18 +66,23 @@ export async function completeShipment(formData: FormData): Promise<void> {
     )
     .eq("id", id)
     .maybeSingle();
-  if (!sr || sr.status !== "pending") return;
+  if (!sr) return notSaved("this shipment wasn't found.");
+  if (sr.status !== "pending") return notSaved("it's already completed — reload to see it.");
 
   // No shipper fees (lib/shipping.ts): complete without touching Stripe, even
   // for an older row saved with a non-zero commission_pct.
   if (!SHIPPER_FEES_ENABLED) {
-    await admin
+    const res = await admin
       .from("shipment_requests")
       .update({ status: "completed", commission_owed: 0 })
       .eq("id", id)
-      .eq("status", "pending");
+      .eq("status", "pending")
+      .select("id");
+    const bad = checkWrite(res, "it's already completed — reload to see it.");
+    if (bad) return bad;
+    const audit = await logAdminAction(ctx.supabase, "shipment.complete", { table: "shipment_requests", id });
     revalidate();
-    return;
+    return savedWithAudit("Shipment marked completed. No fee charged.", audit);
   }
 
   const { data: shipper } = await admin
@@ -102,11 +97,17 @@ export async function completeShipment(formData: FormData): Promise<void> {
       : commissionOwed(Number(sr.agreed_rate), Number(sr.commission_pct));
 
   // Record the completion up front — it holds whatever the charge does.
-  await admin
+  const done = await admin
     .from("shipment_requests")
     .update({ status: "completed", commission_owed: owed })
     .eq("id", id)
-    .eq("status", "pending");
+    .eq("status", "pending")
+    .select("id");
+  const notDone = checkWrite(done, "it's already completed — reload to see it.");
+  if (notDone) return notDone;
+  const audit = await logAdminAction(ctx.supabase, "shipment.complete", { table: "shipment_requests", id }, {
+    commission_owed: owed,
+  });
 
   const currency = (sr.currency || "USD").toLowerCase();
   // Minor units. ShipMova's shipping lanes price in USD-like 2-decimal currencies.
@@ -119,7 +120,7 @@ export async function completeShipment(formData: FormData): Promise<void> {
       .update({ commission_charge_status: "charged" })
       .eq("id", id);
     revalidate();
-    return;
+    return savedWithAudit("Shipment completed. Commission below Stripe's minimum, nothing charged.", audit);
   }
 
   // No usable card on file — can't collect; flag it and dock the shipper.
@@ -130,7 +131,7 @@ export async function completeShipment(formData: FormData): Promise<void> {
       .eq("id", id);
     await applyStandingAfterFailure(admin, sr.shipper_id);
     revalidate();
-    return;
+    return savedWithAudit("Shipment completed, but the commission couldn't be charged: no card on file.", audit);
   }
 
   try {
@@ -159,6 +160,11 @@ export async function completeShipment(formData: FormData): Promise<void> {
     if (chargeStatus === "charged") {
       await maybeRestoreGoodStanding(admin, sr.shipper_id);
     }
+    revalidate();
+    return savedWithAudit(
+      chargeStatus === "charged" ? "Shipment completed and commission charged." : "Shipment completed; the charge is still processing.",
+      audit,
+    );
   } catch (err) {
     console.error("shipper commission charge failed:", err);
     await admin
@@ -169,7 +175,7 @@ export async function completeShipment(formData: FormData): Promise<void> {
       })
       .eq("id", id);
     await applyStandingAfterFailure(admin, sr.shipper_id);
+    revalidate();
+    return savedWithAudit("Shipment completed, but the commission charge failed.", audit);
   }
-
-  revalidate();
 }

@@ -579,6 +579,22 @@ export interface Database {
         }>;
         Relationships: [];
       };
+      admin_audit_log: {
+        Row: {
+          id: string;
+          seq: number;
+          admin_id: string;
+          action: string;
+          target_table: string;
+          target_id: string | null;
+          details: Record<string, unknown>;
+          created_at: string;
+        };
+        // Written only through log_admin_action() (0056).
+        Insert: never;
+        Update: never;
+        Relationships: [];
+      };
       transaction_status_history: {
         Row: {
           id: string;
@@ -1282,6 +1298,16 @@ export interface Database {
       };
     };
     Functions: {
+      /** Writes one admin audit entry as the calling admin (0056). */
+      log_admin_action: {
+        Args: {
+          p_action: string;
+          p_target_table: string;
+          p_target_id: string | null;
+          p_details?: Record<string, unknown>;
+        };
+        Returns: string;
+      };
       /**
        * Full VIN for an admin, the listing's own seller, or a buyer whose
        * MOVA fee is paid and who has had seller details revealed; NULL for
