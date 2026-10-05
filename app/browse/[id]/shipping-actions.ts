@@ -86,8 +86,11 @@ export async function selectShippingRate(_prev: ActionResult, formData: FormData
     )
     .eq("id", rate.shipper_id)
     .maybeSingle();
+  // Bookable = approved, not suspended, insured and FMC-checked (0060).
+  const { data: bookable } = await supabase.rpc("shipper_is_bookable", { p_shipper_id: rate.shipper_id });
   if (
     !shipper ||
+    !bookable ||
     shipper.status !== "approved" ||
     shipper.payment_status === "suspended"
   ) {

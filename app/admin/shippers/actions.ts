@@ -5,6 +5,7 @@ import { isServiceCountry, isVehicleSizeType, isShippingMethod } from "@/lib/shi
 import { requireAdmin } from "@/lib/admin-auth";
 import { logAdminAction } from "@/lib/admin-audit";
 import { SESSION_ENDED, checkWrite, notSaved, savedWithAudit, type ActionResult } from "@/lib/action-result";
+import { notifyShipperVerificationDecision } from "@/lib/notifications";
 
 /**
  * Admin actions for the shipper review queue. Bound to <form action={…}> with
@@ -41,6 +42,14 @@ export async function approveShipper(_prev: ActionResult, formData: FormData): P
     .eq("id", id)
     .eq("status", "pending")
     .select("id");
+  // The database refuses approval without an approved, in-date insurance
+  // certificate and a checked FMC license (0060).
+  if (res.error?.message.includes("shipper_coi_required")) {
+    return notSaved("approve an in-date insurance certificate first.");
+  }
+  if (res.error?.message.includes("shipper_license_required")) {
+    return notSaved("check the FMC/OTI license on the FMC list first.");
+  }
   const bad = checkWrite(res, "it's no longer pending — reload to see its current state.");
   if (bad) return bad;
   const audit = await logAdminAction(ctx.supabase, "shipper.approve", { table: "shippers", id });
@@ -200,4 +209,70 @@ export async function deleteShippingRate(_prev: ActionResult, formData: FormData
   revalidateShipperViews();
   revalidatePath("/browse", "layout");
   return savedWithAudit("Rate removed.", audit);
+}
+
+/** Approve or reject a shipper's insurance certificate (a reason is required to reject). */
+export async function decideShipperCoi(_prev: ActionResult, formData: FormData): Promise<ActionResult> {
+  const id = str(formData.get("id"));
+  if (!id) return notSaved(MISSING_ID);
+  const approve = str(formData.get("decision")) === "approve";
+  const note = str(formData.get("note")).slice(0, 1000);
+  if (!approve && !note) return notSaved("add a reason the shipper will see.");
+
+  const ctx = await requireAdmin();
+  if (!ctx) return notSaved(SESSION_ENDED);
+
+  const res = await ctx.supabase
+    .from("shippers")
+    .update({
+      coi_status: approve ? "approved" : "rejected",
+      coi_reviewed_by: ctx.adminId,
+      coi_reviewed_at: new Date().toISOString(),
+      coi_review_note: approve ? null : note,
+    })
+    .eq("id", id)
+    .eq("coi_status", "pending")
+    .select("id, coi_expires_on");
+  const bad = checkWrite(res, "this certificate was already decided — reload to see it.");
+  if (bad) return bad;
+  const audit = await logAdminAction(
+    ctx.supabase,
+    approve ? "shipper.coi_approve" : "shipper.coi_reject",
+    { table: "shippers", id },
+    { expires_on: res.data?.[0]?.coi_expires_on ?? null, ...(approve ? {} : { reason: note }) },
+  );
+  revalidateShipperViews();
+  revalidatePath("/browse", "layout");
+  await notifyShipperVerificationDecision(id, "coi", approve, approve ? null : note);
+  return savedWithAudit(approve ? "Certificate approved." : "Certificate rejected — the shipper sees your reason.", audit);
+}
+
+/** Record the FMC/OTI license check: found active on the FMC's OTI list, or not found. */
+export async function recordShipperLicenseCheck(_prev: ActionResult, formData: FormData): Promise<ActionResult> {
+  const id = str(formData.get("id"));
+  if (!id) return notSaved(MISSING_ID);
+  const result = str(formData.get("result"));
+  if (result !== "active" && result !== "not_found") return notSaved("choose found or not found.");
+  const note = str(formData.get("note")).slice(0, 1000);
+
+  const ctx = await requireAdmin();
+  if (!ctx) return notSaved(SESSION_ENDED);
+
+  const res = await ctx.supabase
+    .from("shippers")
+    .update({ license_status: result, license_checked_by: ctx.adminId, license_checked_at: new Date().toISOString() })
+    .eq("id", id)
+    .select("id, fmc_oti_license_number");
+  const bad = checkWrite(res);
+  if (bad) return bad;
+  const audit = await logAdminAction(
+    ctx.supabase,
+    result === "active" ? "shipper.license_active" : "shipper.license_not_found",
+    { table: "shippers", id },
+    { license: res.data?.[0]?.fmc_oti_license_number ?? null, source: "FMC OTI list", ...(note ? { note } : {}) },
+  );
+  revalidateShipperViews();
+  revalidatePath("/browse", "layout");
+  await notifyShipperVerificationDecision(id, "license", result === "active", note || null);
+  return savedWithAudit(result === "active" ? "License recorded as active on the FMC list." : "License recorded as not found.", audit);
 }

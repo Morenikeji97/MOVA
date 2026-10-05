@@ -94,6 +94,17 @@ the copy can be changed instead if a feature is dropped.
          — the database then also refuses reservations from unverified
          buyers (migration 0057).
 
+- [ ] **Every shipper verified before launch (migration 0060).** Buyers only
+      see shippers with an approved, in-date marine cargo insurance
+      certificate and an FMC/OTI license checked on the FMC's OTI list
+      (/admin/shippers). Each real shipper uploads their certificate in the
+      shipper portal; check each license on www2.fmc.gov/oti. Today no real
+      shipper exists ("Test Shipping Co" is test and stops being shown once
+      0060 runs).
+
+- [ ] **Decide shipping payments** (docs/proposals/shipping-payments-through-escrow.md).
+      Today buyers pay shippers directly, and the Terms and Privacy Policy say so.
+
 - [ ] **Re-verify every seller's ID in live mode.** Stripe Identity checks
       done so far ran in test mode, which doesn't verify a real document. At
       launch, reset `seller_profiles` identity status and have each seller

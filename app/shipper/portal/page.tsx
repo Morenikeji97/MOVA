@@ -7,6 +7,7 @@ import { SHIPPER_FEES_ENABLED, SHIPPER_NO_FEES_HEADLINE, countryName } from "@/l
 import type { ShipperPaymentStatus } from "@/types/database";
 import { AddRateForm, RateList, type ShipperRate } from "./portal-rates";
 import { ClaimButton, UpdateCardButton } from "./portal-actions";
+import { InsuranceSection } from "./insurance-section";
 
 const STANDING: Record<
   ShipperPaymentStatus,
@@ -60,7 +61,7 @@ export default async function ShipperPortalPage({
   const { data: linked } = await supabase
     .from("shippers")
     .select(
-      "id, company_name, status, payment_status, card_on_file, rejection_reason, service_countries, contact_email",
+      "id, company_name, status, payment_status, card_on_file, rejection_reason, service_countries, contact_email, coi_status, coi_expires_on, coi_cargo_limit_usd, coi_insurer, coi_review_note, license_status",
     )
     .eq("user_id", user.id)
     .maybeSingle();
@@ -72,7 +73,7 @@ export default async function ShipperPortalPage({
           .from("shippers")
           .select("id, company_name, contact_email")
           .ilike("contact_email", user.email.replace(/([\\%_])/g, "\\$1"))
-          .eq("status", "approved")
+          .in("status", ["pending", "approved"])
           .is("user_id", null)
           .maybeSingle()
       : { data: null };
@@ -94,11 +95,11 @@ export default async function ShipperPortalPage({
         {claimable ? (
           <div className="mt-6 rounded-lg border border-gray-200 bg-white p-6">
             <p className="text-black">
-              We found an approved shipper application for{" "}
+              We found a shipper application for{" "}
               <strong>{claimable.company_name}</strong> under {user.email}.
             </p>
             <p className="mt-1 text-sm text-gray-500">
-              Link it to this account to manage your rates.
+              Link it to this account to send your insurance certificate and manage your rates.
             </p>
             <div className="mt-4">
               <ClaimButton />
@@ -133,10 +134,13 @@ export default async function ShipperPortalPage({
           {linked.company_name}
         </h1>
         {linked.status === "pending" ? (
-          <p className="mt-3 rounded border border-marine-100 bg-marine-50 p-3 text-sm text-marine-700">
-            Your application is under review. You&rsquo;ll be able to add rates
-            here once ShipMova approves it.
-          </p>
+          <>
+            <p className="mt-3 rounded border border-marine-100 bg-marine-50 p-3 text-sm text-marine-700">
+              Your application is under review. ShipMova approves it once your insurance
+              certificate and FMC/OTI license are checked; then you can add rates here.
+            </p>
+            <InsuranceSection userId={user.id} s={linked} />
+          </>
         ) : (
           <div className="mt-3 rounded border border-copper-100 bg-copper-50 p-3 text-sm text-copper-700">
             <p>Your application wasn&rsquo;t approved.</p>
@@ -199,6 +203,8 @@ export default async function ShipperPortalPage({
           We couldn&rsquo;t open Stripe just now. Please try again.
         </p>
       ) : null}
+
+      <InsuranceSection userId={user.id} s={linked} />
 
       {/* Account standing. While shipper fees are off (lib/shipping.ts) there's
           no card, no charge and so nothing that can change standing. */}

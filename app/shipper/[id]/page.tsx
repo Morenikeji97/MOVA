@@ -1,3 +1,5 @@
+import { InsuredBadge } from "@/components/insured-badge";
+import { insuredBadge, isoDay } from "@/lib/shipper-verification";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
@@ -15,11 +17,11 @@ export default async function ShipperProfilePage({
   const { id } = await params;
   const supabase = await createClient();
 
-  // RLS "shippers approved public read" already limits this to approved,
-  // non-suspended shippers.
+  // RLS "shippers approved public read" limits this to bookable shippers:
+  // approved, not suspended, insured and FMC-checked (0060).
   const { data: shipper } = await supabase
     .from("shippers")
-    .select("id, company_name, service_countries, created_at, status")
+    .select("id, company_name, service_countries, created_at, status, coi_status, coi_expires_on, coi_cargo_limit_usd, license_status")
     .eq("id", id)
     .eq("status", "approved")
     .maybeSingle();
@@ -66,6 +68,10 @@ export default async function ShipperProfilePage({
               .map((c) => countryName(c))
               .join(", ") || "—"}
           </p>
+          <InsuredBadge text={insuredBadge(shipper, isoDay(new Date()))} />
+          {shipper.license_status === "active" ? (
+            <p className="mt-1 text-sm text-verified-600">FMC/OTI license ✓ — checked by ShipMova</p>
+          ) : null}
         </div>
       </div>
 

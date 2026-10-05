@@ -3,6 +3,21 @@ import Link from "next/link";
 import { createClient } from "@/lib/supabase/server";
 import { SHIPPER_FEES_ENABLED, countryName, vehicleSizeLabel, shippingMethodLabel } from "@/lib/shipping";
 import type { ShipperPaymentStatus, ShippingMethod, VehicleSizeType } from "@/types/database";
+import { redirect } from "next/navigation";
+import { requireAdmin } from "@/lib/admin-auth";
+import { createAdminClient } from "@/lib/supabase/admin";
+import {
+  FMC_OTI_SEARCH_URLS,
+  SHIPPER_INSURANCE_BUCKET,
+  cleanFmcLicense,
+  daysUntil,
+  formatDay,
+  isBookable,
+  isoDay,
+  type CoiStatus,
+  type LicenseStatus,
+} from "@/lib/shipper-verification";
+import { CoiDecisionForm, LicenseCheckForm } from "./verification-forms";
 import {
   AddRateForm,
   DeleteRateButton,
@@ -55,7 +70,88 @@ type ShipperRow = {
   card_on_file: boolean;
   rejection_reason: string | null;
   created_at: string;
+  coi_status: CoiStatus;
+  coi_document_path: string | null;
+  coi_insurer: string | null;
+  coi_cargo_limit_usd: number | null;
+  coi_expires_on: string | null;
+  coi_reviewed_at: string | null;
+  license_status: LicenseStatus;
+  license_checked_at: string | null;
 };
+
+const COI_LABEL: Record<CoiStatus, string> = {
+  none: "Not uploaded",
+  pending: "Waiting for your check",
+  approved: "Approved",
+  rejected: "Rejected — waiting for a new one",
+};
+
+/** Insurance certificate + FMC license checks for one shipper (0060). */
+function VerificationPanel({ s, coiLink, today }: { s: ShipperRow; coiLink: string | null; today: string }) {
+  const days = s.coi_expires_on ? daysUntil(s.coi_expires_on, today) : null;
+  const license = cleanFmcLicense(s.fmc_oti_license_number);
+  return (
+    <div className="mt-4 border-t border-gray-200 pt-4">
+      <p className="font-mono text-xs uppercase tracking-wider text-gray-500">
+        Verification · {isBookable(s, today) ? "shown to buyers" : "hidden from buyers"}
+      </p>
+
+      <div className="mt-3">
+        <p className="text-sm font-medium text-black">Marine cargo insurance: {COI_LABEL[s.coi_status]}</p>
+        {s.coi_status !== "none" ? (
+          <p className="mt-1 text-sm text-gray-500">
+            {s.coi_insurer ?? "—"}
+            {s.coi_cargo_limit_usd != null ? ` · cover up to ${money(Number(s.coi_cargo_limit_usd), "USD")}` : ""}
+            {s.coi_expires_on ? ` · expires ${formatDay(s.coi_expires_on)}` : ""}
+            {days !== null && days < 0 ? " (EXPIRED)" : days !== null && days <= 30 ? ` (${days} days left)` : ""}
+          </p>
+        ) : null}
+        {coiLink ? (
+          <a
+            href={coiLink}
+            target="_blank"
+            rel="noreferrer"
+            className="mt-2 inline-flex h-11 items-center text-sm text-black underline"
+          >
+            Open certificate (link works for 5 minutes)
+          </a>
+        ) : s.coi_document_path ? (
+          <p className="mt-1 text-sm text-copper-700">The certificate file couldn&rsquo;t be loaded.</p>
+        ) : null}
+        {s.coi_status === "pending" ? <CoiDecisionForm shipperId={s.id} /> : null}
+      </div>
+
+      <div className="mt-5">
+        <p className="text-sm font-medium text-black">
+          FMC/OTI license {s.fmc_oti_license_number}:{" "}
+          {s.license_status === "active"
+            ? `active on FMC list (checked ${s.license_checked_at ? fmtDate.format(new Date(s.license_checked_at)) : ""})`
+            : s.license_status === "not_found"
+              ? "not found on FMC list"
+              : "not checked yet"}
+        </p>
+        {!license ? (
+          <p className="mt-1 text-sm text-copper-700">
+            This doesn&rsquo;t look like an FMC license number (digits, sometimes ending in N, F or NF).
+          </p>
+        ) : null}
+        <p className="mt-1 text-sm text-gray-500">
+          Search {license ?? s.fmc_oti_license_number} on the FMC&rsquo;s OTI list:{" "}
+          {FMC_OTI_SEARCH_URLS.map((u, i) => (
+            <span key={u.href}>
+              {i > 0 ? " · " : ""}
+              <a href={u.href} target="_blank" rel="noreferrer" className="inline-flex h-11 items-center underline">
+                {u.label}
+              </a>
+            </span>
+          ))}
+        </p>
+        <LicenseCheckForm shipperId={s.id} />
+      </div>
+    </div>
+  );
+}
 
 type RateRow = {
   id: string;
@@ -96,12 +192,16 @@ function ShipperFacts({ s }: { s: ShipperRow }) {
 }
 
 export default async function AdminShippersPage() {
+  // Certificates are read with the service role, so check the admin (with
+  // the authenticator code) first.
+  if (!(await requireAdmin())) redirect("/login?next=/admin/shippers");
   const supabase = await createClient();
+  const today = isoDay(new Date());
 
   const { data: shipperRows } = await supabase
     .from("shippers")
     .select(
-      "id, company_name, contact_name, contact_email, contact_phone, fmc_oti_license_number, service_countries, status, payment_status, terms_accepted_at, terms_version, card_on_file, rejection_reason, created_at",
+      "id, company_name, contact_name, contact_email, contact_phone, fmc_oti_license_number, service_countries, status, payment_status, terms_accepted_at, terms_version, card_on_file, rejection_reason, created_at, coi_status, coi_document_path, coi_insurer, coi_cargo_limit_usd, coi_expires_on, coi_reviewed_at, license_status, license_checked_at",
     )
     .order("created_at", { ascending: true });
 
@@ -109,6 +209,15 @@ export default async function AdminShippersPage() {
   const pending = shippers.filter((s) => s.status === "pending");
   const approved = shippers.filter((s) => s.status === "approved");
   const suspended = approved.filter((s) => s.payment_status === "suspended");
+
+  // Short-lived links to certificate files (the bucket has no read rule).
+  const coiLinks = new Map<string, string>();
+  const storage = createAdminClient().storage.from(SHIPPER_INSURANCE_BUCKET);
+  for (const s of [...pending, ...approved]) {
+    if (!s.coi_document_path) continue;
+    const { data } = await storage.createSignedUrl(s.coi_document_path, 300);
+    if (data?.signedUrl) coiLinks.set(s.id, data.signedUrl);
+  }
 
   const approvedIds = approved.map((s) => s.id);
   const { data: rateRows } = approvedIds.length
@@ -166,6 +275,7 @@ export default async function AdminShippersPage() {
                   </span>
                 </div>
                 <ShipperFacts s={s} />
+                <VerificationPanel s={s} coiLink={coiLinks.get(s.id) ?? null} today={today} />
                 {SHIPPER_FEES_ENABLED && !s.card_on_file ? (
                   <p className="mt-2 text-sm text-copper-700">
                     No card on file yet — the applicant hasn&rsquo;t finished
@@ -238,6 +348,7 @@ export default async function AdminShippersPage() {
                     </span>
                   </div>
                   <ShipperFacts s={s} />
+                  <VerificationPanel s={s} coiLink={coiLinks.get(s.id) ?? null} today={today} />
 
                   <div className="mt-4 border-t border-gray-200 pt-4">
                     <p className="font-mono text-xs uppercase tracking-wider text-gray-500">

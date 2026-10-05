@@ -761,6 +761,19 @@ export interface Database {
           terms_accepted_at: string | null;
           terms_version: string | null;
           is_test: boolean;
+          coi_status: "none" | "pending" | "approved" | "rejected";
+          coi_document_path: string | null;
+          coi_insurer: string | null;
+          coi_cargo_limit_usd: number | null;
+          coi_expires_on: string | null;
+          coi_submitted_at: string | null;
+          coi_reviewed_by: string | null;
+          coi_reviewed_at: string | null;
+          coi_review_note: string | null;
+          coi_reminder_stage: "30d" | "7d" | "expired" | null;
+          license_status: "unchecked" | "active" | "not_found";
+          license_checked_by: string | null;
+          license_checked_at: string | null;
           stripe_customer_id: string | null;
           stripe_payment_method_id: string | null;
           card_on_file: boolean;
@@ -785,6 +798,19 @@ export interface Database {
           terms_accepted_at?: string | null;
           terms_version?: string | null;
           is_test?: boolean;
+          coi_status?: "none" | "pending" | "approved" | "rejected";
+          coi_document_path?: string | null;
+          coi_insurer?: string | null;
+          coi_cargo_limit_usd?: number | null;
+          coi_expires_on?: string | null;
+          coi_submitted_at?: string | null;
+          coi_reviewed_by?: string | null;
+          coi_reviewed_at?: string | null;
+          coi_review_note?: string | null;
+          coi_reminder_stage?: "30d" | "7d" | "expired" | null;
+          license_status?: "unchecked" | "active" | "not_found";
+          license_checked_by?: string | null;
+          license_checked_at?: string | null;
           stripe_customer_id?: string | null;
           stripe_payment_method_id?: string | null;
           card_on_file?: boolean;
@@ -809,6 +835,19 @@ export interface Database {
           terms_accepted_at: string | null;
           terms_version: string | null;
           is_test: boolean;
+          coi_status: "none" | "pending" | "approved" | "rejected";
+          coi_document_path: string | null;
+          coi_insurer: string | null;
+          coi_cargo_limit_usd: number | null;
+          coi_expires_on: string | null;
+          coi_submitted_at: string | null;
+          coi_reviewed_by: string | null;
+          coi_reviewed_at: string | null;
+          coi_review_note: string | null;
+          coi_reminder_stage: "30d" | "7d" | "expired" | null;
+          license_status: "unchecked" | "active" | "not_found";
+          license_checked_by: string | null;
+          license_checked_at: string | null;
           stripe_customer_id: string | null;
           stripe_payment_method_id: string | null;
           card_on_file: boolean;
@@ -1328,11 +1367,18 @@ export interface Database {
           price: number | null;
           currency: string | null;
           payment_status: ShipperPaymentStatus | null;
+          coi_cargo_limit_usd: number | null;
+          coi_expires_on: string | null;
         };
         Relationships: [];
       };
     };
     Functions: {
+      /** Approved, not suspended, insured (COI approved, in date) and FMC-checked (0060). */
+      shipper_is_bookable: {
+        Args: { p_shipper_id: string };
+        Returns: boolean;
+      };
       /** What a seller may see about a buyer's ID check (0058); null if not allowed. */
       buyer_id_summary: {
         Args: { p_buyer_id: string };

@@ -48,13 +48,14 @@ function revalidateRateViews() {
 }
 
 /**
- * Link the signed-in account to an approved shipper record whose contact email
+ * Link the signed-in account to a pending or approved shipper record whose contact email
  * matches the account's (verified) email. Used when a shipper applied while
  * logged out and only created a ShipMova login afterwards.
  *
  * The link write needs the service role — RLS only lets admins update shippers
  * — but the action is safe: the target is pinned by the caller's
- * Supabase-verified email, must be `approved`, and must be unclaimed.
+ * Supabase-verified email, must be pending or approved (a pending shipper
+ * links to upload their insurance certificate), and must be unclaimed.
  */
 export async function claimShipper(): Promise<void> {
   const supabase = await createClient();
@@ -73,7 +74,7 @@ export async function claimShipper(): Promise<void> {
 
   if (
     !shipper ||
-    shipper.status !== "approved" ||
+    (shipper.status !== "approved" && shipper.status !== "pending") ||
     shipper.user_id !== null ||
     shipper.contact_email.toLowerCase() !== email
   ) {
