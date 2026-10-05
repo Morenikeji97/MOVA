@@ -1,0 +1,75 @@
+"use client";
+
+import { createContext, useActionState, useContext, useTransition, type ReactNode } from "react";
+import { useFormStatus } from "react-dom";
+import type { ActionResult } from "@/lib/action-result";
+
+const PendingContext = createContext(false);
+
+/**
+ * True while the surrounding <ActionForm> (or a plain <form action>) is
+ * submitting. Use in submit buttons instead of useFormStatus alone.
+ */
+export function useActionPending(): boolean {
+  const fromForm = useFormStatus().pending;
+  const fromActionForm = useContext(PendingContext);
+  return fromForm || fromActionForm;
+}
+
+/**
+ * A form whose server action reports back (lib/action-result.ts). Shows
+ * "Saved…" or "Not saved: <reason>" right under the form, so nothing ever
+ * fails silently.
+ *
+ * Submits through a transition instead of <form action>, so React doesn't
+ * reset the fields: after a failure, everything typed is still there.
+ */
+export function ActionForm({
+  action,
+  children,
+  className,
+  onSaved,
+}: {
+  action: (prev: ActionResult, formData: FormData) => Promise<ActionResult>;
+  children: ReactNode;
+  className?: string;
+  /** Called after a confirmed save (e.g. to clear a reason box). */
+  onSaved?: () => void;
+}) {
+  const [result, run] = useActionState(async (prev: ActionResult, fd: FormData) => {
+    const r = await action(prev, fd);
+    if (r?.ok) onSaved?.();
+    return r;
+  }, null);
+  const [pending, startTransition] = useTransition();
+
+  return (
+    <form
+      className={className}
+      onSubmit={(e) => {
+        e.preventDefault();
+        const fd = new FormData(e.currentTarget);
+        // Keep which button was pressed (e.g. name="action" value="publish"),
+        // which FormData(form) leaves out.
+        const submitter = (e.nativeEvent as SubmitEvent).submitter;
+        if (
+          (submitter instanceof HTMLButtonElement || submitter instanceof HTMLInputElement) &&
+          submitter.name
+        ) {
+          fd.append(submitter.name, submitter.value);
+        }
+        startTransition(() => run(fd));
+      }}
+    >
+      <PendingContext.Provider value={pending}>{children}</PendingContext.Provider>
+      {result ? (
+        <p
+          role="status"
+          className={`mt-2 text-sm ${result.ok ? "text-verified-600" : "text-copper-700"}`}
+        >
+          {result.message}
+        </p>
+      ) : null}
+    </form>
+  );
+}
