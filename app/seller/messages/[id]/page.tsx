@@ -3,6 +3,7 @@ import { notFound } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
 import { ChatThread, type ChatMessage } from "@/components/ui/chat-thread";
 import { NegotiatePricePanel } from "@/components/ui/negotiate-price-panel";
+import { BuyerIdSummary } from "@/components/buyer-id-summary";
 
 export default async function SellerConversationPage({
   params,
@@ -24,7 +25,7 @@ export default async function SellerConversationPage({
 
   if (!conversation || conversation.seller_id !== user!.id) notFound();
 
-  const [{ data: vehicle }, { data: buyer }, { data: messageRows }, { data: pr }] =
+  const [{ data: vehicle }, { data: buyer }, { data: messageRows }, { data: pr }, { data: buyerId }] =
     await Promise.all([
       supabase
         .from("vehicles")
@@ -53,6 +54,7 @@ export default async function SellerConversationPage({
         .order("created_at", { ascending: false })
         .limit(1)
         .maybeSingle(),
+      supabase.rpc("buyer_id_summary", { p_buyer_id: conversation.buyer_id }),
     ]);
 
   const title = vehicle
@@ -85,6 +87,7 @@ export default async function SellerConversationPage({
       <p className="mt-1 font-mono text-sm text-gray-500">
         Conversation with {buyerLabel}
       </p>
+      <BuyerIdSummary summary={buyerId ?? null} />
 
       {pr && vehicle ? (
         <NegotiatePricePanel

@@ -58,6 +58,9 @@ export async function updateSession(request: NextRequest) {
   // Admins only: whether this session passed the authenticator-code step
   // (aal2). See lib/admin-mfa.ts.
   let adminMfaVerified = false;
+  // Buyers only: their account isn't usable until their ID is verified
+  // (lib/id-verification.ts, migration 0058).
+  let needsIdVerification = false;
   if (user) {
     const { data: profile } = await supabase
       .from("users")
@@ -68,6 +71,15 @@ export async function updateSession(request: NextRequest) {
 
     if (role === "admin") {
       adminMfaVerified = await hasMfaSession(supabase);
+    }
+
+    if (role === "buyer") {
+      const { data: buyer } = await supabase
+        .from("buyer_profiles")
+        .select("verification_status")
+        .eq("user_id", user.id)
+        .maybeSingle();
+      needsIdVerification = buyer?.verification_status !== "verified";
     }
 
     if (role && role !== "admin") {
@@ -89,5 +101,5 @@ export async function updateSession(request: NextRequest) {
     }
   }
 
-  return { supabaseResponse, user, role, needsPolicyAcceptance, adminMfaVerified };
+  return { supabaseResponse, user, role, needsPolicyAcceptance, adminMfaVerified, needsIdVerification };
 }

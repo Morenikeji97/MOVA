@@ -6,6 +6,7 @@ import { createAdminClient } from "@/lib/supabase/admin";
 import { scanForContactInfo, CONTACT_INFO_BLOCK_MESSAGE } from "@/lib/chat-filter";
 import { checkRateLimit, RATE_LIMIT_MESSAGE } from "@/lib/rate-limit";
 import { notifyNewChatMessage, notifyNegotiatedPriceProposed } from "@/lib/notifications";
+import { unverifiedBuyerMessage } from "@/lib/buyer-verified";
 
 /** Longest a single chat message may be. */
 const MAX_MESSAGE_LENGTH = 4000;
@@ -47,6 +48,8 @@ export async function openConversation(
   if (profile?.role !== "buyer") {
     return { ok: false, error: "Messaging the seller is for buyer accounts." };
   }
+  const unverified = await unverifiedBuyerMessage(supabase, user.id);
+  if (unverified) return { ok: false, error: unverified };
 
   const { data: vehicle } = await supabase
     .from("vehicles")
@@ -146,6 +149,10 @@ export async function sendChatMessage(
   if (!ctx) return { ok: false, error: "This conversation isn't available." };
 
   const { user, conversation } = ctx;
+  if (conversation.buyer_id === user.id) {
+    const unverified = await unverifiedBuyerMessage(await createClient(), user.id);
+    if (unverified) return { ok: false, error: unverified };
+  }
   const admin = createAdminClient();
 
   const allowed = await checkRateLimit(`chat:${user.id}`, 30, 60);
@@ -344,6 +351,8 @@ export async function acceptNegotiatedPrice(
     data: { user },
   } = await supabase.auth.getUser();
   if (!user) return { ok: false, error: "Please sign in." };
+  const unverified = await unverifiedBuyerMessage(supabase, user.id);
+  if (unverified) return { ok: false, error: unverified };
 
   const { data: pr } = await supabase
     .from("purchase_requests")

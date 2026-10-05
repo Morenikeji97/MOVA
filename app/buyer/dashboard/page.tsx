@@ -1,6 +1,6 @@
 import Link from "next/link";
 import { createClient } from "@/lib/supabase/server";
-import { KycVerifyForm } from "@/components/ui/kyc-verify-form";
+import { BuyerIdSummary } from "@/components/buyer-id-summary";
 import { feeBreakdown } from "@/lib/fees";
 import { bankTransferDetails, bankTransferReference } from "@/lib/bank-transfer";
 import { BuyerReviewHub } from "@/components/reviews/buyer-review-hub";
@@ -14,7 +14,6 @@ import { FeePaymentOptions } from "@/components/ui/fee-payment-options";
 import { WaitlistForm } from "@/components/ui/waitlist-form";
 import { isPrelaunch } from "@/lib/prelaunch";
 import type { FeeResponsibility } from "@/types/database";
-import { isIdVerificationLive } from "@/lib/id-verification";
 
 const usdCents = new Intl.NumberFormat("en-US", {
   style: "currency",
@@ -49,12 +48,8 @@ export default async function BuyerDashboard({
     data: { user },
   } = await supabase.auth.getUser();
 
-  const [{ data: profileData }, { data: reservationRows }] = await Promise.all([
-    supabase
-      .from("buyer_profiles")
-      .select("*")
-      .eq("user_id", user!.id)
-      .single(),
+  const [{ data: idSummary }, { data: reservationRows }] = await Promise.all([
+    supabase.rpc("buyer_id_summary", { p_buyer_id: user!.id }),
     supabase
       .from("purchase_requests")
       .select(
@@ -64,7 +59,6 @@ export default async function BuyerDashboard({
       .order("created_at", { ascending: false }),
   ]);
 
-  const profile = profileData;
   const reservations = reservationRows ?? [];
   const bankDetails = bankTransferDetails();
   const prelaunch = isPrelaunch();
@@ -122,32 +116,8 @@ export default async function BuyerDashboard({
     <main className="mx-auto max-w-4xl px-6 py-16">
       <h1 className="text-2xl font-semibold text-black">Buyer Dashboard</h1>
       <p className="mt-2 text-gray-500">Signed in as {user?.email}</p>
-      {profile?.verification_status === "verified" ? (
-        <p className="mt-1 text-sm text-verified-600">Identity verified.</p>
-      ) : !isIdVerificationLive() ? (
-        // Dojah is still in sandbox: no form, so no real NIN goes to a test system.
-        <div className="mt-3 rounded border border-gray-200 p-4">
-          <p className="text-sm font-medium text-black">ID verification opens at launch</p>
-          <p className="mt-1 text-sm text-gray-500">
-            You can browse and save cars now. You&rsquo;ll verify your NIN once,
-            before your first reservation.
-          </p>
-        </div>
-      ) : (
-        <div className="mt-3 space-y-2 rounded border border-gray-200 p-4">
-          <p className="text-sm font-medium text-black">Verify your identity</p>
-          <p className="text-sm text-gray-500">
-            You need a verified NIN (or BVN) before your first reservation. It also
-            unlocks your ShipMova referral rewards. Either one is enough.
-          </p>
-          {profile?.nin_verification_status !== "verified" ? (
-            <KycVerifyForm kind="nin" />
-          ) : null}
-          {profile?.bvn_verification_status !== "verified" ? (
-            <KycVerifyForm kind="bvn" />
-          ) : null}
-        </div>
-      )}
+      {/* Buyers reach this page only once their ID is verified (middleware.ts). */}
+      <BuyerIdSummary summary={idSummary ?? null} />
 
       {feeNotice === "paid" && awaitingFeeConfirmation ? (
         <p className="mt-6 rounded border border-verified-100 bg-verified-50 p-3 text-sm text-verified-600">

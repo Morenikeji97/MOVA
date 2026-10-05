@@ -2,6 +2,7 @@ import Link from "next/link";
 import { createClient } from "@/lib/supabase/server";
 import { ReportIssuePanel } from "@/components/ui/report-issue-panel";
 import { DisputeStatusList, type DisputeSummary } from "@/components/ui/dispute-status";
+import { BuyerIdSummary } from "@/components/buyer-id-summary";
 
 const usd = new Intl.NumberFormat("en-US", {
   style: "currency",
@@ -56,7 +57,7 @@ export default async function SellerReservationsPage() {
     ? await supabase
         .from("purchase_requests")
         .select(
-          "id, reference, vehicle_id, status, created_at, vehicle_price_usd, mova_fee_payment_status",
+          "id, reference, vehicle_id, buyer_id, status, created_at, vehicle_price_usd, mova_fee_payment_status",
         )
         .in("vehicle_id", vehicleIds)
         .order("created_at", { ascending: false })
@@ -64,6 +65,17 @@ export default async function SellerReservationsPage() {
 
   const reservations = reservationRows ?? [];
   const reservationIds = reservations.map((r) => r.id);
+
+  // What was checked on each buyer's ID (never the ID itself).
+  const buyerIds = [...new Set(reservations.map((r) => r.buyer_id))];
+  const idSummaries = new Map(
+    await Promise.all(
+      buyerIds.map(async (b) => {
+        const { data } = await supabase.rpc("buyer_id_summary", { p_buyer_id: b });
+        return [b, data ?? null] as const;
+      }),
+    ),
+  );
 
   const { data: disputeRows } = reservationIds.length
     ? await supabase
@@ -153,6 +165,7 @@ export default async function SellerReservationsPage() {
                 <p className="mt-2 text-sm text-gray-500">
                   {RESERVATION_STATUS_COPY[r.status] ?? r.status}
                 </p>
+                <BuyerIdSummary summary={idSummaries.get(r.buyer_id) ?? null} />
                 {r.mova_fee_payment_status === "paid" ? (
                   <p className="mt-2 rounded border border-verified-100 bg-verified-50 p-3 text-sm text-verified-600">
                     Buyer has paid ShipMova&rsquo;s fee. Next they pay the car price

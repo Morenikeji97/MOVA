@@ -38,12 +38,22 @@ test("no server action returns nothing (except reviewed redirect/background ones
   assert.deepEqual(silent, []);
 });
 
-test("every confirmed-write admin action writes the audit log", () => {
+test("every admin action writes the audit log (directly or via a shared helper)", () => {
   for (const path of sourceFiles(join("app", "admin"))) {
     const text = readFileSync(path, "utf8");
     if (!text.startsWith('"use server"')) continue;
-    const actions = [...text.matchAll(/export async function (\w+)/g)].length;
-    const audits = [...text.matchAll(/logAdminAction\(/g)].length;
-    assert.ok(audits >= actions, `${path}: ${actions} actions but ${audits} audit calls`);
+    // Split into top-level functions; a helper "logs" if its body calls logAdminAction.
+    const chunks = text.split(/\n(?=(?:export )?async function )/);
+    const logs = new Set<string>();
+    for (const c of chunks) {
+      const name = /async function (\w+)/.exec(c)?.[1];
+      if (name && c.includes("logAdminAction(")) logs.add(name);
+    }
+    for (const c of chunks) {
+      const m = /^export async function (\w+)/.exec(c.trimStart());
+      if (!m) continue;
+      const delegates = [...logs].some((h) => h !== m[1] && new RegExp(`\\b${h}\\(`).test(c));
+      assert.ok(logs.has(m[1]) || delegates, `${path}: ${m[1]} doesn't write the audit log`);
+    }
   }
 });

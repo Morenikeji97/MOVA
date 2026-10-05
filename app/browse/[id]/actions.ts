@@ -6,6 +6,7 @@ import { feeBreakdown } from "@/lib/fees";
 import { checkRateLimit, RATE_LIMIT_MESSAGE } from "@/lib/rate-limit";
 import { isPrelaunch, PRELAUNCH_REFUSAL } from "@/lib/prelaunch";
 import { ID_CHECK_REQUIRED_TO_RESERVE } from "@/lib/id-verification";
+import { unverifiedBuyerMessage } from "@/lib/buyer-verified";
 
 /**
  * Outcome of {@link reserveVehicle}. `ok: true, created: false` means the buyer
@@ -66,20 +67,11 @@ export async function reserveVehicle(
   const allowed = await checkRateLimit(`reserve:${user.id}`, 10, 60 * 60);
   if (!allowed) return { ok: false, error: RATE_LIMIT_MESSAGE };
 
-  // ID check at reservation (not at signup or browsing): the database
-  // refuses an unverified buyer while the switch is on (migration 0057);
-  // checking first gives a clear message.
-  const { data: idCheckRequired } = await supabase.rpc("is_buyer_id_check_required");
-  if (idCheckRequired) {
-    const { data: buyer } = await supabase
-      .from("buyer_profiles")
-      .select("verification_status")
-      .eq("user_id", user.id)
-      .maybeSingle();
-    if (buyer?.verification_status !== "verified") {
-      return { ok: false, error: ID_CHECK_REQUIRED_TO_RESERVE };
-    }
-  }
+  // A buyer's ID is verified at sign-up (middleware.ts); refuse here too in
+  // case this is called directly. The database also refuses an unverified
+  // buyer once the 0057 switch is on.
+  const unverified = await unverifiedBuyerMessage(supabase, user.id);
+  if (unverified) return { ok: false, error: unverified };
 
   // The vehicle must exist and be live.
   const { data: vehicle } = await supabase
