@@ -1,9 +1,10 @@
 "use server";
 
 import { revalidatePath } from "next/cache";
-import { createClient } from "@/lib/supabase/server";
 import type { ReferralPayoutStatus } from "@/types/database";
-import { requireAdminMfa } from "@/lib/admin-mfa";
+import { requireAdmin } from "@/lib/admin-auth";
+import { logAdminAction } from "@/lib/admin-audit";
+import { SESSION_ENDED, checkWrite, notSaved, savedWithAudit, type ActionResult } from "@/lib/action-result";
 
 /**
  * Admin actions for /admin/referrals. Bound to <form action={…}> with hidden
@@ -13,39 +14,30 @@ import { requireAdminMfa } from "@/lib/admin-mfa";
  * database — both are plain admin-only row policies, no column-level guard
  * needed since only an admin can reach these rows' UPDATE at all.
  */
-async function requireAdmin() {
-  const supabase = await createClient();
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
-  if (!user) return null;
-
-  const { data: profile } = await supabase
-    .from("users")
-    .select("role")
-    .eq("id", user.id)
-    .single();
-  if (profile?.role !== "admin") return null;
-  await requireAdminMfa(supabase);
-
-  return { supabase, adminId: user.id };
-}
 
 /** Clears a flagged referral credit's rate-flag review without changing its outcome. */
-export async function markReferralFlagReviewed(formData: FormData): Promise<void> {
+export async function markReferralFlagReviewed(
+  _prev: ActionResult,
+  formData: FormData,
+): Promise<ActionResult> {
   const id = formData.get("id");
-  if (typeof id !== "string" || id.length === 0) return;
+  if (typeof id !== "string" || id.length === 0) return notSaved("the form is missing the referral. Reload and try again.");
 
   const ctx = await requireAdmin();
-  if (!ctx) return;
+  if (!ctx) return notSaved(SESSION_ENDED);
 
-  await ctx.supabase
+  const res = await ctx.supabase
     .from("referral_credits")
     .update({ flag_reviewed_by: ctx.adminId, flag_reviewed_at: new Date().toISOString() })
     .eq("id", id)
-    .eq("flag_status", "flagged");
+    .eq("flag_status", "flagged")
+    .select("id");
+  const bad = checkWrite(res, "this referral isn't flagged any more — reload to see it.");
+  if (bad) return bad;
 
+  const audit = await logAdminAction(ctx.supabase, "referral.flag_reviewed", { table: "referral_credits", id });
   revalidatePath("/admin/referrals");
+  return savedWithAudit("Marked reviewed.", audit);
 }
 
 /**
@@ -55,14 +47,17 @@ export async function markReferralFlagReviewed(formData: FormData): Promise<void
  * for a US-based referrer, a bank wire otherwise) happens outside this
  * action; this just records the outcome for the ledger.
  */
-export async function updateReferralPayoutStatus(formData: FormData): Promise<void> {
+export async function updateReferralPayoutStatus(
+  _prev: ActionResult,
+  formData: FormData,
+): Promise<ActionResult> {
   const id = formData.get("id");
   const status = formData.get("status");
-  if (typeof id !== "string" || id.length === 0) return;
-  if (status !== "processing" && status !== "paid" && status !== "failed") return;
+  if (typeof id !== "string" || id.length === 0) return notSaved("the form is missing the payout. Reload and try again.");
+  if (status !== "processing" && status !== "paid" && status !== "failed") return notSaved("unknown payout status.");
 
   const ctx = await requireAdmin();
-  if (!ctx) return;
+  if (!ctx) return notSaved(SESSION_ENDED);
 
   const payoutReference = formData.get("payout_reference");
   const failureReason = formData.get("failure_reason");
@@ -92,7 +87,14 @@ export async function updateReferralPayoutStatus(formData: FormData): Promise<vo
     update.paid_at = new Date().toISOString();
   }
 
-  await ctx.supabase.from("referral_payout_batches").update(update).eq("id", id);
+  const res = await ctx.supabase.from("referral_payout_batches").update(update).eq("id", id).select("id");
+  const bad = checkWrite(res, "this payout wasn't found.");
+  if (bad) return bad;
 
+  const audit = await logAdminAction(ctx.supabase, `referral.payout_${status}`, {
+    table: "referral_payout_batches",
+    id,
+  }, { payout_reference: update.payout_reference ?? null, failure_reason: update.failure_reason ?? null });
   revalidatePath("/admin/referrals");
+  return savedWithAudit(`Payout marked ${status}.`, audit);
 }

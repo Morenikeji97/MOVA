@@ -1,3 +1,4 @@
+import { ActionForm } from "@/components/ui/action-form";
 import { createClient } from "@/lib/supabase/server";
 import { buttonClasses } from "@/components/ui/button";
 import { markReferralFlagReviewed, updateReferralPayoutStatus } from "./actions";
@@ -78,12 +79,12 @@ export default async function AdminReferralsPage() {
                     identity-signal matches
                     {signals.length > 0 ? ` (also logged: ${signals.join(", ")})` : ""}
                   </p>
-                  <form action={markReferralFlagReviewed} className="mt-3">
+                  <ActionForm action={markReferralFlagReviewed} className="mt-3">
                     <input type="hidden" name="id" value={r.id} />
                     <button type="submit" className={buttonClasses({ size: "sm", variant: "secondary" })}>
                       Mark reviewed
                     </button>
-                  </form>
+                  </ActionForm>
                 </li>
               );
             })}
@@ -114,7 +115,7 @@ export default async function AdminReferralsPage() {
                   {b.method === "stripe_transfer" ? "Stripe Dashboard transfer" : "bank wire"}),
                   then record the outcome below.
                 </p>
-                <form action={updateReferralPayoutStatus} className="mt-3 flex flex-wrap items-end gap-3">
+                <ActionForm action={updateReferralPayoutStatus} className="mt-3 flex flex-wrap items-end gap-3">
                   <input type="hidden" name="id" value={b.id} />
                   <label className="flex flex-col gap-1">
                     <span className="text-xs text-gray-500">Reference (optional)</span>
@@ -148,7 +149,7 @@ export default async function AdminReferralsPage() {
                   >
                     Mark failed
                   </button>
-                </form>
+                </ActionForm>
               </li>
             ))}
           </ul>

@@ -3,11 +3,10 @@ import assert from "node:assert/strict";
 import { readdirSync, readFileSync } from "node:fs";
 import { join } from "node:path";
 
-// Static guard for lib/admin-mfa.ts: every admin role check in app/ must be
-// followed by requireAdminMfa(), and every admin page or action that uses
-// the service-role key must call it. Server actions are reachable by id from
-// any page and the service role bypasses is_admin() in RLS, so these checks
-// are the only thing stopping a password-only (aal1) admin session there.
+// Static guard for admin access (lib/admin-auth.ts, lib/admin-mfa.ts).
+// Server actions are reachable by id from any page and the service role
+// bypasses is_admin() in RLS, so the code-checked admin check in the app is
+// the only thing stopping a password-only (aal1) admin session there.
 
 function sourceFiles(dir: string): string[] {
   return readdirSync(dir, { withFileTypes: true }).flatMap((entry) => {
@@ -23,27 +22,46 @@ const CODE_PAGE = join("app", "mfa", "page.tsx");
 
 const files = sourceFiles("app").map((path) => ({ path, text: readFileSync(path, "utf8") }));
 
-test("every admin role check is followed by requireAdminMfa()", () => {
-  const checked: string[] = [];
+test("the shared admin check (lib/admin-auth.ts) requires the code after the role", () => {
+  const src = readFileSync("lib/admin-auth.ts", "utf8");
+  const role = src.search(ROLE_CHECK);
+  const mfa = src.indexOf("await requireAdminMfa(");
+  assert.ok(role > 0, "lib/admin-auth.ts has no admin role check");
+  assert.ok(mfa > role, "lib/admin-auth.ts must call requireAdminMfa after the role check");
+});
+
+test("admin action files use the shared check, never their own copy", () => {
+  const actionFiles = files.filter(
+    (f) =>
+      f.text.startsWith('"use server"') &&
+      (f.path.startsWith(join("app", "admin")) || f.path === join("app", "reviews", "actions.ts")),
+  );
+  assert.ok(actionFiles.length >= 7, `expected the 7 admin action files, found ${actionFiles.length}`);
+  for (const { path, text } of actionFiles) {
+    assert.doesNotMatch(text, /async function requireAdmin\b/, `${path} defines its own requireAdmin`);
+    assert.match(text, /from "@\/lib\/admin-auth"/, `${path} doesn't import the shared requireAdmin`);
+  }
+});
+
+test("any remaining admin role check in app/ is followed by requireAdminMfa()", () => {
   for (const { path, text } of files) {
     if (path === CODE_PAGE) continue;
     const lines = text.split("\n");
     lines.forEach((line, i) => {
       if (!ROLE_CHECK.test(line)) return;
-      checked.push(path);
       const after = lines.slice(i + 1, i + 4).join("\n");
       assert.match(after, /await requireAdminMfa\(/, `${path}:${i + 1} checks the admin role without the code`);
     });
   }
-  // Fails loudly if the pattern stops matching (e.g. a refactor renames the
-  // check) instead of passing vacuously.
-  assert.ok(checked.length >= 9, `expected at least 9 admin role checks, found ${checked.length}`);
 });
 
 test("every admin page or action using the service-role key requires the code", () => {
   for (const { path, text } of files) {
     if (!path.startsWith(join("app", "admin")) || !text.includes("createAdminClient")) continue;
-    assert.match(text, /requireAdminMfa\(/, `${path} uses the service role without requireAdminMfa()`);
+    assert.ok(
+      /requireAdminMfa\(/.test(text) || /from "@\/lib\/admin-auth"/.test(text),
+      `${path} uses the service role without the code-checked admin check`,
+    );
   }
 });
 

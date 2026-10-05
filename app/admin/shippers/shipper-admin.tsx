@@ -1,7 +1,8 @@
 "use client";
 
+import { ActionForm, useActionPending } from "@/components/ui/action-form";
+
 import { type ComponentProps, useState } from "react";
-import { useFormStatus } from "react-dom";
 import { Button } from "@/components/ui/button";
 import { SERVICE_COUNTRIES, VEHICLE_SIZE_TYPES, SHIPPING_METHODS } from "@/lib/shipping";
 import {
@@ -20,7 +21,7 @@ function PendingButton({
   pendingLabel,
   ...props
 }: ComponentProps<typeof Button> & { pendingLabel: string }) {
-  const { pending } = useFormStatus();
+  const pending = useActionPending();
   return (
     <Button type="submit" disabled={pending} {...props}>
       {pending ? pendingLabel : children}
@@ -34,7 +35,7 @@ export function ShipperReviewActions({ shipperId }: { shipperId: string }) {
   return (
     <div className="mt-4 border-t border-gray-200 pt-4">
       {rejecting ? (
-        <form action={rejectShipper} className="flex flex-col gap-2">
+        <ActionForm action={rejectShipper} className="flex flex-col gap-2">
           <input type="hidden" name="id" value={shipperId} />
           <label className="flex flex-col gap-1">
             <span className="text-sm text-gray-500">
@@ -60,15 +61,15 @@ export function ShipperReviewActions({ shipperId }: { shipperId: string }) {
               Cancel
             </button>
           </div>
-        </form>
+        </ActionForm>
       ) : (
         <div className="flex items-center gap-3">
-          <form action={approveShipper}>
+          <ActionForm action={approveShipper}>
             <input type="hidden" name="id" value={shipperId} />
             <PendingButton variant="primary" size="sm" pendingLabel="Approving…">
               Approve
             </PendingButton>
-          </form>
+          </ActionForm>
           <Button
             type="button"
             variant="secondary"
@@ -85,29 +86,29 @@ export function ShipperReviewActions({ shipperId }: { shipperId: string }) {
 
 export function ReinstateShipperButton({ shipperId }: { shipperId: string }) {
   return (
-    <form action={reinstateShipper}>
+    <ActionForm action={reinstateShipper}>
       <input type="hidden" name="id" value={shipperId} />
       <PendingButton variant="primary" size="sm" pendingLabel="Reinstating…">
         Reinstate (good standing)
       </PendingButton>
-    </form>
+    </ActionForm>
   );
 }
 
 export function DeleteRateButton({ rateId }: { rateId: string }) {
   return (
-    <form action={deleteShippingRate}>
+    <ActionForm action={deleteShippingRate}>
       <input type="hidden" name="id" value={rateId} />
       <PendingButton variant="ghost" size="sm" pendingLabel="Removing…">
         Remove
       </PendingButton>
-    </form>
+    </ActionForm>
   );
 }
 
 export function AddRateForm({ shipperId }: { shipperId: string }) {
   return (
-    <form
+    <ActionForm
       action={addShippingRate}
       className="mt-3 grid grid-cols-1 gap-2 sm:grid-cols-2"
     >
@@ -173,6 +174,6 @@ export function AddRateForm({ shipperId }: { shipperId: string }) {
           Add rate
         </PendingButton>
       </div>
-    </form>
+    </ActionForm>
   );
 }

@@ -1,7 +1,8 @@
 "use client";
 
+import { ActionForm, useActionPending } from "@/components/ui/action-form";
+
 import { type ComponentProps } from "react";
-import { useFormStatus } from "react-dom";
 import { Button } from "@/components/ui/button";
 import { completeShipment } from "./actions";
 import { SHIPPER_FEES_ENABLED } from "@/lib/shipping";
@@ -11,7 +12,7 @@ function PendingButton({
   pendingLabel,
   ...props
 }: ComponentProps<typeof Button> & { pendingLabel: string }) {
-  const { pending } = useFormStatus();
+  const pending = useActionPending();
   return (
     <Button type="submit" disabled={pending} {...props}>
       {pending ? pendingLabel : children}
@@ -25,7 +26,7 @@ export function CompleteShipmentButton({
   shipmentId: string;
 }) {
   return (
-    <form action={completeShipment}>
+    <ActionForm action={completeShipment}>
       <input type="hidden" name="id" value={shipmentId} />
       <PendingButton
         variant="primary"
@@ -33,6 +34,6 @@ export function CompleteShipmentButton({
       >
         {SHIPPER_FEES_ENABLED ? "Mark completed & charge commission" : "Mark completed"}
       </PendingButton>
-    </form>
+    </ActionForm>
   );
 }

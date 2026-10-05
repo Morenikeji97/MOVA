@@ -1,9 +1,10 @@
 "use server";
 
 import { revalidatePath } from "next/cache";
-import { createClient } from "@/lib/supabase/server";
 import { isServiceCountry, isVehicleSizeType, isShippingMethod } from "@/lib/shipping";
-import { requireAdminMfa } from "@/lib/admin-mfa";
+import { requireAdmin } from "@/lib/admin-auth";
+import { logAdminAction } from "@/lib/admin-audit";
+import { SESSION_ENDED, checkWrite, notSaved, savedWithAudit, type ActionResult } from "@/lib/action-result";
 
 /**
  * Admin actions for the shipper review queue. Bound to <form action={…}> with
@@ -13,23 +14,6 @@ import { requireAdminMfa } from "@/lib/admin-mfa";
  * and the "shippers admin update" / "shipping rates admin write" RLS policies
  * (public.is_admin()) enforce it at the database.
  */
-async function requireAdmin() {
-  const supabase = await createClient();
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
-  if (!user) return null;
-
-  const { data: profile } = await supabase
-    .from("users")
-    .select("role")
-    .eq("id", user.id)
-    .single();
-  if (profile?.role !== "admin") return null;
-  await requireAdminMfa(supabase);
-
-  return { supabase, adminId: user.id };
-}
 
 function str(v: FormDataEntryValue | null): string {
   return typeof v === "string" ? v.trim() : "";
@@ -42,18 +26,24 @@ function revalidateShipperViews() {
 }
 
 /** Approve a pending shipper — their rates become visible to buyers. */
-export async function approveShipper(formData: FormData): Promise<void> {
+const MISSING_ID = "the form is missing the shipper. Reload and try again.";
+
+export async function approveShipper(_prev: ActionResult, formData: FormData): Promise<ActionResult> {
   const id = str(formData.get("id"));
-  if (!id) return;
+  if (!id) return notSaved(MISSING_ID);
 
   const ctx = await requireAdmin();
-  if (!ctx) return;
+  if (!ctx) return notSaved(SESSION_ENDED);
 
-  await ctx.supabase
+  const res = await ctx.supabase
     .from("shippers")
     .update({ status: "approved", reviewed_by: ctx.adminId, rejection_reason: null })
     .eq("id", id)
-    .eq("status", "pending");
+    .eq("status", "pending")
+    .select("id");
+  const bad = checkWrite(res, "it's no longer pending — reload to see its current state.");
+  if (bad) return bad;
+  const audit = await logAdminAction(ctx.supabase, "shipper.approve", { table: "shippers", id });
 
   // Best-effort: if a ShipMova account already exists for the contact email and the
   // shipper isn't linked yet, link it so the /shipper portal works right away.
@@ -82,51 +72,63 @@ export async function approveShipper(formData: FormData): Promise<void> {
   }
 
   revalidateShipperViews();
+  return savedWithAudit("Shipper approved — their rates can now go live.", audit);
 }
 
 /** Reject a pending shipper and record why. A non-empty reason is required. */
-export async function rejectShipper(formData: FormData): Promise<void> {
+export async function rejectShipper(_prev: ActionResult, formData: FormData): Promise<ActionResult> {
   const id = str(formData.get("id"));
   const reason = str(formData.get("rejection_reason"));
-  if (!id || !reason) return;
+  if (!id) return notSaved(MISSING_ID);
+  if (!reason) return notSaved("add a reason for the rejection.");
 
   const ctx = await requireAdmin();
-  if (!ctx) return;
+  if (!ctx) return notSaved(SESSION_ENDED);
 
-  await ctx.supabase
+  const res = await ctx.supabase
     .from("shippers")
     .update({ status: "rejected", rejection_reason: reason, reviewed_by: ctx.adminId })
     .eq("id", id)
-    .eq("status", "pending");
+    .eq("status", "pending")
+    .select("id");
+  const bad = checkWrite(res, "it's no longer pending — reload to see its current state.");
+  if (bad) return bad;
 
+  const audit = await logAdminAction(ctx.supabase, "shipper.reject", { table: "shippers", id }, { reason });
   revalidateShipperViews();
+  return savedWithAudit("Shipper rejected.", audit);
 }
 
 /**
  * Lift a suspension after manual review. Sets `reinstated_at` so the earlier
  * failed commissions no longer count toward re-suspension.
  */
-export async function reinstateShipper(formData: FormData): Promise<void> {
+export async function reinstateShipper(_prev: ActionResult, formData: FormData): Promise<ActionResult> {
   const id = str(formData.get("id"));
-  if (!id) return;
+  if (!id) return notSaved(MISSING_ID);
 
   const ctx = await requireAdmin();
-  if (!ctx) return;
+  if (!ctx) return notSaved(SESSION_ENDED);
 
-  await ctx.supabase
+  const res = await ctx.supabase
     .from("shippers")
     .update({
       payment_status: "good_standing",
       reinstated_at: new Date().toISOString(),
     })
     .eq("id", id)
-    .eq("payment_status", "suspended");
+    .eq("payment_status", "suspended")
+    .select("id");
+  const bad = checkWrite(res, "this shipper isn't suspended — reload to see its current state.");
+  if (bad) return bad;
 
+  const audit = await logAdminAction(ctx.supabase, "shipper.reinstate", { table: "shippers", id });
   revalidateShipperViews();
+  return savedWithAudit("Shipper reinstated.", audit);
 }
 
 /** Add a shipping rate for an approved shipper. Prices are shown to buyers as-is. */
-export async function addShippingRate(formData: FormData): Promise<void> {
+export async function addShippingRate(_prev: ActionResult, formData: FormData): Promise<ActionResult> {
   const shipperId = str(formData.get("shipper_id"));
   const originRegion = str(formData.get("origin_region"));
   const originPort = str(formData.get("origin_port"));
@@ -136,23 +138,24 @@ export async function addShippingRate(formData: FormData): Promise<void> {
   const currency = str(formData.get("currency")).toUpperCase() || "USD";
   const price = Number(str(formData.get("price")));
 
-  if (!shipperId || !originRegion || !destinationCountry) return;
-  if (!isServiceCountry(destinationCountry)) return;
-  if (!isVehicleSizeType(vehicleSizeType)) return;
-  if (!isShippingMethod(shippingMethod)) return;
-  if (!Number.isFinite(price) || price < 0) return;
+  if (!shipperId) return notSaved(MISSING_ID);
+  if (!originRegion) return notSaved("add the pickup region.");
+  if (!isServiceCountry(destinationCountry)) return notSaved("choose a destination country.");
+  if (!isVehicleSizeType(vehicleSizeType)) return notSaved("choose a vehicle size.");
+  if (!isShippingMethod(shippingMethod)) return notSaved("choose a shipping method.");
+  if (!Number.isFinite(price) || price < 0) return notSaved("the price must be a number, 0 or more.");
 
   const ctx = await requireAdmin();
-  if (!ctx) return;
+  if (!ctx) return notSaved(SESSION_ENDED);
 
   const { data: shipper } = await ctx.supabase
     .from("shippers")
     .select("status")
     .eq("id", shipperId)
     .maybeSingle();
-  if (shipper?.status !== "approved") return;
+  if (shipper?.status !== "approved") return notSaved("rates can only be added for an approved shipper.");
 
-  await ctx.supabase.from("shipping_rates").insert({
+  const res = await ctx.supabase.from("shipping_rates").insert({
     shipper_id: shipperId,
     origin_region: originRegion,
     origin_port: originPort || null,
@@ -161,22 +164,40 @@ export async function addShippingRate(formData: FormData): Promise<void> {
     shipping_method: shippingMethod,
     price,
     currency,
-  });
+  }).select("id");
+  const bad = checkWrite(res);
+  if (bad) return bad;
 
+  const rateId = (res.data?.[0] as { id?: string } | undefined)?.id ?? null;
+  const audit = await logAdminAction(ctx.supabase, "shipper.add_rate", { table: "shipping_rates", id: rateId }, {
+    shipper_id: shipperId,
+    destination_country: destinationCountry,
+    vehicle_size_type: vehicleSizeType,
+    shipping_method: shippingMethod,
+    price,
+    currency,
+  });
   revalidateShipperViews();
   revalidatePath("/browse", "layout");
+  return savedWithAudit("Rate added.", audit);
 }
 
 /** Remove a shipping rate. */
-export async function deleteShippingRate(formData: FormData): Promise<void> {
+export async function deleteShippingRate(_prev: ActionResult, formData: FormData): Promise<ActionResult> {
   const id = str(formData.get("id"));
-  if (!id) return;
+  if (!id) return notSaved("the form is missing the rate. Reload and try again.");
 
   const ctx = await requireAdmin();
-  if (!ctx) return;
+  if (!ctx) return notSaved(SESSION_ENDED);
 
-  await ctx.supabase.from("shipping_rates").delete().eq("id", id);
+  const res = await ctx.supabase.from("shipping_rates").delete().eq("id", id).select("id, shipper_id, price");
+  const bad = checkWrite(res, "this rate was already removed — reload to see the list.");
+  if (bad) return bad;
 
+  const audit = await logAdminAction(ctx.supabase, "shipper.delete_rate", { table: "shipping_rates", id }, {
+    removed: res.data?.[0] ?? null,
+  });
   revalidateShipperViews();
   revalidatePath("/browse", "layout");
+  return savedWithAudit("Rate removed.", audit);
 }
