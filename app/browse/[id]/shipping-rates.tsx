@@ -1,7 +1,8 @@
 "use client";
 
+import { ActionForm, useActionPending } from "@/components/ui/action-form";
+
 import { type ComponentProps, useState } from "react";
-import { useFormStatus } from "react-dom";
 import { Button } from "@/components/ui/button";
 import { SERVICE_COUNTRIES, countryName, shippingMethodLabel, isLocalPickup } from "@/lib/shipping";
 import type { ShippingMethod, VehicleSizeType } from "@/types/database";
@@ -35,7 +36,7 @@ function PendingButton({
   pendingLabel,
   ...props
 }: ComponentProps<typeof Button> & { pendingLabel: string }) {
-  const { pending } = useFormStatus();
+  const pending = useActionPending();
   return (
     <Button type="submit" disabled={pending} {...props}>
       {pending ? pendingLabel : children}
@@ -154,14 +155,14 @@ export function ShippingRates({
                       <strong className="text-black">{money(r.price, r.currency)}</strong>
                     </p>
                   </div>
-                  <form action={selectShippingRate}>
+                  <ActionForm action={selectShippingRate}>
                     <input type="hidden" name="rateId" value={r.rate_id} />
                     <input type="hidden" name="vehicleId" value={vehicleId} />
                     <input type="hidden" name="purchaseRequestId" value={purchaseRequestId} />
                     <PendingButton variant="primary" size="sm" pendingLabel="Selecting…">
                       Select
                     </PendingButton>
-                  </form>
+                  </ActionForm>
                 </li>
               ))}
             </ul>
