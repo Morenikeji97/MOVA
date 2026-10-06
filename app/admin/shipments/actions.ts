@@ -12,6 +12,7 @@ import {
 import { requireAdmin } from "@/lib/admin-auth";
 import { logAdminAction } from "@/lib/admin-audit";
 import { SESSION_ENDED, checkWrite, notSaved, savedWithAudit, type ActionResult } from "@/lib/action-result";
+import { openShippingEscrow } from "@/lib/escrow-sync";
 
 function str(v: FormDataEntryValue | null): string {
   return typeof v === "string" ? v.trim() : "";
@@ -178,4 +179,18 @@ export async function completeShipment(
     revalidate();
     return savedWithAudit("Shipment completed, but the commission charge failed.", audit);
   }
+}
+
+/** Open the shipping escrow (inland + ocean milestones) at Escrow.com. */
+export async function openShippingEscrowAction(_prev: ActionResult, formData: FormData): Promise<ActionResult> {
+  const id = str(formData.get("id"));
+  if (!id) return notSaved("the form is missing the shipment. Reload and try again.");
+  const ctx = await requireAdmin();
+  if (!ctx) return notSaved(SESSION_ENDED);
+  const result = await openShippingEscrow(id);
+  if (!result.ok) return notSaved(result.message);
+  const audit = await logAdminAction(ctx.supabase, "escrow.open_shipping", { table: "shipment_requests", id }, { result: result.message });
+  revalidatePath("/admin/shipments");
+  revalidatePath("/buyer/dashboard");
+  return savedWithAudit(result.message, audit);
 }

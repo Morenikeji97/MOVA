@@ -33,6 +33,8 @@ export interface ShipperRate {
   price: number;
   currency: string;
   active: boolean;
+  /** Inland part of the price (pickup to port), paid at pickup; the rest is ocean freight. */
+  inland_price: number | null;
 }
 
 function money(amount: number, currency: string) {
@@ -129,6 +131,17 @@ function RateFields({ rate }: { rate?: ShipperRate }) {
         className={inputClass}
       />
       <input
+        name="inland_price"
+        type="number"
+        min={0}
+        step="0.01"
+        inputMode="decimal"
+        defaultValue={rate?.inland_price != null ? String(rate.inland_price) : ""}
+        placeholder="Inland part (pickup to port)"
+        aria-label="Inland part of the price, pickup to port — paid to you at pickup; the rest is paid at bill of lading"
+        className={inputClass}
+      />
+      <input
         name="currency"
         defaultValue={rate?.currency ?? "USD"}
         maxLength={3}
@@ -200,6 +213,14 @@ function RateRow({ rate }: { rate: ShipperRate }) {
           {" · "}
           {shippingMethodLabel(rate.shipping_method)} ·{" "}
           <strong>{money(Number(rate.price), rate.currency)}</strong>
+          {rate.inland_price != null ? (
+            <span className="text-gray-500">
+              {" "}(inland {money(Number(rate.inland_price), rate.currency)} at pickup + ocean{" "}
+              {money(Number(rate.price) - Number(rate.inland_price), rate.currency)} at bill of lading)
+            </span>
+          ) : (
+            <span className="text-copper-700"> · add the inland part so buyers can pay through escrow</span>
+          )}
           {!rate.active ? (
             <span className="ml-2 text-xs font-normal text-copper-700">
               hidden from buyers

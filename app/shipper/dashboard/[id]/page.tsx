@@ -7,6 +7,7 @@ import { ShippingStatusControl } from "../status-control";
 import { ShipmentProofUploader } from "@/components/ui/shipment-proof-uploader";
 import { NoteForm } from "./note-form";
 import { mediaUrl } from "@/lib/media-url";
+import { ITEM_STATE_LABEL, SHIPPING_MILESTONE_INSPECTION_DAYS } from "@/lib/escrow-com";
 
 const PROOF_BUCKET = "shipment-proof-photos";
 
@@ -72,7 +73,7 @@ export default async function ShipmentDetailPage({
   const { data: shipment } = await supabase
     .from("shipment_requests")
     .select(
-      "id, shipper_id, shipping_rate_id, agreed_rate, currency, shipping_status, vehicle_year, vehicle_make, vehicle_model, vehicle_trim, pickup_city, pickup_state, buyer_name, buyer_email, buyer_phone, buyer_whatsapp, buyer_details_revealed_at, created_at",
+      "id, shipper_id, shipping_rate_id, agreed_rate, currency, shipping_status, vehicle_year, vehicle_make, vehicle_model, vehicle_trim, pickup_city, pickup_state, buyer_name, buyer_email, buyer_phone, buyer_whatsapp, buyer_details_revealed_at, created_at, inland_usd, ocean_usd, escrow_transaction_id, escrow_inland_state, escrow_ocean_state",
     )
     .eq("id", id)
     .eq("shipper_id", shipper.id)
@@ -113,6 +114,7 @@ export default async function ShipmentDetailPage({
 
   const pickupPhotos = photos.filter((p) => p.kind === "pickup");
   const deliveryPhotos = photos.filter((p) => p.kind === "delivery");
+  const ladingPhotos = photos.filter((p) => p.kind === "bill_of_lading");
   const vehicleLabel = [shipment.vehicle_year, shipment.vehicle_make, shipment.vehicle_model]
     .filter(Boolean)
     .join(" ");
@@ -156,6 +158,39 @@ export default async function ShipmentDetailPage({
         </dl>
       </section>
 
+      {/* Payment through Escrow.com (0062): two milestones. */}
+      <section className="mt-10 rounded-lg border border-gray-200 bg-white p-4">
+        <h2 className="font-mono text-xs uppercase tracking-wider text-gray-500">Payment through Escrow.com</h2>
+        {shipment.escrow_transaction_id ? (
+          <>
+            <p className="mt-1 text-sm text-gray-500">
+              Escrow.com transaction <span className="font-mono">{shipment.escrow_transaction_id}</span>. After you upload
+              each proof below, mark that milestone done in Escrow.com; it&rsquo;s released to you{" "}
+              {SHIPPING_MILESTONE_INSPECTION_DAYS} days later unless the buyer objects.
+            </p>
+            <dl className="mt-2 flex flex-col gap-1 text-sm">
+              <div className="flex flex-wrap gap-x-2">
+                <dt className="text-gray-500">
+                  Inland {shipment.inland_usd != null ? `$${Number(shipment.inland_usd).toFixed(2)}` : ""} — released at pickup
+                </dt>
+                <dd className="text-black">{ITEM_STATE_LABEL[shipment.escrow_inland_state ?? "awaiting_payment"]}</dd>
+              </div>
+              <div className="flex flex-wrap gap-x-2">
+                <dt className="text-gray-500">
+                  Ocean {shipment.ocean_usd != null ? `$${Number(shipment.ocean_usd).toFixed(2)}` : ""} — released at bill of lading
+                </dt>
+                <dd className="text-black">{ITEM_STATE_LABEL[shipment.escrow_ocean_state ?? "awaiting_payment"]}</dd>
+              </div>
+            </dl>
+          </>
+        ) : (
+          <p className="mt-1 text-sm text-gray-500">
+            The buyer pays shipping into Escrow.com, never to you directly. ShipMova opens the escrow;
+            Escrow.com then emails you to agree.
+          </p>
+        )}
+      </section>
+
       {/* Proof of pickup / delivery */}
       <section className="mt-10">
         <h2 className="font-mono text-xs uppercase tracking-wider text-gray-500">
@@ -179,6 +214,34 @@ export default async function ShipmentDetailPage({
             </ul>
           ) : null}
           <ShipmentProofUploader shipmentId={shipment.id} kind="pickup" label="Add pickup photo" />
+        </div>
+      </section>
+
+      <section className="mt-8">
+        <h2 className="font-mono text-xs uppercase tracking-wider text-gray-500">
+          Bill of lading
+        </h2>
+        <p className="mt-1 text-sm text-gray-500">
+          A clear photo of the bill of lading once the car is loaded. It releases the ocean freight payment.
+        </p>
+        <div className="mt-3 flex flex-col gap-3">
+          {ladingPhotos.length > 0 ? (
+            <ul className="grid grid-cols-3 gap-2">
+              {ladingPhotos.map((p) => {
+                const url = signedByPath.get(p.storage_path);
+                return url ? (
+                  // eslint-disable-next-line @next/next/no-img-element
+                  <img
+                    key={p.id}
+                    src={url}
+                    alt="Bill of lading"
+                    className="aspect-square w-full rounded border border-gray-200 object-cover"
+                  />
+                ) : null;
+              })}
+            </ul>
+          ) : null}
+          <ShipmentProofUploader shipmentId={shipment.id} kind="bill_of_lading" label="Add bill of lading photo" />
         </div>
       </section>
 
