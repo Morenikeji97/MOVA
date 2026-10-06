@@ -4,7 +4,7 @@
  * paragraphs, "*.../_..._" italic lines, "- " bullet lists, "1. " numbered
  * lists, and inline "**bold**" spans).
  *
- * Version v1.2, effective 2026-09-30 — matches CURRENT_PRIVACY_VERSION in
+ * Version v1.3, effective 2026-10-31 (launch day — confirm before merging) — matches CURRENT_PRIVACY_VERSION in
  * lib/privacy.ts. Bump that constant (not this file's own text) whenever
  * this content changes in a way that requires re-acceptance; see
  * lib/terms.ts's doc comment for the mechanism this mirrors exactly.
@@ -16,7 +16,7 @@
 export const PRIVACY_POLICY_MARKDOWN = `
 # ShipMova Privacy Policy
 
-*Last updated: 2026-09-30*
+*Last updated: 2026-10-31*
 
 ## 1. Overview & Scope
 
@@ -78,7 +78,7 @@ A "VIN Verified" badge or a completed identity check reflects the outcome of the
 
 ShipMova's own facilitation fee is processed through **Stripe**, or, where enabled, via bank transfer with manually reviewed proof of payment. When you pay through Stripe, Stripe collects and processes your payment card or bank details directly — ShipMova does not receive or store your full card number or bank account credentials.
 
-The vehicle price is paid into an escrow transaction with **Escrow.com**, a licensed escrow company, which collects and processes that payment under its own privacy policy and terms; ShipMova shares with Escrow.com the transaction details needed to set it up (such as the parties, the vehicle, and the agreed price). Payment for shipping (between Buyer and Shipper) happens directly between those users, outside the Platform; ShipMova is not a party to that payment and does not collect or process that payment information.
+The vehicle price is paid into an escrow transaction with **Escrow.com**, a licensed escrow company, which collects and processes that payment under its own privacy policy and terms; ShipMova shares with Escrow.com the transaction details needed to set it up (such as the parties, the vehicle, and the agreed price). The shipping price is paid into a separate Escrow.com transaction between the Buyer and the Shipper; ShipMova shares with Escrow.com the details needed to set it up (the Buyer, the Shipper, the vehicle, the route, and the inland and ocean freight amounts) and receives back the transaction's status and Escrow.com's fee, which it shows to the parties. ShipMova does not collect or process card or bank details for either escrow payment.
 
 ## 6. How We Share Information
 
