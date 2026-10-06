@@ -59,3 +59,21 @@ test("approval needs an in-date certificate and a checked license; public reads 
 test("the expiry job calls shipmova.com (not the old redirected address)", () => {
   assert.match(sql, /url := 'https:\/\/shipmova\.com\/api\/cron\/shipper-insurance'/);
 });
+
+test("every column 0060 added is either granted for reading (0061) or explicitly server-only", () => {
+  // public.shippers grants SELECT per column: a new column nobody granted
+  // makes every query that names it fail (that's what 0060 shipped with).
+  const grants = readFileSync("supabase/migrations/0061_shipper_verification_column_grants.sql", "utf8");
+  const added = [...sql.matchAll(/add column if not exists (\w+)/g)].map((m) => m[1]);
+  const serverOnly = /Deliberately not granted[^:]*:([^.]*)\./.exec(grants)?.[1] ?? "";
+  for (const c of added) {
+    const granted = new RegExp(`grant select \\([^)]*\\b${c}\\b`).test(grants);
+    assert.ok(granted || serverOnly.includes(c), `${c} is neither granted nor listed as server-only`);
+  }
+  // Server-only columns must not be read by app code through a user client.
+  for (const c of serverOnly.split(",").map((s) => s.trim()).filter(Boolean)) {
+    for (const path of ["app/shipper/portal/page.tsx", "app/admin/shippers/page.tsx", "app/shipper/[id]/page.tsx", "app/browse/[id]/page.tsx"]) {
+      assert.doesNotMatch(readFileSync(path, "utf8"), new RegExp(`\\b${c}\\b`), `${path} reads server-only ${c}`);
+    }
+  }
+});
