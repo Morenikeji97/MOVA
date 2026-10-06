@@ -544,3 +544,21 @@ export async function notifyShipperCoiReminder(
   }
   return sent;
 }
+
+/** A new inspector application (0063). */
+export async function notifyInspectorApplication(name: string): Promise<void> {
+  const { data: admins } = await createAdminClient().from("users").select("email").eq("role", "admin");
+  const origin = await appUrl();
+  for (const a of admins ?? []) {
+    await sendEmail({
+      to: a.email,
+      subject: "New inspector application",
+      html: renderEmailShell({
+        heading: "Inspector application",
+        bodyHtml: `<p style="margin:0;">${escapeHtml(name)} applied to inspect cars for ShipMova.</p>`,
+        ctaLabel: "Review inspectors",
+        ctaHref: `${origin}/admin/inspectors`,
+      }),
+    });
+  }
+}

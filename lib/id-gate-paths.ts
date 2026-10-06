@@ -24,6 +24,8 @@ const ID_EXEMPT_PATHS = [
   // work without a buyer ID. Nothing under /shipper is a buyer feature;
   // chat and reserving still check the ID server-side.
   "/shipper",
+  // Inspectors also use ordinary logins (0063).
+  "/inspector",
 ];
 
 export function isIdExempt(path: string): boolean {

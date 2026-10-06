@@ -622,6 +622,159 @@ export interface Database {
         }>;
         Relationships: [];
       };
+      inspectors: {
+        Row: {
+          id: string;
+          user_id: string;
+          full_name: string;
+          phone: string | null;
+          service_states: string[];
+          status: "pending" | "approved" | "suspended" | "rejected";
+          rejection_reason: string | null;
+          reviewed_by: string | null;
+          reviewed_at: string | null;
+          is_test: boolean;
+          created_at: string;
+        };
+        Insert: {
+          id?: string;
+          user_id: string;
+          full_name: string;
+          phone?: string | null;
+          service_states?: string[];
+          status?: "pending" | "approved" | "suspended" | "rejected";
+          rejection_reason?: string | null;
+          reviewed_by?: string | null;
+          reviewed_at?: string | null;
+          is_test?: boolean;
+          created_at?: string;
+        };
+        Update: {
+          id?: string;
+          user_id?: string;
+          full_name?: string;
+          phone?: string | null;
+          service_states?: string[];
+          status?: "pending" | "approved" | "suspended" | "rejected";
+          rejection_reason?: string | null;
+          reviewed_by?: string | null;
+          reviewed_at?: string | null;
+          is_test?: boolean;
+          created_at?: string;
+        };
+        Relationships: [];
+      };
+      inspections: {
+        Row: {
+          id: string;
+          purchase_request_id: string;
+          inspector_id: string;
+          status: "assigned" | "submitted" | "passed" | "failed" | "cancelled";
+          assigned_at: string;
+          assigned_by: string | null;
+          assignment_note: Record<string, unknown>;
+          submitted_at: string | null;
+          vin_read: string | null;
+          odometer_reading: number | null;
+          title_matches: boolean | null;
+          condition_notes: string | null;
+          photo_check_flags: string[];
+          decided_at: string | null;
+          decided_by: string | null;
+          decision_note: string | null;
+          pay_pct: number;
+          pay_usd: number | null;
+          pay_status: "none" | "owed" | "paid";
+          paid_at: string | null;
+          paid_by: string | null;
+          created_at: string;
+        };
+        Insert: {
+          id?: string;
+          purchase_request_id: string;
+          inspector_id: string;
+          status?: "assigned" | "submitted" | "passed" | "failed" | "cancelled";
+          assigned_at?: string;
+          assigned_by?: string | null;
+          assignment_note?: Record<string, unknown>;
+          submitted_at?: string | null;
+          vin_read?: string | null;
+          odometer_reading?: number | null;
+          title_matches?: boolean | null;
+          condition_notes?: string | null;
+          photo_check_flags?: string[];
+          decided_at?: string | null;
+          decided_by?: string | null;
+          decision_note?: string | null;
+          pay_pct?: number;
+          pay_usd?: number | null;
+          pay_status?: "none" | "owed" | "paid";
+          paid_at?: string | null;
+          paid_by?: string | null;
+          created_at?: string;
+        };
+        Update: {
+          id?: string;
+          purchase_request_id?: string;
+          inspector_id?: string;
+          status?: "assigned" | "submitted" | "passed" | "failed" | "cancelled";
+          assigned_at?: string;
+          assigned_by?: string | null;
+          assignment_note?: Record<string, unknown>;
+          submitted_at?: string | null;
+          vin_read?: string | null;
+          odometer_reading?: number | null;
+          title_matches?: boolean | null;
+          condition_notes?: string | null;
+          photo_check_flags?: string[];
+          decided_at?: string | null;
+          decided_by?: string | null;
+          decision_note?: string | null;
+          pay_pct?: number;
+          pay_usd?: number | null;
+          pay_status?: "none" | "owed" | "paid";
+          paid_at?: string | null;
+          paid_by?: string | null;
+          created_at?: string;
+        };
+        Relationships: [];
+      };
+      inspection_photos: {
+        Row: {
+          id: string;
+          inspection_id: string;
+          kind: "vin" | "odometer" | "title" | "car";
+          storage_path: string;
+          latitude: number | null;
+          longitude: number | null;
+          accuracy_m: number | null;
+          captured_at: string | null;
+          uploaded_at: string;
+        };
+        Insert: {
+          id?: string;
+          inspection_id: string;
+          kind: "vin" | "odometer" | "title" | "car";
+          storage_path: string;
+          latitude?: number | null;
+          longitude?: number | null;
+          accuracy_m?: number | null;
+          captured_at?: string | null;
+          uploaded_at?: string;
+        };
+        Update: {
+          id?: string;
+          inspection_id?: string;
+          kind?: "vin" | "odometer" | "title" | "car";
+          storage_path?: string;
+          latitude?: number | null;
+          longitude?: number | null;
+          accuracy_m?: number | null;
+          captured_at?: string | null;
+          uploaded_at?: string;
+        };
+        Relationships: [];
+      };
       escrow_webhook_events: {
         Row: {
           id: number;
@@ -1443,6 +1596,11 @@ export interface Database {
       };
     };
     Functions: {
+      /** The inspection badge/status for a deal's buyer, seller or an admin (0063); null otherwise. */
+      inspection_summary: {
+        Args: { p_purchase_request_id: string };
+        Returns: string | null;
+      };
       /** Approved, not suspended, insured (COI approved, in date) and FMC-checked (0060). */
       shipper_is_bookable: {
         Args: { p_shipper_id: string };

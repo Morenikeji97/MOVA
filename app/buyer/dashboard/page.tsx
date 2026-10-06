@@ -15,6 +15,7 @@ import { FeePaymentOptions } from "@/components/ui/fee-payment-options";
 import { WaitlistForm } from "@/components/ui/waitlist-form";
 import { isPrelaunch } from "@/lib/prelaunch";
 import type { FeeResponsibility } from "@/types/database";
+import { InspectionBadge } from "@/components/inspection-badge";
 
 const usdCents = new Intl.NumberFormat("en-US", {
   style: "currency",
@@ -117,6 +118,15 @@ export default async function BuyerDashboard({
       shipmentByReservation.set(sr.purchase_request_id, sr);
     }
   }
+  // Inspection badge per deal (0063; the function only answers the deal's buyer).
+  const inspectionByDeal = new Map(
+    await Promise.all(
+      reservationIds.map(async (id) => {
+        const { data } = await supabase.rpc("inspection_summary", { p_purchase_request_id: id });
+        return [id, data ?? null] as const;
+      }),
+    ),
+  );
   const shippingRateById = new Map(
     (shippingRateRows ?? []).map((r) => [r.rate_id as string, r]),
   );
@@ -401,6 +411,7 @@ export default async function BuyerDashboard({
                         : null;
                     })()}
                   />
+                  <InspectionBadge summary={inspectionByDeal.get(r.id) ?? null} />
 
                   <DisputeStatusList disputes={disputes} currentUserId={user!.id} />
                   {!hasOwnOpenDispute ? (
