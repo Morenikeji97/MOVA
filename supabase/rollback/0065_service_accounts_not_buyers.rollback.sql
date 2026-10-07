@@ -9,6 +9,7 @@
 begin;
 
 drop trigger if exists purchase_requests_refuse_service_accounts on public.purchase_requests;
+drop trigger if exists purchase_requests_0_refuse_service_accounts on public.purchase_requests; -- name since 0066
 drop trigger if exists conversations_refuse_service_accounts on public.conversations;
 drop function if exists public.purchase_requests_refuse_service_accounts();
 drop function if exists public.conversations_refuse_service_accounts();
