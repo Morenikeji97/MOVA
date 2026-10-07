@@ -145,7 +145,8 @@ export default function HowItWorksPage() {
       </section>
 
       {/* Section 1 — the journey, step by step */}
-      <section className="mx-auto max-w-4xl px-6 py-16">
+      {/* #shipping: the homepage's "About shipping to West Africa" card links here. */}
+      <section id="shipping" className="mx-auto max-w-4xl scroll-mt-4 px-6 py-16">
         <h2 className="font-mono text-xs uppercase tracking-wider text-gray-500">
           The journey, step by step
         </h2>
