@@ -3,14 +3,17 @@
 @tailwind utilities;
 
 /*
- * --font-sans / --font-mono are provided by next/font/google (see app/layout.tsx),
- * which applies them to <html> and bakes in the fallback stack. Tailwind's
- * fontFamily config maps `font-sans` / `font-mono` onto these variables.
+ * --font-sans (DM Sans) / --font-display (Archivo) come from next/font/google
+ * (app/layout.tsx). Headings use Archivo; everything else DM Sans.
  */
 
 @layer base {
   body {
-    @apply bg-white text-black font-sans antialiased;
+    @apply bg-white text-ink font-sans antialiased;
+  }
+
+  h1, h2, h3 {
+    @apply font-display;
   }
 
   @media (prefers-reduced-motion: reduce) {

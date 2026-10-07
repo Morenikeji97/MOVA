@@ -95,7 +95,8 @@ export function WhyBuy({ waitlistHref = null }: { waitlistHref?: string | null }
       subhead="Buying a car from America shouldn't mean trusting a stranger with your savings."
       benefits={BUYER_BENEFITS}
     >
-      <div className="mt-10 overflow-x-auto">
+      {/* relative: keeps the cells' sr-only labels inside the scroll box, so the page itself never scrolls sideways at 320px. */}
+      <div className="relative mt-10 overflow-x-auto">
         <table className="w-full min-w-[480px] border-collapse text-left text-sm">
           <caption className="mb-3 text-left text-lg font-semibold text-black">
             ShipMova vs. buying on your own

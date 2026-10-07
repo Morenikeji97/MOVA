@@ -1,80 +1,75 @@
 import Link from "next/link";
-import { AccountMenu } from "@/components/ui/account-menu";
+import { HeaderControls, type NavLink } from "@/components/ui/header-controls";
 import { Logo } from "@/components/ui/logo";
 import { createClient } from "@/lib/supabase/server";
+import { isPrelaunch } from "@/lib/prelaunch";
+import { selectedDisplayCurrency } from "@/lib/display-currency";
+import { getDisplayCurrency } from "@/lib/display-currency-server";
 
-const BASE_NAV_LINKS = [
-  { label: "Browse Vehicles", href: "/browse" },
+const BASE_NAV_LINKS: NavLink[] = [
+  { label: "Buy", href: "/browse" },
+  { label: "Sell", href: "/sell" },
+  { label: "Shipping", href: "/shipper" },
+  { label: "Inspections", href: "/inspectors" },
   { label: "How It Works", href: "/how-it-works" },
-  { label: "Sell Your Car", href: "/sell" },
-  { label: "Ship With Us", href: "/shipper" },
   { label: "Referrals", href: "/referrals" },
 ];
 
 /**
- * Persistent site header, mounted once in the root layout so it appears on
- * every page — buyer/seller/shipper/admin dashboards included, not just the
- * public marketing pages. Replaces the four hand-rolled per-page headers
- * that existed before (app/page.tsx, the duplicated BrowseHeader() in
- * app/browse/page.tsx and app/browse/[id]/page.tsx, and how-it-works'
- * back-link header).
+ * The one shared site header, mounted once in the root layout so it appears
+ * on every page, dashboards included (design system, redesign PR A).
  *
- * Logo is the ShipMova vector lockup via <Logo> (components/ui/logo.tsx),
- * not a raster image, so it stays crisp at any size.
+ * Always a single row, never wrapping: logo left; on desktop (lg+) the nav
+ * links, then the currency switcher and account controls; on phones and
+ * tablets a ≥44px menu button that opens a full-screen menu holding all of
+ * those (components/ui/header-controls.tsx).
  *
- * "Sell Your Car" is hidden for signed-in buyers — a buyer browsing/reserving
- * vehicles has no reason to be pointed at seller onboarding, and showing it
- * only muddies what ShipMova thinks this visitor is here to do. Logged-out
- * visitors and sellers/shippers/admins still see the full nav.
+ * "Sell" is hidden for signed-in buyers — a buyer browsing/reserving has no
+ * reason to be pointed at seller onboarding. Everyone else sees every link.
+ * "Get Started" goes to sign-up, or the waitlist before launch.
  */
 export async function Header() {
   const supabase = await createClient();
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
+  const [
+    {
+      data: { user },
+    },
+    currency,
+  ] = await Promise.all([supabase.auth.getUser(), getDisplayCurrency()]);
 
   let isBuyer = false;
   if (user) {
-    const { data: profile } = await supabase
-      .from("users")
-      .select("role")
-      .eq("id", user.id)
-      .single();
+    const { data: profile } = await supabase.from("users").select("role").eq("id", user.id).single();
     isBuyer = profile?.role === "buyer";
   }
 
-  const navLinks = isBuyer
-    ? BASE_NAV_LINKS.filter((link) => link.label !== "Sell Your Car")
-    : BASE_NAV_LINKS;
+  const navLinks = isBuyer ? BASE_NAV_LINKS.filter((link) => link.href !== "/sell") : BASE_NAV_LINKS;
 
   return (
-    <header className="bg-black text-white print:hidden">
-      <div className="mx-auto flex max-w-6xl items-center justify-between gap-6 px-6 py-4">
+    <header className="bg-ink text-white print:hidden">
+      <div className="mx-auto flex h-16 max-w-6xl flex-nowrap items-center justify-between gap-4 px-4 sm:px-6 lg:h-[72px]">
         <Link href="/" className="flex shrink-0 items-center" aria-label="ShipMova home">
-          <Logo height={40} />
+          <Logo height={32} className="lg:!h-9" />
         </Link>
 
-        <nav className="hidden items-center gap-6 text-sm font-medium md:flex">
+        <nav aria-label="Main" className="hidden min-w-0 items-center gap-1 lg:flex">
           {navLinks.map((link) => (
-            <Link key={link.href} href={link.href} className="hover:text-gray-300">
+            <Link
+              key={link.href}
+              href={link.href}
+              className="flex h-11 items-center whitespace-nowrap rounded-lg px-3 text-sm font-medium text-white/85 hover:bg-white/10 hover:text-white"
+            >
               {link.label}
             </Link>
           ))}
         </nav>
 
-        <AccountMenu />
+        <HeaderControls
+          navLinks={navLinks}
+          currency={selectedDisplayCurrency(currency)}
+          getStartedHref={isPrelaunch() ? "/waitlist" : "/signup"}
+        />
       </div>
-
-      {/* Mobile nav — same links, wraps below the logo/account row on small
-          screens rather than hiding behind a menu button, since there are
-          only four items. */}
-      <nav className="flex flex-wrap items-center gap-x-5 gap-y-2 px-6 pb-4 text-sm font-medium md:hidden">
-        {navLinks.map((link) => (
-          <Link key={link.href} href={link.href} className="hover:text-gray-300">
-            {link.label}
-          </Link>
-        ))}
-      </nav>
     </header>
   );
 }
