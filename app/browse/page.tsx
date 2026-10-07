@@ -11,6 +11,14 @@ import { FxNote } from "@/components/ui/fx-note";
 import { isPrelaunch } from "@/lib/prelaunch";
 import { WaitlistForm } from "@/components/ui/waitlist-form";
 import { inputClasses } from "@/components/ui/input-classes";
+import {
+  BODY_FILTERS,
+  FUEL_FILTERS,
+  keywordOrFilter,
+  keywordTerms,
+  parseBodyFilter,
+  parseFuelFilter,
+} from "@/lib/browse-filters";
 
 const inputClass = inputClasses();
 
@@ -34,7 +42,14 @@ export default async function BrowsePage({
   const make = str(sp.make);
   const minPrice = int(sp.min);
   const maxPrice = int(sp.max);
-  const hasFilters = make !== "" || minPrice !== null || maxPrice !== null;
+  // From the homepage search bar and category chips (lib/browse-filters.ts).
+  const keyword = str(sp.q);
+  const terms = keywordTerms(keyword);
+  const body = parseBodyFilter(str(sp.type));
+  const fuel = parseFuelFilter(str(sp.fuel));
+  const category = body ? BODY_FILTERS[body].label : fuel ? FUEL_FILTERS[fuel].label : null;
+  const hasFilters =
+    make !== "" || minPrice !== null || maxPrice !== null || terms.length > 0 || body !== null || fuel !== null;
 
   const supabase = await createClient();
 
@@ -55,6 +70,9 @@ export default async function BrowsePage({
   if (make) query = query.eq("make", make);
   if (minPrice !== null) query = query.gte("price_usd", minPrice);
   if (maxPrice !== null) query = query.lte("price_usd", maxPrice);
+  for (const term of terms) query = query.or(keywordOrFilter(term));
+  if (body) query = query.eq("vehicle_size_type", BODY_FILTERS[body].sizeType);
+  if (fuel) query = query.in("fuel_type", [...FUEL_FILTERS[fuel].fuelTypes]);
 
   const { data: vehicles } = await query;
   const rows = (vehicles ?? []) as VehicleCardData[];
@@ -77,6 +95,7 @@ export default async function BrowsePage({
               approval isn't verification. Same overclaim the homepage heading
               had; see migration 0032 and lib/listing-badges.ts. */}
           {rows.length} {rows.length === 1 ? "listing" : "listings"}
+          {category ? ` · ${category}` : ""}
           {hasFilters ? " matching your filters" : " available now"}.
         </p>
 
@@ -96,6 +115,23 @@ export default async function BrowsePage({
                 </option>
               ))}
             </select>
+          </label>
+          {/* Kept across "Apply filters": the homepage category chip. */}
+          {body ? <input type="hidden" name="type" value={body} /> : null}
+          {fuel ? <input type="hidden" name="fuel" value={fuel} /> : null}
+          <label className="flex flex-col gap-1">
+            <span className="font-mono text-xs uppercase tracking-wider text-gray-500">
+              Keyword
+            </span>
+            <input
+              type="search"
+              name="q"
+              defaultValue={keyword}
+              placeholder="Model, trim…"
+              maxLength={80}
+              enterKeyHint="search"
+              className={cn(inputClass, "w-44")}
+            />
           </label>
           <label className="flex flex-col gap-1">
             <span className="font-mono text-xs uppercase tracking-wider text-gray-500">

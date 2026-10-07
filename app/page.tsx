@@ -1,8 +1,8 @@
 import Link from "next/link";
+import { preload } from "react-dom";
 import { createClient } from "@/lib/supabase/server";
 import { buttonClasses } from "@/components/ui/button";
-import { VerifiedBadge } from "@/components/ui/verified-badge";
-import { VinData } from "@/components/ui/vin-data";
+import { cardClasses } from "@/components/ui/card";
 import { VehicleCard } from "@/components/ui/vehicle-card";
 import { loadRecentApprovedListings } from "@/lib/listings";
 import { getFxRates } from "@/lib/fx";
@@ -13,12 +13,66 @@ import { SELLER_SPLITS_FEE_BADGE } from "@/lib/fees";
 import { isPrelaunch } from "@/lib/prelaunch";
 import { WaitlistForm } from "@/components/ui/waitlist-form";
 import { WhyBuy } from "@/components/ui/why-buy";
+import { CATEGORY_CHIPS } from "@/lib/browse-filters";
+import { HOME_IMAGES } from "@/lib/home-images";
+import { inputClasses } from "@/components/ui/input-classes";
+import {
+  ArrowRightIcon,
+  ChevronDownIcon,
+  ClipboardCheckIcon,
+  DocumentCheckIcon,
+  LockIcon,
+  SearchIcon,
+  ShieldCheckIcon,
+  ShipIcon,
+} from "@/components/ui/icons";
+import { cn } from "@/lib/utils";
 
-const TRUST_STRIP = [
-  "Verified sellers",
-  "Title checked",
-  "Escrow-protected payment",
-  "Inspected before pickup",
+const TRUST_ROW = [
+  { icon: ShieldCheckIcon, label: "Verified Sellers" },
+  { icon: DocumentCheckIcon, label: "Title Checked" },
+  { icon: ClipboardCheckIcon, label: "Independent Inspections" },
+  { icon: LockIcon, label: "Payments held by Escrow.com" },
+  { icon: ShipIcon, label: "Multiple Shipping Options" },
+];
+
+const ROLE_CARDS = [
+  {
+    title: "Buy a Vehicle",
+    body: "Find verified U.S. vehicles and get them shipped to West Africa.",
+    cta: "Browse Cars",
+    href: "/browse",
+    image: HOME_IMAGES.roleBuy,
+  },
+  {
+    title: "Sell Your Vehicle",
+    body: "Reach ID-verified buyers in Nigeria, Ghana, Togo and Benin.",
+    cta: "List Your Car",
+    href: "/sell",
+    image: HOME_IMAGES.roleSell,
+  },
+  {
+    title: "Become a Shipper",
+    body: "Get vehicle shipping jobs to West Africa. No fees for founding partners.",
+    cta: "Join as a Shipper",
+    href: "/shipper",
+    image: HOME_IMAGES.roleShipper,
+  },
+  {
+    title: "Become an Inspector",
+    body: "Earn from in-person inspections and join a trusted network.",
+    cta: "Join as an Inspector",
+    href: "/inspectors",
+    image: HOME_IMAGES.roleInspector,
+  },
+];
+
+// The journey in four steps — a summary of /how-it-works, same wording.
+const HOW_STEPS = [
+  { title: "Find a car", body: "Every listing shows whether it can be imported to Nigeria (more countries coming) and an estimated total cost." },
+  { title: "Reserve it", body: "Free, no obligation. Choose a shipper and get your shipping quote upfront." },
+  { title: "Pay into escrow", body: "Pay ShipMova's fee, then the car price into Escrow.com — not to the seller." },
+  { title: "Inspection, pickup, shipping", body: "An independent inspector checks the car; your shipper collects it with the original title; then the seller is paid and your car ships." },
 ];
 
 const FEE_COVERS = [
@@ -59,168 +113,263 @@ const MONEY_STEPS = [
   "Your car ships and you track it to your port. Your shipper's cargo insurance covers it at sea.",
 ];
 
+// Shown in the make dropdown when nothing is listed yet, so the search bar
+// still works (it just finds nothing until cars are listed).
+const COMMON_MAKES = [
+  "Acura", "BMW", "Chevrolet", "Dodge", "Ford", "GMC", "Honda", "Hyundai", "Jeep", "Kia",
+  "Lexus", "Mazda", "Mercedes-Benz", "Nissan", "Ram", "Subaru", "Tesla", "Toyota", "Volkswagen",
+];
+
+function SectionHeading({ eyebrow, title, intro }: { eyebrow?: string; title: string; intro?: string }) {
+  return (
+    <div className="max-w-2xl">
+      {eyebrow ? (
+        <p className="text-xs font-semibold uppercase tracking-[0.18em] text-muted">{eyebrow}</p>
+      ) : null}
+      <h2 className={cn("font-display text-3xl font-extrabold tracking-tight text-ink sm:text-4xl", eyebrow && "mt-2")}>
+        {title}
+      </h2>
+      {intro ? <p className="mt-3 text-muted">{intro}</p> : null}
+    </div>
+  );
+}
+
 export default async function Home() {
-  // Live inventory for the listings grid — most recent approved listings,
-  // newest first, same source as /browse.
   const supabase = await createClient();
-  const [{ rows: listings, thumbByVehicle }, fx] = await Promise.all([
+  const [{ rows: listings, thumbByVehicle }, fx, { data: makeRows }, currency] = await Promise.all([
     loadRecentApprovedListings(supabase, 8),
     getFxRates(),
+    // Makes in the approved inventory, for the search bar (same as /browse).
+    supabase.from("vehicles").select("make").eq("status", "approved").order("make", { ascending: true }),
+    getDisplayCurrency(),
   ]);
-  const localCurrencies = cardCurrencies(await getDisplayCurrency());
+  const listedMakes = [...new Set((makeRows ?? []).map((r) => r.make))];
+  const makes = listedMakes.length > 0 ? listedMakes : COMMON_MAKES;
+  const localCurrencies = cardCurrencies(currency);
+  const prelaunch = isPrelaunch();
+
+  // The hero photo is the largest thing on the page: fetch it first.
+  preload(HOME_IMAGES.heroPhone.src, { as: "image", fetchPriority: "high", media: "(max-width: 767px)" });
+  preload(HOME_IMAGES.heroDesktop.src, { as: "image", fetchPriority: "high", media: "(min-width: 768px)" });
 
   return (
     <main className="min-h-screen bg-white">
-      <section className="bg-black text-white">
-        <div className="mx-auto max-w-6xl px-6 pb-20 pt-16">
-          <p className="font-mono text-sm uppercase tracking-widest text-gray-400">
-            USA → West Africa
+      {/* ---------------- Hero ---------------- */}
+      <section className="relative isolate overflow-hidden bg-ink text-white">
+        <picture>
+          <source media="(min-width: 768px)" srcSet={HOME_IMAGES.heroDesktop.src} />
+          {/* eslint-disable-next-line @next/next/no-img-element */}
+          <img
+            src={HOME_IMAGES.heroPhone.src}
+            alt=""
+            width={HOME_IMAGES.heroPhone.width}
+            height={HOME_IMAGES.heroPhone.height}
+            fetchPriority="high"
+            decoding="async"
+            className="absolute inset-0 -z-20 h-full w-full object-cover opacity-50 md:left-auto md:right-0 md:w-[64%] md:opacity-100"
+          />
+        </picture>
+        {/* Fades the photo into black on the left and bottom (desktop). */}
+        <div
+          aria-hidden
+          className="absolute inset-y-0 right-0 -z-10 hidden w-[64%] bg-gradient-to-r from-ink via-ink/40 to-transparent md:block"
+        />
+        <div aria-hidden className="absolute inset-x-0 bottom-0 -z-10 h-1/3 bg-gradient-to-t from-ink to-transparent" />
+
+        <div className="mx-auto max-w-6xl px-4 pb-14 pt-14 sm:px-6 md:pb-24 md:pt-20">
+          <p className="text-xs font-semibold uppercase tracking-[0.22em] text-white/70">
+            Trusted. Transparent. Global.
           </p>
-          <h1 className="mt-4 max-w-2xl text-5xl font-semibold leading-tight">
-            American cars. Global buyers.
+          <h1 className="mt-4 max-w-5xl font-display text-[40px] font-extrabold leading-[1.02] tracking-tight sm:text-6xl lg:text-[72px]">
+            Quality Vehicles
+            <br />
+            From the U.S. to <span className="whitespace-nowrap text-[#BDBDBD]">West Africa.</span>
           </h1>
-          <p className="mt-4 max-w-xl text-gray-300">
-            Buy directly from verified U.S. sellers. Your payment is held by
-            Escrow.com, and the seller isn&rsquo;t paid until the car is
-            inspected and in your shipper&rsquo;s hands.
+          <p className="mt-5 max-w-xl text-base text-white/80 sm:text-lg">
+            Browse, inspect, and ship with confidence on a trusted U.S.–West Africa vehicle marketplace.
           </p>
-          <div className="mt-8 flex flex-wrap gap-3">
-            <Link
-              href="/browse"
-              className="inline-flex h-13 items-center justify-center rounded bg-white px-7 text-lg font-medium text-black hover:bg-gray-200"
-            >
-              Browse vehicles
-            </Link>
-            <Link
-              href="/sell"
-              className="inline-flex h-13 items-center justify-center rounded border border-white px-7 text-lg font-medium text-white hover:bg-white/10"
-            >
-              Sell your car
-            </Link>
-          </div>
-          <ul className="mt-10 flex flex-wrap gap-x-3 gap-y-2 font-mono text-xs uppercase tracking-wider text-gray-300">
-            {TRUST_STRIP.map((item, i) => (
-              <li key={item} className="flex items-center gap-3">
-                {i > 0 ? <span aria-hidden className="text-gray-500">·</span> : null}
-                {item}
+
+          <form
+            action="/browse"
+            method="get"
+            role="search"
+            className="mt-8 flex max-w-3xl flex-col gap-2 rounded-card bg-white p-2 text-ink shadow-card sm:flex-row sm:items-center"
+          >
+            <label className="relative flex items-center sm:w-48">
+              <span className="sr-only">Make</span>
+              <select
+                name="make"
+                defaultValue=""
+                className={inputClasses({ className: "w-full appearance-none pr-9" })}
+              >
+                <option value="">Any make</option>
+                {makes.map((m) => (
+                  <option key={m} value={m}>
+                    {m}
+                  </option>
+                ))}
+              </select>
+              <ChevronDownIcon size={18} className="pointer-events-none absolute right-3 text-muted" />
+            </label>
+            <label className="flex-1">
+              <span className="sr-only">Keyword</span>
+              <input
+                type="search"
+                name="q"
+                placeholder="Model, trim or keyword"
+                maxLength={80}
+                enterKeyHint="search"
+                autoComplete="off"
+                className={inputClasses({ className: "w-full" })}
+              />
+            </label>
+            <button type="submit" className={buttonClasses({ className: "w-full sm:w-auto" })}>
+              <SearchIcon size={18} />
+              Search
+            </button>
+          </form>
+
+          <ul aria-label="Browse by category" className="mt-4 flex flex-wrap gap-2">
+            {CATEGORY_CHIPS.map((chip) => (
+              <li key={chip.href}>
+                <Link
+                  href={chip.href}
+                  className="flex h-11 items-center rounded-full border border-white/30 px-4 text-sm font-medium text-white hover:border-white hover:bg-white/10"
+                >
+                  {chip.label}
+                </Link>
               </li>
             ))}
           </ul>
-          <Link
-            href="/how-it-works"
-            className="mt-6 inline-block text-sm text-white underline underline-offset-4 hover:text-gray-300"
-          >
-            Buying from West Africa? See exactly how it works &rarr;
-          </Link>
+        </div>
+
+        <Link
+          href="/how-it-works#shipping"
+          className="absolute bottom-8 right-8 hidden w-72 rounded-card border border-white/15 bg-ink/70 p-5 backdrop-blur hover:border-white/40 lg:block"
+        >
+          <p className="text-xs font-semibold uppercase tracking-[0.18em] text-white/60">Learn more</p>
+          <p className="mt-1 flex items-center justify-between gap-3 font-display text-lg font-bold">
+            About shipping to West Africa
+            <ArrowRightIcon size={20} />
+          </p>
+        </Link>
+      </section>
+
+      {/* ---------------- Trust row ---------------- */}
+      <section className="border-b border-line bg-white">
+        <ul className="mx-auto grid max-w-6xl grid-cols-1 gap-x-6 gap-y-3 px-4 py-6 text-sm font-semibold text-ink sm:grid-cols-2 sm:px-6 lg:grid-cols-5">
+          {TRUST_ROW.map(({ icon: Icon, label }) => (
+            <li key={label} className="flex items-center gap-3">
+              <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-band">
+                <Icon size={18} />
+              </span>
+              {label}
+            </li>
+          ))}
+        </ul>
+      </section>
+
+      {/* ---------------- Role cards ---------------- */}
+      <section className="bg-band">
+        <div className="mx-auto max-w-6xl px-4 py-14 sm:px-6 sm:py-20">
+          <SectionHeading title="How will you use ShipMova?" />
+          <ul className="mt-8 grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-4">
+            {ROLE_CARDS.map((card) => (
+              <li key={card.title} className={cardClasses({ padded: false, className: "flex flex-col overflow-hidden" })}>
+                {/* eslint-disable-next-line @next/next/no-img-element */}
+                <img
+                  src={card.image.src}
+                  alt=""
+                  width={card.image.width}
+                  height={card.image.height}
+                  loading="lazy"
+                  decoding="async"
+                  className="aspect-[8/5] w-full object-cover"
+                />
+                <div className="flex flex-1 flex-col p-5">
+                  <h3 className="font-display text-xl font-bold text-ink">{card.title}</h3>
+                  <p className="mt-2 flex-1 text-sm text-muted">{card.body}</p>
+                  <Link href={card.href} className={buttonClasses({ className: "mt-5 w-full" })}>
+                    {card.cta}
+                  </Link>
+                </div>
+              </li>
+            ))}
+          </ul>
         </div>
       </section>
 
-      <WhyBuy waitlistHref={isPrelaunch() ? "#waitlist" : null} />
-
-      {isPrelaunch() ? (
-        <section id="waitlist" className="scroll-mt-4 border-y border-gray-200 bg-gray-100">
-          <div className="mx-auto max-w-6xl px-6 py-10">
+      {prelaunch ? (
+        <section id="waitlist" className="scroll-mt-4 border-b border-line bg-white">
+          <div className="mx-auto max-w-6xl px-4 py-12 sm:px-6">
             <WaitlistForm source="home" className="max-w-3xl" />
           </div>
         </section>
       ) : null}
 
-      <section className="mx-auto max-w-6xl px-6 py-16">
-        {listings.length > 0 ? (
-          <>
-            <div className="mb-6 flex items-baseline justify-between gap-4">
-              {/* "Latest verified listings" until 0032: the grid is simply the
-                  most recent APPROVED listings, and approval is a moderation
-                  outcome, not a verification result — most rows here carry no
-                  verified badge at all. The per-card badges now state what was
-                  actually checked; the heading no longer overclaims on their
-                  behalf. */}
-              <h2 className="font-mono text-xs uppercase tracking-wider text-gray-500">
-                Latest listings
-              </h2>
-              <Link
-                href="/browse"
-                className="text-sm text-black hover:underline"
-              >
-                Browse all &rarr;
-              </Link>
-            </div>
-            <ul className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3">
-              {listings.map((v) => (
-                <li key={v.id}>
-                  <VehicleCard
-                    vehicle={v}
-                    thumbnailUrl={thumbByVehicle.get(v.id) ?? null}
-                    fx={fx}
+      {/* ---------------- Latest listings (only when there are any) ---------------- */}
+      {listings.length > 0 ? (
+        <section className="mx-auto max-w-6xl px-4 py-14 sm:px-6 sm:py-20">
+          <div className="flex items-end justify-between gap-4">
+            {/* "Latest listings", not "verified": approval is moderation, not
+                verification (0032). The per-card badges say what was checked. */}
+            <SectionHeading title="Latest listings" />
+            <Link href="/browse" className="flex h-11 shrink-0 items-center gap-1 text-sm font-semibold text-ink hover:underline">
+              Browse all <ArrowRightIcon size={16} />
+            </Link>
+          </div>
+          <ul className="mt-8 grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3">
+            {listings.map((v) => (
+              <li key={v.id}>
+                <VehicleCard
+                  vehicle={v}
+                  thumbnailUrl={thumbByVehicle.get(v.id) ?? null}
+                  fx={fx}
                   localCurrencies={localCurrencies}
-                  />
-                </li>
-              ))}
-            </ul>
-            <FxNote fx={fx} className="mt-4" />
-          </>
-        ) : (
-          <>
-            <h2 className="mb-6 font-mono text-xs uppercase tracking-wider text-gray-500">
-              Sample vehicle card — design system preview
-            </h2>
-            <div className="max-w-sm rounded-lg border border-gray-200 bg-white p-5 shadow-sm">
-              <div className="mb-4 flex items-start justify-between">
-                <h3 className="text-lg font-semibold text-black">
-                  2019 Toyota Camry SE
-                </h3>
-                <VerifiedBadge />
-              </div>
-              <div className="grid grid-cols-2 gap-4">
-                <VinData label="Mileage" value="62,000 mi" />
-                <VinData label="Location" value="Houston, TX" />
-                <VinData label="Price" value="$14,500" />
-                <VinData label="VIN" value="4T1B11HK..." />
-              </div>
-            </div>
-          </>
-        )}
-      </section>
-      <section className="border-t border-gray-200">
-        <div className="mx-auto max-w-6xl px-6 py-16">
-          <h2 className="text-2xl font-semibold text-black">What the 8% covers</h2>
-          <p className="mt-3 max-w-2xl text-gray-500">
-            Every car on ShipMova goes through checks you can&rsquo;t easily do
-            yourself from your country:
-          </p>
-          <ul className="mt-6 grid grid-cols-1 gap-4 sm:grid-cols-2">
-            {FEE_COVERS.map((item) => (
-              <li key={item.title} className="rounded-lg border border-gray-200 bg-white p-5">
-                <p className="font-semibold text-black">{item.title}</p>
-                <p className="mt-1 text-sm text-gray-500">{item.body}</p>
+                />
               </li>
             ))}
           </ul>
-          <p className="mt-6 max-w-2xl text-sm text-gray-500">
-            ShipMova&rsquo;s fee is 8% of the car price, shown before you commit. On
-            some listings the seller pays half — look for the &ldquo;
-            {SELLER_SPLITS_FEE_BADGE}&rdquo; badge. Escrow.com&rsquo;s fee is
-            shown separately.
-          </p>
-        </div>
-      </section>
+          <FxNote fx={fx} className="mt-4" />
+        </section>
+      ) : null}
 
-      <section className="border-t border-gray-200 bg-white">
-        <div className="mx-auto max-w-6xl px-6 py-16">
-          <h2 className="text-2xl font-semibold text-black">
-            Your money never goes to a stranger
-          </h2>
-          <ol className="mt-6 grid grid-cols-1 gap-4 sm:grid-cols-2">
-            {MONEY_STEPS.map((step, i) => (
-              <li key={step} className="flex gap-4 rounded-lg border border-gray-200 bg-white p-5">
-                <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-black font-mono text-sm text-white">
+      {/* ---------------- How it works ---------------- */}
+      <section className="border-t border-line bg-white">
+        <div className="mx-auto max-w-6xl px-4 py-14 sm:px-6 sm:py-20">
+          <SectionHeading eyebrow="How it works" title="From a U.S. listing to your port" />
+          <ol className="mt-8 grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
+            {HOW_STEPS.map((step, i) => (
+              <li key={step.title} className={cardClasses()}>
+                <span className="flex h-9 w-9 items-center justify-center rounded-full bg-ink font-display text-sm font-bold text-white">
                   {i + 1}
                 </span>
-                <p className="text-sm text-black">{step}</p>
+                <h3 className="mt-4 font-display text-lg font-bold text-ink">{step.title}</h3>
+                <p className="mt-1 text-sm text-muted">{step.body}</p>
               </li>
             ))}
           </ol>
-          <div className="mt-6 max-w-2xl rounded-lg border border-copper-100 bg-copper-50 p-5">
+          <Link href="/how-it-works" className={buttonClasses({ variant: "secondary", className: "mt-8" })}>
+            See exactly how it works <ArrowRightIcon size={18} />
+          </Link>
+        </div>
+      </section>
+
+      {/* ---------------- Who holds your money ---------------- */}
+      <section className="bg-band">
+        <div className="mx-auto max-w-6xl px-4 py-14 sm:px-6 sm:py-20">
+          <SectionHeading title="Who holds your money" intro="Your money never goes to a stranger." />
+          <ol className="mt-8 grid grid-cols-1 gap-4 sm:grid-cols-2">
+            {MONEY_STEPS.map((step, i) => (
+              <li key={step} className={cardClasses({ className: "flex gap-4" })}>
+                <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-ink font-display text-sm font-bold text-white">
+                  {i + 1}
+                </span>
+                <p className="text-sm text-ink">{step}</p>
+              </li>
+            ))}
+          </ol>
+          <div className="mt-6 max-w-2xl rounded-card border border-copper-100 bg-copper-50 p-5">
             <p className="font-semibold text-copper-700">ShipMova will never&hellip;</p>
             <ul className="mt-2 list-disc space-y-1 pl-5 text-sm text-copper-700">
               <li>send you bank details on WhatsApp, email or text</li>
@@ -233,6 +382,31 @@ export default async function Home() {
           </div>
         </div>
       </section>
+
+      {/* ---------------- What the 8% covers ---------------- */}
+      <section className="bg-white">
+        <div className="mx-auto max-w-6xl px-4 py-14 sm:px-6 sm:py-20">
+          <SectionHeading
+            title="What the 8% covers"
+            intro="Every car on ShipMova goes through checks you can't easily do yourself from your country:"
+          />
+          <ul className="mt-8 grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
+            {FEE_COVERS.map((item) => (
+              <li key={item.title} className={cardClasses()}>
+                <p className="font-display font-bold text-ink">{item.title}</p>
+                <p className="mt-1 text-sm text-muted">{item.body}</p>
+              </li>
+            ))}
+          </ul>
+          <p className="mt-6 max-w-2xl text-sm text-muted">
+            ShipMova&rsquo;s fee is 8% of the car price, shown before you commit. On some listings the
+            seller pays half — look for the &ldquo;{SELLER_SPLITS_FEE_BADGE}&rdquo; badge. Escrow.com&rsquo;s
+            fee is shown separately.
+          </p>
+        </div>
+      </section>
+
+      <WhyBuy waitlistHref={prelaunch ? "#waitlist" : null} />
     </main>
   );
 }
