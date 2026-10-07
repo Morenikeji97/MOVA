@@ -3,12 +3,13 @@
 import Link from "next/link";
 import { useEffect, useRef, useState } from "react";
 import { createClient } from "@/lib/supabase/client";
+import { SERVICE_ACCOUNT_HOME, SERVICE_ACCOUNT_LABEL, serviceAccountKind } from "@/lib/account-kind";
 
 type Destination = { label: string; href: string };
 
 // buyer / seller / admin map straight to their dashboards. A "shipper" isn't a
-// user role — it's a users row with a linked shippers record — so that link is
-// added separately below.
+// user role — it's a login linked to a shipper application/company
+// (public.my_service_account_kind) — so those links are added separately below.
 const ROLE_DASHBOARD: Record<string, string> = {
   buyer: "/buyer/dashboard",
   seller: "/seller/dashboard",
@@ -49,27 +50,23 @@ export function AccountMenu() {
       }
       setEmail(userEmail ?? null);
 
-      const [{ data: profile }, { data: shipper }] = await Promise.all([
+      const [{ data: profile }, { data: kind }] = await Promise.all([
         supabase.from("users").select("role").eq("id", userId).maybeSingle(),
-        supabase
-          .from("shippers")
-          .select("id")
-          .eq("user_id", userId)
-          .maybeSingle(),
+        supabase.rpc("my_service_account_kind"),
       ]);
       if (!active) return;
 
       const list: Destination[] = [];
-      // Shipper first: role is only ever buyer/seller/admin at the DB
-      // level, so a linked shipper's "Dashboard" link below would point at
-      // a technically-real but almost certainly unwanted buyer/seller page.
-      // Straight to /shipper/dashboard, not the /shipper portal — that
-      // page's own "← Shipper portal" link covers rates/profile from there.
-      if (shipper) {
+      // A shipper login is a buyer-role account underneath but isn't a
+      // buyer (lib/account-kind.ts): its portal and dashboard, never the
+      // buyer dashboard. A seller who is also a shipper keeps theirs.
+      const accountKind = serviceAccountKind(kind);
+      if (accountKind === "shipper") {
+        list.push({ label: SERVICE_ACCOUNT_LABEL.shipper, href: SERVICE_ACCOUNT_HOME.shipper });
         list.push({ label: "Shipper dashboard", href: "/shipper/dashboard" });
       }
       const role = profile?.role ?? null;
-      if (role && ROLE_DASHBOARD[role]) {
+      if (role && ROLE_DASHBOARD[role] && !(accountKind && role === "buyer")) {
         list.push({ label: "Dashboard", href: ROLE_DASHBOARD[role] });
       }
       if (list.length === 0) {

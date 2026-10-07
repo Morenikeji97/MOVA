@@ -79,7 +79,7 @@ export function confirmRedirectLocation(destination: string): string {
  *   recovery / invite            -> set a (new) password: /reset-password
  *   next is a real path          -> that path
  *   next missing or "/dashboard" -> the user's own dashboard by role, a
- *                                   shipper's dashboard, else home
+ *                                   shipper's portal, else home
  */
 export function destinationAfterConfirm(opts: {
   type: EmailLinkType;
@@ -90,6 +90,6 @@ export function destinationAfterConfirm(opts: {
   if (opts.type === "recovery" || opts.type === "invite") return "/reset-password";
   const next = safeNextPath(opts.next);
   if (next && next !== DASHBOARD_PLACEHOLDER) return next;
-  if (opts.isShipper) return "/shipper/dashboard";
+  if (opts.isShipper) return "/shipper/portal";
   return (opts.role && ROLE_HOME[opts.role]) || "/";
 }

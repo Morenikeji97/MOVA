@@ -7,6 +7,7 @@ import {
   LINK_EXPIRED_PATH,
 } from "@/lib/auth-redirect";
 import { redirectToPath } from "@/lib/relative-redirect";
+import { serviceAccountKind } from "@/lib/account-kind";
 
 /**
  * Landing route for every ShipMova auth email (supabase/email-templates/):
@@ -41,9 +42,9 @@ export async function GET(request: NextRequest) {
     return fail("expired");
   }
 
-  const [{ data: profile }, { data: shipper }] = await Promise.all([
+  const [{ data: profile }, { data: kind }] = await Promise.all([
     supabase.from("users").select("role").eq("id", data.user.id).maybeSingle(),
-    supabase.from("shippers").select("id").eq("user_id", data.user.id).maybeSingle(),
+    supabase.rpc("my_service_account_kind"),
   ]);
 
   // Always with its own query (lib/auth-redirect.ts confirmRedirectLocation),
@@ -54,7 +55,7 @@ export async function GET(request: NextRequest) {
         type,
         next,
         role: profile?.role ?? null,
-        isShipper: Boolean(shipper),
+        isShipper: serviceAccountKind(kind) === "shipper",
       }),
     ),
   );
