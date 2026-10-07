@@ -1343,6 +1343,10 @@ export interface Database {
         Args: Record<string, never>;
         Returns: boolean;
       };
+      my_service_account_kind: {
+        Args: Record<string, never>;
+        Returns: string | null;
+      };
       /** Writes one admin audit entry as the calling admin (0056). */
       log_admin_action: {
         Args: {

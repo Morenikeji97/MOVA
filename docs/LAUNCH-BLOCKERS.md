@@ -212,6 +212,10 @@ Supabase project) to remove before launch.
       the photo). Before launch: delete the account, and check the
       `buyer-id-documents` bucket has no files under its id.
 
+- [ ] **Test buyer `tbakare2+buyer6@gmail.com`** (created 2026-10-07 for the
+      #43 phone check, flagged test 2026-10-07, unverified, nothing public).
+      Before launch: delete the account.
+
 - [ ] **Restart SM- numbering so the first real deal is SM-000001.**
       Safe as long as no real deal exists yet: the reference is a label only
       (history and every link use the deal's id, nothing assumes the numbers
