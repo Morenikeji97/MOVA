@@ -10,11 +10,12 @@
 --   * can't reserve a car or start a buyer chat — enforced here, whatever
 --     the browser sends, and not tied to the pre-launch ID switch.
 --
--- "Linked" means shippers.user_id / inspectors.user_id is the login, or an
--- unclaimed shipper application (user_id still empty) whose contact email is
--- the login's confirmed email — so a shipper who applied before making an
--- account isn't sent to Verify ID before they claim it. Any status counts
--- (pending, approved, rejected, suspended).
+-- "Linked" means shippers.user_id / inspectors.user_id is the login (any
+-- status: pending, approved, rejected, suspended), or an APPROVED shipper
+-- not yet claimed (user_id still empty) whose contact email is the login's
+-- confirmed email — the same rule as the portal's "Claim" button — so an
+-- approved shipper who applied before making an account isn't sent to
+-- Verify ID before they claim it.
 --
 -- New functions and triggers only; nothing existing is changed.
 
@@ -27,6 +28,7 @@ returns text language sql stable security definer set search_path = '' as $$
       select 1 from public.shippers s
       join auth.users u on u.id = p_user
       where s.user_id is null
+        and s.status = 'approved'
         and u.email_confirmed_at is not null
         and lower(s.contact_email) = lower(u.email)
     ) then 'shipper'
