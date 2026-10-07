@@ -6,6 +6,8 @@ import { VinData } from "@/components/ui/vin-data";
 import { VehicleCard } from "@/components/ui/vehicle-card";
 import { loadRecentApprovedListings } from "@/lib/listings";
 import { getFxRates } from "@/lib/fx";
+import { getDisplayCurrency } from "@/lib/display-currency-server";
+import { cardCurrencies } from "@/lib/display-currency";
 import { FxNote } from "@/components/ui/fx-note";
 import { SELLER_SPLITS_FEE_BADGE } from "@/lib/fees";
 import { isPrelaunch } from "@/lib/prelaunch";
@@ -65,6 +67,7 @@ export default async function Home() {
     loadRecentApprovedListings(supabase, 8),
     getFxRates(),
   ]);
+  const localCurrencies = cardCurrencies(await getDisplayCurrency());
 
   return (
     <main className="min-h-screen bg-white">
@@ -149,6 +152,7 @@ export default async function Home() {
                     vehicle={v}
                     thumbnailUrl={thumbByVehicle.get(v.id) ?? null}
                     fx={fx}
+                  localCurrencies={localCurrencies}
                   />
                 </li>
               ))}

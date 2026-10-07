@@ -5,8 +5,8 @@ import { isPrelaunch, PRELAUNCH_BANNER } from "@/lib/prelaunch";
 export function PrelaunchBanner() {
   if (!isPrelaunch()) return null;
   return (
-    <div className="bg-marine-50 text-marine-700 print:hidden">
-      <p className="mx-auto max-w-6xl px-6 py-2 text-center text-sm font-medium">
+    <div className="border-b border-line bg-band text-ink print:hidden">
+      <p className="mx-auto max-w-6xl px-4 py-2 text-center text-sm font-medium sm:px-6">
         <Link href="/how-it-works" className="underline-offset-2 hover:underline">
           {PRELAUNCH_BANNER}
         </Link>

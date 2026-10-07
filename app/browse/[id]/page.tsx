@@ -14,6 +14,8 @@ import { PriceBreakdown, SellerSplitsFeeBadge } from "@/components/ui/price-brea
 import { FxNote } from "@/components/ui/fx-note";
 import { getFxRates } from "@/lib/fx";
 import { currenciesFor } from "@/lib/fx-format";
+import { detailCurrencies } from "@/lib/display-currency";
+import { getDisplayCurrency } from "@/lib/display-currency-server";
 import { feeBreakdown } from "@/lib/fees";
 import { compareRatesForBuyer, countryName, shippingMethodLabel } from "@/lib/shipping";
 import { RatingSummary } from "@/components/ui/rating-summary";
@@ -235,6 +237,9 @@ export default async function VehicleDetailPage({
     supabase.from("vehicle_videos").select("url").eq("vehicle_id", id).maybeSingle(),
     getFxRates(),
   ]);
+  // The header's currency switcher (lib/display-currency.ts): the chosen
+  // currency first, none for USD, the usual order with no choice.
+  const localCurrencies = detailCurrencies(await getDisplayCurrency(), currenciesFor(profileCountry));
 
   // Primary photo leads the gallery; the rest keep their sort order.
   const gallery = (photos ?? [])
@@ -302,7 +307,7 @@ export default async function VehicleDetailPage({
               : null
           }
           variant="detail"
-          local={fx ? { fx, currencies: currenciesFor(profileCountry) } : null}
+          local={localCurrencies.length && fx ? { fx, currencies: localCurrencies } : null}
           className="mt-3 max-w-xs"
         />
         <FxNote fx={fx} className="mt-1 max-w-xs" />

@@ -5,7 +5,7 @@ import { PriceBreakdown, SellerSplitsFeeBadge } from "@/components/ui/price-brea
 import { ImportBadge } from "@/components/ui/import-badge";
 import { mediaUrl } from "@/lib/media-url";
 import type { FeeResponsibility } from "@/types/database";
-import type { FxRates } from "@/lib/fx-format";
+import type { FxCurrency, FxRates } from "@/lib/fx-format";
 import {
   badgeFacts,
   hasTitleReviewedBadge,
@@ -39,11 +39,14 @@ export function VehicleCard({
   vehicle: v,
   thumbnailUrl,
   fx = null,
+  localCurrencies = ["NGN"],
 }: {
   vehicle: VehicleCardData;
   thumbnailUrl: string | null;
-  /** Shows the total in naira too; the page renders <FxNote> once. */
+  /** Shows the total in a local currency too; the page renders <FxNote> once. */
   fx?: FxRates | null;
+  /** From the header's currency switcher (lib/display-currency.ts); [] = dollars only. */
+  localCurrencies?: FxCurrency[];
 }) {
   // Badge rules live in lib/listing-badges.ts, shared with /browse/[id] and
   // the seller's own listings so the three surfaces can't disagree about what
@@ -97,7 +100,7 @@ export function VehicleCard({
         <PriceBreakdown
           price={Number(v.price_usd)}
           feeResponsibility={v.fee_responsibility}
-          local={fx ? { fx, currencies: ["NGN"] } : null}
+          local={fx && localCurrencies.length ? { fx, currencies: localCurrencies } : null}
         />
         <div className="mt-auto grid grid-cols-2 gap-3 pt-1">
           <VinData

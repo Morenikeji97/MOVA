@@ -19,15 +19,15 @@ export function buttonClasses({
   className?: string;
 } = {}) {
   return cn(
-    "inline-flex items-center justify-center rounded font-sans font-medium transition-colors",
-    "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-black",
+    "inline-flex items-center justify-center gap-2 rounded-lg font-sans font-semibold transition-colors",
+    "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-ink",
     "disabled:opacity-50 disabled:pointer-events-none",
-    variant === "primary" &&
-      "bg-black text-white hover:bg-gray-800 active:bg-gray-800",
-    variant === "secondary" &&
-      "border border-black text-black hover:bg-gray-100",
-    variant === "ghost" && "text-gray-700 hover:bg-gray-100",
-    size === "sm" && "h-9 px-3 text-sm",
+    // Design system (redesign PR A): black primary, white-outline secondary.
+    variant === "primary" && "bg-ink text-white hover:bg-neutral-800 active:bg-neutral-800",
+    variant === "secondary" && "border border-ink bg-white text-ink hover:bg-band active:bg-band",
+    variant === "ghost" && "text-ink hover:bg-band active:bg-band",
+    // Every size is at least 44px tall (tap target); sm is just narrower.
+    size === "sm" && "h-11 px-4 text-sm",
     size === "md" && "h-11 px-5 text-base",
     size === "lg" && "h-13 px-7 text-lg",
     className
