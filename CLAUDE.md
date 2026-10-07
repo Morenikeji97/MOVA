@@ -41,4 +41,28 @@ Test data and the shared database (standing rule):
 - Private test data (drafts, uploads that are cleaned up) is fine; list
   anything kept under "Pre-launch cleanup" in docs/LAUNCH-BLOCKERS.md.
 
+Remote-first (standing rule, 2026-10-06):
+- Everything must be approvable from the founder's phone via Remote Control:
+  work happens through normal permission prompts, never through pop-ups that
+  only appear on the Chromebook.
+- Secrets (tokens, passwords, keys) are entered only by the founder, with
+  hidden-input commands on the Chromebook. Never ask for them in chat, never
+  print, log or commit them.
+- Launch target: end of October 2026. Quality over speed: don't rush or skip
+  checks (tests, build, phone check at 360/320/desktop, read-back of writes).
+
+Database changes (standing rule, 2026-10-05):
+- Never use the Supabase MCP tools for anything that writes to the database
+  (apply_migration, or execute_sql that changes data or schema): their
+  approval pop-up only shows on the founder's Chromebook and blocks the
+  session. Read-only MCP queries are fine.
+- Database changes go through the Supabase CLI path, so the approval reaches
+  the founder's phone as a normal permission prompt. Before asking, explain
+  every destructive statement (drop / delete / update / truncate / revoke /
+  replacing a function) in plain English, then wait for "approve".
+- If the CLI path isn't set up yet: write the migration, commit it, keep
+  building everything else, and list the pending migrations for the founder.
+  Don't run them until the founder is back at the Chromebook for the
+  one-time setup.
+
 Known gaps and priorities: docs/architecture-review.md.

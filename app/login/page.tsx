@@ -2,13 +2,12 @@
 
 import { Suspense, useState } from "react";
 import Link from "next/link";
-import { useRouter, useSearchParams } from "next/navigation";
+import { useSearchParams } from "next/navigation";
 import { createClient } from "@/lib/supabase/client";
 import { Button } from "@/components/ui/button";
 import { checkLoginRateLimit } from "./actions";
 
 function LoginForm() {
-  const router = useRouter();
   const searchParams = useSearchParams();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
@@ -36,8 +35,13 @@ function LoginForm() {
       return;
     }
 
-    router.push(searchParams.get("next") ?? "/");
-    router.refresh();
+    // /auth/landing picks the destination: a shipper's own portal, else
+    // `next` or the home page (lib/account-kind.ts).
+    const next = searchParams.get("next");
+    // A full page load (not router.push): /auth/landing is a route handler
+    // that answers with a redirect, and every server component should
+    // render signed-in.
+    window.location.assign(next ? `/auth/landing?next=${encodeURIComponent(next)}` : "/auth/landing");
   }
 
   const authError = searchParams.get("error");

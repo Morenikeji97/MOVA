@@ -19,12 +19,11 @@ const ID_EXEMPT_PATHS = [
   "/terms",
   "/policies",
   "/waitlist",
-  // Shippers sign in with an ordinary (buyer-role) account — there's no
-  // shipper role — so the shipper application, portal and dashboard must
-  // work without a buyer ID. Nothing under /shipper is a buyer feature;
-  // chat and reserving still check the ID server-side.
+  // Anyone may apply to be a shipper without a buyer ID. A login already
+  // linked to a shipper or inspector skips this gate everywhere (lib/account-kind.ts);
+  // nothing under /shipper is a buyer feature.
   "/shipper",
-  // Inspectors also use ordinary logins (0063).
+  // Anyone may apply to be an inspector without a buyer ID either (0063).
   "/inspector",
 ];
 
