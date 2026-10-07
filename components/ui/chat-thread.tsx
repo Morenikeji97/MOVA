@@ -152,13 +152,13 @@ export function ChatThread({
   }
 
   return (
-    <div className="flex flex-col overflow-hidden rounded-lg border border-gray-200 bg-white">
+    <div className="flex flex-col overflow-hidden rounded-lg border border-line bg-white">
       <div
         ref={listRef}
         className="flex max-h-96 min-h-[8rem] flex-col gap-2 overflow-y-auto p-4"
       >
         {messages.length === 0 ? (
-          <p className="m-auto max-w-xs text-center text-sm text-gray-500">
+          <p className="m-auto max-w-xs text-center text-sm text-muted">
             {emptyHint ??
               `No messages yet. Say hello — ${counterpartyLabel} will see it here.`}
           </p>
@@ -173,13 +173,13 @@ export function ChatThread({
                 <div
                   className={`max-w-[80%] whitespace-pre-wrap break-words rounded-lg px-3 py-2 text-sm ${
                     mine
-                      ? "bg-black text-white"
-                      : "bg-gray-100 text-black"
+                      ? "bg-ink text-white"
+                      : "bg-band text-ink"
                   }`}
                 >
                   {m.content}
                 </div>
-                <span className="mt-0.5 font-mono text-[11px] text-gray-500">
+                <span className="mt-0.5 tabular-nums text-[11px] text-muted">
                   {mine ? "You" : counterpartyLabel} · {stamp(m.created_at)}
                 </span>
               </div>
@@ -190,10 +190,10 @@ export function ChatThread({
 
       <form
         onSubmit={onSubmit}
-        className="border-t border-gray-200 p-3"
+        className="border-t border-line p-3"
       >
         {blockReason ? (
-          <p className="mb-2 rounded border border-copper-100 bg-copper-50 p-2 text-sm text-copper-700">
+          <p className="mb-2 rounded-lg border border-copper-100 bg-copper-50 p-2 text-sm text-copper-700">
             {blockReason}
           </p>
         ) : null}
@@ -213,13 +213,13 @@ export function ChatThread({
             rows={2}
             maxLength={4000}
             placeholder="Write a message…"
-            className="min-h-[2.75rem] flex-1 resize-y rounded border border-gray-200 bg-white px-3 py-2 text-sm text-black focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-black"
+            className="min-h-[2.75rem] flex-1 resize-y rounded-lg border border-line bg-white px-3 py-2 text-sm text-ink focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-black"
           />
           <Button type="submit" size="sm" disabled={sending || !draft.trim()}>
             {sending ? "Sending…" : "Send"}
           </Button>
         </div>
-        <p className="mt-2 text-[11px] text-gray-500">
+        <p className="mt-2 text-[11px] text-muted">
           Phone numbers, emails, links and off-platform contact are blocked —
           ShipMova connects you directly once the deal is confirmed.
         </p>

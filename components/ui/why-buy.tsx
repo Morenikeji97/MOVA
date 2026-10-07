@@ -74,12 +74,12 @@ function Cell({ value }: { value: Mark }) {
   }
   if (value === "unsure") {
     return (
-      <span className="inline-flex items-center gap-1 text-gray-500">
+      <span className="inline-flex items-center gap-1 text-muted">
         <HelpCircle className="h-4 w-4" aria-hidden /> <span className="sr-only">Not known</span>
       </span>
     );
   }
-  return <span className="text-sm text-black">{value}</span>;
+  return <span className="text-sm text-ink">{value}</span>;
 }
 
 /**
@@ -98,22 +98,22 @@ export function WhyBuy({ waitlistHref = null }: { waitlistHref?: string | null }
       {/* relative: keeps the cells' sr-only labels inside the scroll box, so the page itself never scrolls sideways at 320px. */}
       <div className="relative mt-10 overflow-x-auto">
         <table className="w-full min-w-[480px] border-collapse text-left text-sm">
-          <caption className="mb-3 text-left text-lg font-semibold text-black">
+          <caption className="mb-3 text-left text-lg font-semibold text-ink">
             ShipMova vs. buying on your own
           </caption>
           <thead>
-            <tr className="border-b border-gray-200">
-              <th scope="col" className="py-2 pr-4 font-medium text-gray-500">
+            <tr className="border-b border-line">
+              <th scope="col" className="py-2 pr-4 font-medium text-muted">
                 <span className="sr-only">What matters</span>
               </th>
-              <th scope="col" className="py-2 pr-4 font-semibold text-black">ShipMova</th>
-              <th scope="col" className="py-2 font-semibold text-black">On your own</th>
+              <th scope="col" className="py-2 pr-4 font-semibold text-ink">ShipMova</th>
+              <th scope="col" className="py-2 font-semibold text-ink">On your own</th>
             </tr>
           </thead>
           <tbody>
             {COMPARISON.map((row) => (
-              <tr key={row.label} className="border-b border-gray-200">
-                <th scope="row" className="py-3 pr-4 font-normal text-black">{row.label}</th>
+              <tr key={row.label} className="border-b border-line">
+                <th scope="row" className="py-3 pr-4 font-normal text-ink">{row.label}</th>
                 <td className="py-3 pr-4"><Cell value={row.shipmova} /></td>
                 <td className="py-3"><Cell value={row.alone} /></td>
               </tr>

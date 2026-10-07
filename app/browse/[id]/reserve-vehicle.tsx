@@ -23,7 +23,7 @@ const REQUEST_STATUS_COPY: Record<string, string> = {
 
 function Card({ children }: { children: ReactNode }) {
   return (
-    <div className="mt-10 rounded-lg border border-gray-200 bg-white p-6">
+    <div className="rounded-card border border-line bg-white p-5 shadow-card">
       {children}
     </div>
   );
@@ -56,8 +56,8 @@ export function ReserveVehicle({
   if (state === "requested") {
     return (
       <Card>
-        <p className="text-black">You&rsquo;ve requested to reserve this vehicle.</p>
-        <p className="mt-1 text-sm text-gray-500">
+        <p className="font-display text-lg font-bold text-ink">You&rsquo;ve requested to reserve this vehicle.</p>
+        <p className="mt-1 text-sm text-muted">
           {(requestStatus && REQUEST_STATUS_COPY[requestStatus]) ??
             "ShipMova will be in touch."}
         </p>
@@ -74,7 +74,7 @@ export function ReserveVehicle({
         ) : null}
 
         {negotiatedPriceStatus === "accepted" && negotiatedPriceUsd != null ? (
-          <p className="mt-3 rounded border border-verified-100 bg-verified-50 p-3 text-sm text-verified-600">
+          <p className="mt-3 rounded-lg border border-verified-100 bg-verified-50 p-3 text-sm text-verified-600">
             You accepted{" "}
             {usdCents.format(negotiatedPriceUsd)} — ShipMova&rsquo;s service fee will
             be based on this price.
@@ -83,7 +83,7 @@ export function ReserveVehicle({
 
         <Link
           href="/buyer/dashboard"
-          className="mt-3 inline-block text-sm text-black hover:underline"
+          className="mt-2 flex h-11 w-fit items-center text-sm font-semibold text-ink hover:underline"
         >
           View your dashboard &rarr;
         </Link>
@@ -94,20 +94,20 @@ export function ReserveVehicle({
   if (state === "anonymous") {
     return (
       <Card>
-        <p className="text-black">Interested in this vehicle?</p>
-        <p className="mt-1 text-sm text-gray-500">
+        <p className="font-display text-lg font-bold text-ink">Interested in this vehicle?</p>
+        <p className="mt-1 text-sm text-muted">
           Sign in with a buyer account to send ShipMova a reservation request.
         </p>
-        <div className="mt-4 flex flex-wrap items-center gap-3">
+        <div className="mt-4 flex flex-col gap-2">
           <Link
             href={`/login?next=${encodeURIComponent(`/browse/${vehicleId}`)}`}
-            className={buttonClasses({ size: "md" })}
+            className={buttonClasses({ className: "w-full" })}
           >
             Sign in to reserve
           </Link>
           <Link
             href="/signup"
-            className="text-sm text-gray-500 hover:text-black"
+            className="flex h-11 items-center justify-center text-sm font-semibold text-muted hover:text-ink"
           >
             Create a buyer account
           </Link>
@@ -119,8 +119,8 @@ export function ReserveVehicle({
   if (state === "not-buyer") {
     return (
       <Card>
-        <p className="text-black">Reserving is for buyer accounts.</p>
-        <p className="mt-1 text-sm text-gray-500">
+        <p className="font-display text-lg font-bold text-ink">Reserving is for buyer accounts.</p>
+        <p className="mt-1 text-sm text-muted">
           Sign in with a buyer account to send ShipMova a reservation request for
           this vehicle.
         </p>
@@ -131,12 +131,12 @@ export function ReserveVehicle({
   // available
   return (
     <Card>
-      <p className="text-black">Reserve this vehicle</p>
-      <p className="mt-1 text-sm text-gray-500">
+      <p className="font-display text-lg font-bold text-ink">Reserve this vehicle</p>
+      <p className="mt-1 text-sm text-muted">
         This sends a reservation request to ShipMova. The vehicle stays listed until
         our team confirms who proceeds.
       </p>
-      <p className="mt-2 text-sm text-gray-500">
+      <p className="mt-2 text-sm text-muted">
         If ShipMova approves your reservation, you&rsquo;ll pay ShipMova&rsquo;s{" "}
         {usdCents.format(buyerFeeUsd)} fee, then the car price into Escrow.com.
         The seller is only paid once the car has passed inspection and your
@@ -144,7 +144,7 @@ export function ReserveVehicle({
       </p>
       <form action={formAction} className="mt-4">
         <input type="hidden" name="vehicleId" value={vehicleId} />
-        <Button type="submit" disabled={pending}>
+        <Button type="submit" className="w-full" disabled={pending}>
           {pending ? "Sending request…" : "Reserve this vehicle"}
         </Button>
       </form>

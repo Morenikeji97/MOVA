@@ -2,6 +2,8 @@ import type { Metadata } from "next";
 import { Banknote, CalendarClock, ClipboardList, HeartHandshake } from "lucide-react";
 import { BenefitsSection, type Benefit } from "@/components/ui/benefits-section";
 import { PartnerWaitlistForm } from "@/components/ui/partner-waitlist-form";
+import { ArrowRightIcon } from "@/components/ui/icons";
+import { PageHero, heroButtonClasses } from "@/components/ui/page-hero";
 
 export const metadata: Metadata = {
   title: "Become a ShipMova inspector",
@@ -35,37 +37,30 @@ const INSPECTOR_BENEFITS: Benefit[] = [
 export default function InspectorsPage() {
   return (
     <main className="min-h-screen bg-white">
-      <section className="bg-black text-white">
-        <div className="mx-auto max-w-6xl px-6 py-16">
-          <h1 className="max-w-2xl text-4xl font-semibold leading-tight sm:text-5xl">
-            Become a ShipMova inspector
-          </h1>
-          <p className="mt-4 max-w-xl text-gray-300">
-            Earn on your schedule checking cars near you before they ship overseas.
-          </p>
-          <a
-            href="#register"
-            className="mt-8 inline-flex h-13 items-center justify-center rounded bg-white px-7 text-lg font-medium text-black hover:bg-gray-200"
-          >
-            Register your interest &rarr;
-          </a>
-        </div>
-      </section>
+      <PageHero
+        eyebrow="For inspectors"
+        title="Become a ShipMova inspector"
+        intro="Earn on your schedule checking cars near you before they ship overseas."
+      >
+        <a href="#register" className={heroButtonClasses("solid")}>
+          Register your interest <ArrowRightIcon size={18} />
+        </a>
+      </PageHero>
 
       <BenefitsSection
         benefits={INSPECTOR_BENEFITS}
       >
-        <div className="mt-10 max-w-2xl rounded-lg border border-gray-200 bg-gray-100 p-5">
-          <h3 className="font-semibold text-black">Who we&rsquo;re looking for</h3>
-          <p className="mt-1 text-sm text-gray-500">
+        <div className="mt-10 max-w-2xl rounded-card border border-line bg-band p-5">
+          <h3 className="font-display text-lg font-bold text-ink">Who we&rsquo;re looking for</h3>
+          <p className="mt-1 text-sm text-muted">
             People who know cars (mechanics, detailers, car enthusiasts) and can pass our short
             knowledge check. ASE certification is a plus, not required.
           </p>
         </div>
       </BenefitsSection>
 
-      <section id="register" className="scroll-mt-4 border-t border-gray-200 bg-gray-100">
-        <div className="mx-auto max-w-3xl px-6 py-12">
+      <section id="register" className="scroll-mt-4 border-t border-line bg-band">
+        <div className="mx-auto max-w-3xl px-4 sm:px-6 py-12">
           <PartnerWaitlistForm audience="inspector" />
         </div>
       </section>

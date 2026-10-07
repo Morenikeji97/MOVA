@@ -15,6 +15,8 @@ import {
   MessageSquareQuote,
 } from "lucide-react";
 import { buttonClasses } from "@/components/ui/button";
+import { cardClasses } from "@/components/ui/card";
+import { PageHero, SectionHeading } from "@/components/ui/page-hero";
 import { BUYER_PROTECTION_POLICY_PATH } from "@/lib/policy";
 import { feeBreakdown } from "@/lib/fees";
 import { isPrelaunch } from "@/lib/prelaunch";
@@ -117,13 +119,13 @@ function ExampleRow({
   return (
     <div
       className={
-        (first ? "" : "border-t border-gray-200 ") +
+        (first ? "" : "border-t border-line ") +
         "flex items-center justify-between py-2 " +
         (strong ? "text-base font-semibold" : "text-sm")
       }
     >
-      <dt className={strong ? "text-black" : "text-gray-500"}>{label}</dt>
-      <dd className="font-mono text-black">{usd.format(value)}</dd>
+      <dt className={strong ? "text-ink" : "text-muted"}>{label}</dt>
+      <dd className="tabular-nums text-ink">{usd.format(value)}</dd>
     </div>
   );
 }
@@ -131,40 +133,32 @@ function ExampleRow({
 export default function HowItWorksPage() {
   return (
     <main className="min-h-screen bg-white">
-      <section className="bg-black text-white">
-        <div className="mx-auto max-w-4xl px-6 py-16">
-          <h1 className="text-4xl font-semibold leading-tight sm:text-5xl">
-            How ShipMova works
-          </h1>
-          <p className="mt-4 max-w-xl text-gray-300">
-            Buying a car from another country can feel risky. Here&rsquo;s
-            exactly how ShipMova makes it safe, transparent, and simple — from
-            browsing a listing to the car arriving at your door.
-          </p>
-        </div>
-      </section>
+      <PageHero
+        narrow
+        eyebrow="How it works"
+        title="How ShipMova works"
+        intro="Buying a car from another country can feel risky. Here’s exactly how ShipMova makes it safe, transparent, and simple — from browsing a listing to the car arriving at your door."
+      />
 
       {/* Section 1 — the journey, step by step */}
       {/* #shipping: the homepage's "About shipping to West Africa" card links here. */}
-      <section id="shipping" className="mx-auto max-w-4xl scroll-mt-4 px-6 py-16">
-        <h2 className="font-mono text-xs uppercase tracking-wider text-gray-500">
-          The journey, step by step
-        </h2>
-        <ol className="mt-6 flex flex-col gap-4">
+      <section id="shipping" className="mx-auto max-w-4xl scroll-mt-4 px-4 py-14 sm:px-6 sm:py-20">
+        <SectionHeading title="The journey, step by step" />
+        <ol className="mt-8 flex flex-col gap-3">
           {STEPS.map((step, i) => (
             <li
               key={step.title}
-              className="flex gap-4 rounded-lg border border-gray-200 bg-white p-5"
+              className={cardClasses({ className: "flex gap-4" })}
             >
-              <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-gray-100 text-black">
+              <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-band text-ink">
                 <step.icon className="h-5 w-5" aria-hidden />
               </div>
               <div>
-                <p className="font-mono text-xs uppercase tracking-wider text-gray-500">
+                <p className="text-xs font-semibold uppercase tracking-[0.14em] text-muted">
                   Step {i + 1}
                 </p>
-                <h3 className="mt-1 font-semibold text-black">{step.title}</h3>
-                {step.body ? <p className="mt-1 text-sm text-gray-500">{step.body}</p> : null}
+                <h3 className="mt-1 font-display text-lg font-bold text-ink">{step.title}</h3>
+                {step.body ? <p className="mt-1 text-sm text-muted">{step.body}</p> : null}
               </div>
             </li>
           ))}
@@ -179,18 +173,14 @@ export default function HowItWorksPage() {
       <WhyBuy waitlistHref={isPrelaunch() ? "#waitlist" : null} />
 
       {/* Section 2 — fee structure */}
-      <section className="border-t border-gray-200 bg-white">
-        <div className="mx-auto max-w-4xl px-6 py-16">
-          <h2 className="font-mono text-xs uppercase tracking-wider text-gray-500">
-            What you actually pay for
-          </h2>
-          <p className="mt-3 max-w-2xl text-gray-500">
-            Buying internationally shouldn&rsquo;t come with surprise costs.
-            Every dollar is shown to you before you pay anything. Here&rsquo;s
-            a real example:
-          </p>
+      <section className="border-t border-line bg-white">
+        <div className="mx-auto max-w-4xl px-4 py-14 sm:px-6 sm:py-20">
+          <SectionHeading
+            title="What you actually pay for"
+            intro="Buying internationally shouldn’t come with surprise costs. Every dollar is shown to you before you pay anything. Here’s a real example:"
+          />
 
-          <dl className="mt-6 max-w-md rounded-lg border border-gray-200 bg-white p-6">
+          <dl className={cardClasses({ className: "mt-8 max-w-md" })}>
             <ExampleRow label="Car price" value={EXAMPLE.vehiclePrice} first />
             <ExampleRow label="ShipMova fee (8%)" value={EXAMPLE.buyerFee} />
             <ExampleRow label="Escrow.com fee (est.)" value={EXAMPLE.escrowFee ?? 0} />
@@ -203,18 +193,18 @@ export default function HowItWorksPage() {
             />
           </dl>
 
-          <p className="mt-6 max-w-2xl text-sm text-gray-500">
-            <strong className="text-black">ShipMova&rsquo;s fee</strong>, the{" "}
-            <strong className="text-black">car price</strong> (held by
+          <p className="mt-6 max-w-2xl text-sm text-muted">
+            <strong className="text-ink">ShipMova&rsquo;s fee</strong>, the{" "}
+            <strong className="text-ink">car price</strong> (held by
             Escrow.com), Escrow.com&rsquo;s own fee and the{" "}
-            <strong className="text-black">shipping cost</strong> are separate
+            <strong className="text-ink">shipping cost</strong> are separate
             lines, paid separately, with separate refund rules — we&rsquo;re
             never bundling costs to hide what you&rsquo;re actually paying for.
             On listings marked &ldquo;Seller splits the fee&rdquo; you pay 4%
             instead of 8%. Full detail in our{" "}
             <Link
               href={BUYER_PROTECTION_POLICY_PATH}
-              className="text-black underline underline-offset-2"
+              className="text-ink underline underline-offset-2"
             >
               Buyer Protection &amp; Refund Policy
             </Link>
@@ -224,15 +214,13 @@ export default function HowItWorksPage() {
       </section>
 
       {/* Section 3 — what ShipMova is and isn't */}
-      <section className="mx-auto max-w-4xl px-6 py-16">
-        <h2 className="font-mono text-xs uppercase tracking-wider text-gray-500">
-          What ShipMova is (and isn&rsquo;t)
-        </h2>
-        <p className="mt-3 max-w-2xl text-gray-500">
-          We&rsquo;re straightforward about our role, because trust starts
-          with clarity.
-        </p>
-        <div className="mt-6 max-w-2xl rounded-lg border border-gray-200 bg-white p-6 text-sm text-black">
+      <section className="bg-band">
+        <div className="mx-auto max-w-4xl px-4 py-14 sm:px-6 sm:py-20">
+        <SectionHeading
+          title="What ShipMova is (and isn’t)"
+          intro="We’re straightforward about our role, because trust starts with clarity."
+        />
+        <div className={cardClasses({ className: "mt-8 max-w-2xl text-sm text-ink" })}>
           <p>
             ShipMova is a <strong>technology platform</strong> — we verify
             sellers, check listings, and coordinate a protected payment: the
@@ -251,36 +239,33 @@ export default function HowItWorksPage() {
             work we do — never a markup on the car.
           </p>
         </div>
+        </div>
       </section>
 
       {/* Section 4 — trust and safety */}
-      <section className="border-t border-gray-200 bg-white">
-        <div className="mx-auto max-w-4xl px-6 py-16">
-          <h2 className="font-mono text-xs uppercase tracking-wider text-gray-500">
-            Why this is safer than going it alone
-          </h2>
-          <p className="mt-3 max-w-2xl text-gray-500">
-            Buying a car sight-unseen from another country is exactly the
-            kind of transaction scammers target. Here&rsquo;s what stands
-            between you and that risk:
-          </p>
-          <ul className="mt-6 grid grid-cols-1 gap-4 sm:grid-cols-2">
+      <section className="border-t border-line bg-white">
+        <div className="mx-auto max-w-4xl px-4 py-14 sm:px-6 sm:py-20">
+          <SectionHeading
+            title="Why this is safer than going it alone"
+            intro="Buying a car sight-unseen from another country is exactly the kind of transaction scammers target. Here’s what stands between you and that risk:"
+          />
+          <ul className="mt-8 grid grid-cols-1 gap-4 sm:grid-cols-2">
             {TRUST_POINTS.map((point) => (
               <li
                 key={point.title}
-                className="rounded-lg border border-gray-200 bg-white p-5"
+                className={cardClasses()}
               >
-                <div className="flex h-9 w-9 items-center justify-center rounded-full bg-gray-100 text-black">
+                <div className="flex h-9 w-9 items-center justify-center rounded-full bg-band text-ink">
                   <point.icon className="h-5 w-5" aria-hidden />
                 </div>
-                <h3 className="mt-3 font-semibold text-black">
+                <h3 className="mt-3 font-display text-lg font-bold text-ink">
                   {point.title}
                 </h3>
-                <p className="mt-1 text-sm text-gray-500">{point.body}</p>
+                <p className="mt-1 text-sm text-muted">{point.body}</p>
               </li>
             ))}
           </ul>
-          <p className="mt-6 max-w-2xl text-sm text-gray-500">
+          <p className="mt-6 max-w-2xl text-sm text-muted">
             Put together, this is a level of upfront verification you simply
             don&rsquo;t get buying from an anonymous listing site or wiring
             money to a stranger you found online.
@@ -289,20 +274,22 @@ export default function HowItWorksPage() {
       </section>
 
       {/* Closing CTA */}
-      <section className="mx-auto max-w-4xl px-6 py-16 text-center">
-        <h2 className="text-2xl font-semibold text-black">
+      <section className="border-t border-line bg-white">
+        <div className="mx-auto max-w-4xl px-4 py-14 text-center sm:px-6 sm:py-20">
+        <h2 className="font-display text-3xl font-extrabold tracking-tight text-ink">
           Ready to see what&rsquo;s available?
         </h2>
-        <div className="mt-6 flex flex-wrap items-center justify-center gap-3">
-          <Link href="/browse" className={buttonClasses({ variant: "primary", size: "lg" })}>
+        <div className="mt-8 flex flex-col items-stretch justify-center gap-3 sm:flex-row sm:items-center">
+          <Link href="/browse" className={buttonClasses({ variant: "primary" })}>
             Browse Vehicles
           </Link>
           <Link
             href={BUYER_PROTECTION_POLICY_PATH}
-            className={buttonClasses({ variant: "secondary", size: "lg" })}
+            className={buttonClasses({ variant: "secondary" })}
           >
             Read the Buyer Protection Policy
           </Link>
+        </div>
         </div>
       </section>
     </main>

@@ -47,20 +47,20 @@ export default async function ShipperProfilePage({
   const aggregate = toAggregate(ratingRow);
 
   return (
-    <main className="mx-auto max-w-3xl px-6 py-16">
+    <main className="mx-auto max-w-3xl px-4 py-8 sm:px-6 sm:py-12">
       <Link
         href="/browse"
-        className="font-mono text-xs uppercase tracking-wider text-gray-500 hover:text-black"
+        className="flex h-11 w-fit items-center text-sm font-semibold text-muted hover:text-ink"
       >
         &larr; Browse vehicles
       </Link>
 
       <div className="mt-4 flex flex-wrap items-start justify-between gap-3">
         <div>
-          <h1 className="text-2xl font-semibold text-black">
+          <h1 className="font-display text-3xl font-extrabold tracking-tight text-ink">
             {shipper.company_name}
           </h1>
-          <p className="mt-1 font-mono text-sm text-gray-500">
+          <p className="mt-1 tabular-nums text-sm text-muted">
             Ships to{" "}
             {(shipper.service_countries ?? [])
               .map((c) => countryName(c))
@@ -74,7 +74,7 @@ export default async function ShipperProfilePage({
       </div>
 
       <section className="mt-10">
-        <h2 className="font-mono text-xs uppercase tracking-wider text-gray-500">
+        <h2 className="font-display text-xl font-bold text-ink">
           Buyer reviews
         </h2>
         <div className="mt-3">
@@ -87,7 +87,7 @@ export default async function ShipperProfilePage({
       </section>
 
       {!user ? (
-        <p className="mt-8 text-sm text-gray-500">
+        <p className="mt-8 text-sm text-muted">
           <Link href="/login" className={buttonClasses({ size: "sm", variant: "secondary" })}>
             Sign in
           </Link>{" "}

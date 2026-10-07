@@ -1,6 +1,5 @@
 import type { Metadata } from "next";
-import Link from "next/link";
-import { MarkdownLite } from "@/components/ui/markdown-lite";
+import { PolicyPage } from "@/components/ui/policy-page";
 import { BUYER_PROTECTION_POLICY_MARKDOWN } from "@/lib/policy-content";
 
 export const metadata: Metadata = {
@@ -10,17 +9,5 @@ export const metadata: Metadata = {
 };
 
 export default function BuyerProtectionPolicyPage() {
-  return (
-    <main className="mx-auto max-w-2xl px-6 py-16">
-      <Link
-        href="/"
-        className="font-mono text-xs uppercase tracking-wider text-gray-500 hover:text-black"
-      >
-        &larr; ShipMova
-      </Link>
-      <article className="mt-6">
-        <MarkdownLite source={BUYER_PROTECTION_POLICY_MARKDOWN} />
-      </article>
-    </main>
-  );
+  return <PolicyPage source={BUYER_PROTECTION_POLICY_MARKDOWN} />;
 }

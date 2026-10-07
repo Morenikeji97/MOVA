@@ -2,6 +2,8 @@ import type { Metadata } from "next";
 import { Anchor, FileCheck, Gift, Users } from "lucide-react";
 import { BenefitsSection, type Benefit } from "@/components/ui/benefits-section";
 import { PartnerWaitlistForm } from "@/components/ui/partner-waitlist-form";
+import { ArrowRightIcon } from "@/components/ui/icons";
+import { PageHero, heroButtonClasses } from "@/components/ui/page-hero";
 import { NIGERIA_PORTS } from "@/lib/prelaunch";
 
 export const metadata: Metadata = {
@@ -36,33 +38,26 @@ const AGENT_BENEFITS: Benefit[] = [
 export default function ClearingAgentsPage() {
   return (
     <main className="min-h-screen bg-white">
-      <section className="bg-black text-white">
-        <div className="mx-auto max-w-6xl px-6 py-16">
-          <h1 className="max-w-2xl text-4xl font-semibold leading-tight sm:text-5xl">
-            Partner with ShipMova in Nigeria
-          </h1>
-          <p className="mt-4 max-w-xl text-gray-300">
-            Pre-verified U.S. cars and buyers who need a trusted clearing agent.
-          </p>
-          <a
-            href="#register"
-            className="mt-8 inline-flex h-13 items-center justify-center rounded bg-white px-7 text-lg font-medium text-black hover:bg-gray-200"
-          >
-            Become a partner agent &rarr;
-          </a>
-        </div>
-      </section>
+      <PageHero
+        eyebrow="For clearing agents"
+        title="Partner with ShipMova in Nigeria"
+        intro="Pre-verified U.S. cars and buyers who need a trusted clearing agent."
+      >
+        <a href="#register" className={heroButtonClasses("solid")}>
+          Become a partner agent <ArrowRightIcon size={18} />
+        </a>
+      </PageHero>
 
       <BenefitsSection
         benefits={AGENT_BENEFITS}
       >
-        <p className="mt-8 text-sm text-gray-500">
-          <span className="font-semibold text-black">Ports:</span> {NIGERIA_PORTS.join(", ")}.
+        <p className="mt-8 text-sm text-muted">
+          <span className="font-semibold text-ink">Ports:</span> {NIGERIA_PORTS.join(", ")}.
         </p>
       </BenefitsSection>
 
-      <section id="register" className="scroll-mt-4 border-t border-gray-200 bg-gray-100">
-        <div className="mx-auto max-w-3xl px-6 py-12">
+      <section id="register" className="scroll-mt-4 border-t border-line bg-band">
+        <div className="mx-auto max-w-3xl px-4 sm:px-6 py-12">
           <PartnerWaitlistForm audience="clearing_agent" />
         </div>
       </section>

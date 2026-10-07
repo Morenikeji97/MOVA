@@ -30,13 +30,18 @@ import { modelYearFrom } from "@/lib/import-rules";
 import { mediaUrl } from "@/lib/media-url";
 import { isPrelaunch } from "@/lib/prelaunch";
 import { MessageSeller } from "./message-seller";
+import { buttonClasses } from "@/components/ui/button";
+import { cardClasses } from "@/components/ui/card";
+import { CarIcon, CheckIcon, LockIcon } from "@/components/ui/icons";
+import { WhatsAppGlyph } from "@/components/ui/whatsapp-button";
+import { whatsappLink } from "@/lib/whatsapp";
 import { ShippingRates, type PublicRate } from "./shipping-rates";
 
-function Spec({ label, children }: { label: string; children: ReactNode }) {
+function Spec({ label, children, className }: { label: string; children: ReactNode; className?: string }) {
   return (
-    <div className="flex flex-col gap-0.5">
-      <dt className="font-mono text-xs uppercase tracking-wider text-gray-500">{label}</dt>
-      <dd className="text-black">{children}</dd>
+    <div className={cn("flex min-w-0 flex-col gap-0.5", className)}>
+      <dt className="text-[11px] font-semibold uppercase tracking-[0.14em] text-muted">{label}</dt>
+      <dd className="text-sm font-semibold text-ink">{children}</dd>
     </div>
   );
 }
@@ -260,12 +265,15 @@ export default async function VehicleDetailPage({
   const titleReviewed = hasTitleReviewedBadge(facts);
   const verifiedListing = hasVerifiedListingBadge(facts);
 
+  const priceLocal = localCurrencies.length && fx ? { fx, currencies: localCurrencies } : null;
+  const whatsapp = whatsappLink(`Hi ShipMova, I have a question about the ${title} (listing ${id}).`);
+
   return (
-    <div className="min-h-screen bg-white">
-      <main className="mx-auto max-w-4xl px-6 py-12">
+    <div className="min-h-screen bg-band">
+      <main className="mx-auto max-w-6xl px-4 pb-14 pt-4 sm:px-6 sm:pt-6">
         {isPreview ? (
-          <div className="mb-6 rounded-lg border border-marine-700 bg-marine-50 p-4 text-sm text-marine-700">
-            <p className="font-medium">
+          <div className="mb-4 rounded-card border border-marine-700/30 bg-marine-50 p-4 text-sm text-marine-700">
+            <p className="font-semibold">
               Preview — buyers can&rsquo;t see this listing yet ({PREVIEW_STATUS_LABEL[v.status] ?? v.status}).
             </p>
             <p className="mt-1">
@@ -278,194 +286,271 @@ export default async function VehicleDetailPage({
         ) : null}
         <Link
           href="/browse"
-          className="font-mono text-xs uppercase tracking-wider text-gray-500 hover:text-black"
+          className="flex h-11 w-fit items-center text-sm font-semibold text-muted hover:text-ink"
         >
           &larr; Back to browse
         </Link>
 
-        <div className="mt-4 flex flex-wrap items-start justify-between gap-3">
-          <h1 className="text-2xl font-semibold text-black">{title}</h1>
-          <div className="flex flex-wrap items-center gap-2">
+        <div className="mt-1">
+          <h1 className="font-display text-3xl font-extrabold leading-tight tracking-tight text-ink sm:text-4xl">
+            {title}
+          </h1>
+          <p className="mt-2 text-sm text-muted">
+            {v.mileage.toLocaleString("en-US")} mi · {v.location_city}, {v.location_state}
+          </p>
+          <div className="mt-2 flex flex-wrap items-center gap-x-1">
+            <RatingSummary aggregate={sellerAggregate} />
+            <span className="text-xs text-muted">seller rating</span>
+          </div>
+          <div className="mt-3 flex flex-wrap items-center gap-2">
             {verifiedListing ? <VerifiedBadge /> : null}
-            {v.vin_verification_status === "verified" ? (
-              <VerifiedBadge label="VIN Verified" />
-            ) : null}
-            {titleReviewed ? <VerifiedBadge label="Title reviewed" /> : null}
             {v.fee_responsibility === "split" ? <SellerSplitsFeeBadge /> : null}
             <ImportBadge vinModelYearCode={v.vin_model_year_code} year={v.year} />
           </div>
         </div>
-        <PriceBreakdown
-          price={Number(v.price_usd)}
-          feeResponsibility={v.fee_responsibility}
-          shipping={
-            selectedRate
-              ? {
-                  cost: selectedRate.price,
-                  label: `${countryName(selectedRate.destination_country)}, ${shippingMethodLabel(selectedRate.shipping_method)}`,
+
+        {/* Phones: photos, then price and actions, then details. Desktop:
+            price and actions in a column on the right. */}
+        <div className="mt-6 grid grid-cols-1 gap-6 lg:grid-cols-[minmax(0,1fr)_380px] lg:grid-rows-[auto_1fr] lg:gap-x-10">
+          <div className="min-w-0 lg:col-start-1">
+            {gallery.length > 0 ? (
+              <>
+                {/* Swipe on phones (the next photo peeks in); a grid from sm up. */}
+                <div className="-mx-4 flex snap-x snap-mandatory gap-2 overflow-x-auto px-4 sm:mx-0 sm:grid sm:grid-cols-2 sm:gap-3 sm:overflow-visible sm:px-0">
+                  {gallery.map((p, i) => (
+                    // eslint-disable-next-line @next/next/no-img-element
+                    <img
+                      key={i}
+                      src={mediaUrl(p.url)}
+                      alt={`${title} photo ${i + 1}`}
+                      // The cover shows at once; the rest load as they scroll near.
+                      loading={i === 0 ? "eager" : "lazy"}
+                      decoding="async"
+                      className={cn(
+                        "shrink-0 snap-start rounded-card bg-white object-cover sm:w-full",
+                        gallery.length > 1 ? "w-[88%]" : "w-full",
+                        i === 0 ? "aspect-[4/3] sm:col-span-2 sm:aspect-[16/10]" : "aspect-[4/3]",
+                      )}
+                    />
+                  ))}
+                </div>
+                {gallery.length > 1 ? (
+                  <p className="mt-2 text-xs text-muted sm:hidden">
+                    {gallery.length} photos · swipe to see more
+                  </p>
+                ) : null}
+              </>
+            ) : (
+              <div className="flex aspect-[4/3] flex-col items-center justify-center gap-2 rounded-card border border-dashed border-line bg-white text-xs font-semibold uppercase tracking-[0.14em] text-muted sm:aspect-[16/10]">
+                <CarIcon size={32} />
+                No photos provided
+              </div>
+            )}
+
+            {video ? (
+              <div className="mt-3">
+                {/* eslint-disable-next-line jsx-a11y/media-has-caption */}
+                <video
+                  src={mediaUrl(video.url)}
+                  controls
+                  // Nothing downloads until the buyer presses play (clips run to 100 MB).
+                  preload="none"
+                  poster={gallery[0] ? mediaUrl(gallery[0].thumb_url ?? gallery[0].url) : undefined}
+                  className="aspect-video w-full rounded-card bg-ink object-contain"
+                />
+              </div>
+            ) : null}
+          </div>
+
+          <aside className="flex min-w-0 flex-col gap-4 lg:col-start-2 lg:row-span-2 lg:row-start-1">
+            <div className={cardClasses()}>
+              <p className="text-xs font-semibold uppercase tracking-[0.14em] text-muted">Price</p>
+              <PriceBreakdown
+                price={Number(v.price_usd)}
+                feeResponsibility={v.fee_responsibility}
+                shipping={
+                  selectedRate
+                    ? {
+                        cost: selectedRate.price,
+                        label: `${countryName(selectedRate.destination_country)}, ${shippingMethodLabel(selectedRate.shipping_method)}`,
+                      }
+                    : null
                 }
-              : null
-          }
-          variant="detail"
-          local={localCurrencies.length && fx ? { fx, currencies: localCurrencies } : null}
-          className="mt-3 max-w-xs"
-        />
-        <FxNote fx={fx} className="mt-1 max-w-xs" />
-        {/* Estimate only — never added to "Total before shipping" above. */}
-        <ShippingEstimate
-          profileCountry={profileCountry}
-          modelYear={modelYearFrom(v.vin_model_year_code, v.year)}
-          className="mt-3 max-w-md"
-        />
-        <p className="mt-2 font-mono text-sm text-gray-500">
-          {v.mileage.toLocaleString("en-US")} mi · {v.location_city}, {v.location_state}
-        </p>
-        <div className="mt-2">
-          <RatingSummary aggregate={sellerAggregate} />
-          <span className="ml-1 font-mono text-xs text-gray-500">seller rating</span>
-        </div>
-
-        {gallery.length > 0 ? (
-          <div className="mt-6 grid grid-cols-1 gap-3 sm:grid-cols-2">
-            {gallery.map((p, i) => (
-              // eslint-disable-next-line @next/next/no-img-element
-              <img
-                key={i}
-                src={mediaUrl(p.url)}
-                alt={`${title} photo ${i + 1}`}
-                // The cover shows at once; the rest load as they scroll near.
-                loading={i === 0 ? "eager" : "lazy"}
-                decoding="async"
-                className={cn(
-                  "w-full rounded-lg border border-gray-200 object-cover",
-                  i === 0 ? "aspect-[16/10] sm:col-span-2" : "aspect-[4/3]"
-                )}
+                variant="detail"
+                local={priceLocal}
+                className="mt-2"
               />
-            ))}
-          </div>
-        ) : (
-          <div className="mt-6 rounded-lg border border-dashed border-gray-200 bg-white p-12 text-center font-mono text-xs uppercase tracking-wider text-gray-500">
-            No photos provided
-          </div>
-        )}
-
-        {video ? (
-          <div className="mt-3">
-            {/* eslint-disable-next-line jsx-a11y/media-has-caption */}
-            <video
-              src={mediaUrl(video.url)}
-              controls
-              // Nothing downloads until the buyer presses play (clips run to 100 MB).
-              preload="none"
-              poster={gallery[0] ? mediaUrl(gallery[0].thumb_url ?? gallery[0].url) : undefined}
-              className="aspect-video w-full rounded-lg border border-gray-200 bg-black object-contain"
-            />
-          </div>
-        ) : null}
-
-        <dl className="mt-8 grid grid-cols-2 gap-x-6 gap-y-4 sm:grid-cols-3">
-          <Spec label="VIN">
-            <span className="font-mono">{fullVin ?? v.vin_masked}</span>
-          </Spec>
-          <Spec label="Year">{v.year}</Spec>
-          <Spec label="Mileage">{v.mileage.toLocaleString("en-US")} mi</Spec>
-          {v.transmission ? <Spec label="Transmission">{v.transmission}</Spec> : null}
-          {v.fuel_type ? <Spec label="Fuel">{v.fuel_type}</Spec> : null}
-          {v.condition ? <Spec label="Condition">{v.condition}</Spec> : null}
-          {v.exterior_color ? <Spec label="Exterior">{v.exterior_color}</Spec> : null}
-          {v.interior_color ? <Spec label="Interior">{v.interior_color}</Spec> : null}
-          {v.title_status ? <Spec label="Title">{v.title_status}</Spec> : null}
-          {v.accident_history ? (
-            <Spec label="Accident history">{v.accident_history}</Spec>
-          ) : null}
-          <Spec label="Location">
-            {v.location_city}, {v.location_state}
-          </Spec>
-        </dl>
-
-        {v.description ? (
-          <section className="mt-8">
-            <h2 className="font-mono text-xs uppercase tracking-wider text-gray-500">
-              Description
-            </h2>
-            <p className="mt-2 whitespace-pre-line text-sm text-gray-500">
-              {v.description}
-            </p>
-          </section>
-        ) : null}
-
-        {/* Pre-launch: no reserving (reserveVehicle refuses it server-side too),
-            so the waitlist stands in — except for a buyer who already has a
-            request from before, who still sees its status. */}
-        {isPrelaunch() && reserveState !== "requested" ? (
-          <WaitlistForm source="listing" vehicleId={id} className="mt-10" />
-        ) : (
-        <ReserveVehicle
-          vehicleId={id}
-          state={reserveState}
-          requestStatus={requestStatus}
-          buyerFeeUsd={feeBreakdown(Number(v.price_usd), v.fee_responsibility).buyerFee}
-          requestId={requestId}
-          listingPriceUsd={Number(v.price_usd)}
-          negotiatedPriceUsd={negotiatedPriceUsd}
-          negotiatedPriceStatus={negotiatedPriceStatus}
-        />
-        )}
-
-        {user && isBuyer ? (
-          <MessageSeller
-            vehicleId={id}
-            buyerId={user.id}
-            existingConversationId={existingConversationId}
-          />
-        ) : null}
-
-        {/* Arranging shipping needs a real purchase_request_id (see
-            shipping-actions.ts) — only once the buyer has actually
-            requested this vehicle, not just while browsing. */}
-        {user && isBuyer && requestId ? (
-          <ShippingRates
-            vehicleId={id}
-            purchaseRequestId={requestId}
-            defaultDestination={destinationCode}
-            vehicleState={v.location_state}
-            rates={shippingRates}
-            selectedRateId={selectedShippingRateId}
-            locked={shippingSelectionLocked}
-          />
-        ) : null}
-
-        <section className="mt-12">
-          <h2 className="font-mono text-xs uppercase tracking-wider text-gray-500">
-            Seller reviews
-          </h2>
-          <div className="mt-2">
-            <RatingSummary aggregate={sellerAggregate} size="md" />
-          </div>
-
-          {sellerReviewPrId ? (
-            <div className="mt-4">
-              <ReviewForm
-                target={{
-                  reviewType: "buyer_to_seller",
-                  revieweeId: v.seller_id,
-                  purchaseRequestId: sellerReviewPrId,
-                }}
-                counterpartyLabel="the seller"
+              <FxNote fx={fx} className="mt-2" />
+              {/* Estimate only — never added to "Total before shipping" above. */}
+              <ShippingEstimate
+                profileCountry={profileCountry}
+                modelYear={modelYearFrom(v.vin_model_year_code, v.year)}
+                className="mt-4"
               />
             </div>
-          ) : null}
 
-          <div className="mt-4">
-            <ReviewList
-              reviews={(sellerReviewRows ?? []) as PublicReview[]}
-              canReport={Boolean(user)}
-              emptyLabel="No reviews of this seller yet."
-            />
+            {/* Pre-launch: no reserving (reserveVehicle refuses it server-side too),
+                so the waitlist stands in — except for a buyer who already has a
+                request from before, who still sees its status. */}
+            {isPrelaunch() && reserveState !== "requested" ? (
+              <WaitlistForm source="listing" vehicleId={id} compact />
+            ) : (
+              <ReserveVehicle
+                vehicleId={id}
+                state={reserveState}
+                requestStatus={requestStatus}
+                buyerFeeUsd={feeBreakdown(Number(v.price_usd), v.fee_responsibility).buyerFee}
+                requestId={requestId}
+                listingPriceUsd={Number(v.price_usd)}
+                negotiatedPriceUsd={negotiatedPriceUsd}
+                negotiatedPriceStatus={negotiatedPriceStatus}
+              />
+            )}
+
+            {whatsapp ? (
+              <a
+                href={whatsapp}
+                target="_blank"
+                rel="noopener noreferrer"
+                className={buttonClasses({ variant: "secondary", className: "w-full" })}
+              >
+                <WhatsAppGlyph className="h-5 w-5" />
+                Ask about this car on WhatsApp
+              </a>
+            ) : null}
+
+            <section className={cardClasses()} aria-labelledby="checks-heading">
+              <h2 id="checks-heading" className="font-display text-lg font-bold text-ink">
+                Checks on this listing
+              </h2>
+              <ul className="mt-3 flex flex-col gap-3 text-sm">
+                <TrustCheck done={facts.sellerIdentityVerified} label="Seller’s ID verified" />
+                <TrustCheck
+                  done={v.vin_verification_status === "verified"}
+                  label="VIN checked against U.S. records"
+                />
+                <TrustCheck done={titleReviewed} label="Title reviewed by ShipMova" />
+              </ul>
+              <div className="mt-4 flex gap-3 border-t border-line pt-4 text-sm text-muted">
+                <LockIcon size={18} className="mt-0.5 shrink-0 text-ink" />
+                <p>
+                  You pay the car price into Escrow.com, not to the seller. The seller is paid once
+                  the car passes inspection and your shipper has it with the title.{" "}
+                  <Link href="/how-it-works" className="font-semibold text-ink underline underline-offset-2">
+                    How it works
+                  </Link>
+                </p>
+              </div>
+            </section>
+          </aside>
+
+          <div className="min-w-0 lg:col-start-1">
+            <section className={cardClasses()} aria-labelledby="details-heading">
+              <h2 id="details-heading" className="font-display text-lg font-bold text-ink">
+                Vehicle details
+              </h2>
+              <dl className="mt-4 grid grid-cols-2 gap-x-6 gap-y-4 sm:grid-cols-3">
+                <Spec label="VIN" className="col-span-2 sm:col-span-1">
+                  <span className="break-all font-mono text-sm">{fullVin ?? v.vin_masked}</span>
+                </Spec>
+                <Spec label="Year">{v.year}</Spec>
+                <Spec label="Mileage">{v.mileage.toLocaleString("en-US")} mi</Spec>
+                {v.transmission ? <Spec label="Transmission">{v.transmission}</Spec> : null}
+                {v.fuel_type ? <Spec label="Fuel">{v.fuel_type}</Spec> : null}
+                {v.condition ? <Spec label="Condition">{v.condition}</Spec> : null}
+                {v.exterior_color ? <Spec label="Exterior">{v.exterior_color}</Spec> : null}
+                {v.interior_color ? <Spec label="Interior">{v.interior_color}</Spec> : null}
+                {v.title_status ? <Spec label="Title">{v.title_status}</Spec> : null}
+                {v.accident_history ? (
+                  <Spec label="Accident history">{v.accident_history}</Spec>
+                ) : null}
+                <Spec label="Location">
+                  {v.location_city}, {v.location_state}
+                </Spec>
+              </dl>
+            </section>
+
+            {v.description ? (
+              <section className={cardClasses({ className: "mt-4" })}>
+                <h2 className="font-display text-lg font-bold text-ink">Description</h2>
+                <p className="mt-2 whitespace-pre-line text-sm text-muted">{v.description}</p>
+              </section>
+            ) : null}
+
+            {user && isBuyer ? (
+              <MessageSeller
+                vehicleId={id}
+                buyerId={user.id}
+                existingConversationId={existingConversationId}
+              />
+            ) : null}
+
+            {/* Arranging shipping needs a real purchase_request_id (see
+                shipping-actions.ts) — only once the buyer has actually
+                requested this vehicle, not just while browsing. */}
+            {user && isBuyer && requestId ? (
+              <ShippingRates
+                vehicleId={id}
+                purchaseRequestId={requestId}
+                defaultDestination={destinationCode}
+                vehicleState={v.location_state}
+                rates={shippingRates}
+                selectedRateId={selectedShippingRateId}
+                locked={shippingSelectionLocked}
+              />
+            ) : null}
+
+            <section className="mt-10">
+              <h2 className="font-display text-xl font-bold text-ink">Seller reviews</h2>
+              <div className="mt-2">
+                <RatingSummary aggregate={sellerAggregate} size="md" />
+              </div>
+
+              {sellerReviewPrId ? (
+                <div className="mt-4">
+                  <ReviewForm
+                    target={{
+                      reviewType: "buyer_to_seller",
+                      revieweeId: v.seller_id,
+                      purchaseRequestId: sellerReviewPrId,
+                    }}
+                    counterpartyLabel="the seller"
+                  />
+                </div>
+              ) : null}
+
+              <div className="mt-4">
+                <ReviewList
+                  reviews={(sellerReviewRows ?? []) as PublicReview[]}
+                  canReport={Boolean(user)}
+                  emptyLabel="No reviews of this seller yet."
+                />
+              </div>
+            </section>
           </div>
-        </section>
+        </div>
       </main>
     </div>
+  );
+}
+
+/** One line of "Checks on this listing": done, or honestly not yet. */
+function TrustCheck({ done, label }: { done: boolean; label: string }) {
+  return (
+    <li className="flex items-start gap-3">
+      <span
+        className={cn(
+          "flex h-6 w-6 shrink-0 items-center justify-center rounded-full",
+          done ? "bg-verified-50 text-verified-600" : "bg-band text-muted",
+        )}
+      >
+        {done ? <CheckIcon size={14} /> : <span className="h-0.5 w-2.5 rounded bg-current" />}
+      </span>
+      <span className={done ? "text-ink" : "text-muted"}>
+        {label}
+        {done ? null : <span className="block text-xs">Not yet</span>}
+      </span>
+    </li>
   );
 }
 
