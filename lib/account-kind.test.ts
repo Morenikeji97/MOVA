@@ -78,11 +78,11 @@ test("the database refuses a shipper or inspector as the buyer, whatever the bro
   }
   // Not tied to the pre-launch ID switch.
   assert.doesNotMatch(sql, /is_buyer_id_check_required/);
-  // Linked shipper, linked inspector, or an unclaimed application with this
-  // login's confirmed email.
+  // Linked shipper, linked inspector, or an approved unclaimed shipper with
+  // this login's confirmed email (what the portal offers to claim).
   assert.match(sql, /s\.user_id = p_user\) then 'shipper'/);
   assert.match(sql, /i\.user_id = p_user\) then 'inspector'/);
-  assert.match(sql, /s\.user_id is null\s+and u\.email_confirmed_at is not null\s+and lower\(s\.contact_email\) = lower\(u\.email\)/);
+  assert.match(sql, /s\.user_id is null\s+and s\.status = 'approved'\s+and u\.email_confirmed_at is not null\s+and lower\(s\.contact_email\) = lower\(u\.email\)/);
   // Nobody can ask about another user; the caller only learns about themself.
   assert.match(sql, /revoke execute on function public\.service_account_kind_for\(uuid\) from public, anon, authenticated;/);
   assert.match(sql, /select public\.service_account_kind_for\(auth\.uid\(\)\)/);
