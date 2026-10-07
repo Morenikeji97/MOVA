@@ -98,3 +98,12 @@ test("the database refuses a shipper or inspector as the buyer, whatever the bro
   assert.match(sql, /select public\.service_account_kind_for\(auth\.uid\(\)\)/);
   assert.match(sql, /revoke execute on function public\.my_service_account_kind\(\) from public, anon;/);
 });
+
+test("the shipper check on reserving runs before every other check (0066)", () => {
+  const sql = readFileSync("supabase/migrations/0066_service_account_check_first.sql", "utf8");
+  assert.match(sql, /rename to purchase_requests_0_refuse_service_accounts;/);
+  // BEFORE triggers run in name order; "0" sorts before any letter, so this
+  // runs ahead of e.g. purchase_requests_guard_escrow and _prelaunch_guard.
+  const others = ["purchase_requests_guard_escrow", "purchase_requests_guard_negotiation", "purchase_requests_prelaunch_guard", "purchase_requests_reference", "purchase_requests_require_buyer_id"];
+  for (const o of others) assert.ok("purchase_requests_0_refuse_service_accounts" < o, o);
+});
