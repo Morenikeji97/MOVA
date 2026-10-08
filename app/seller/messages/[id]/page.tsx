@@ -4,6 +4,7 @@ import { createClient } from "@/lib/supabase/server";
 import { ChatThread, type ChatMessage } from "@/components/ui/chat-thread";
 import { NegotiatePricePanel } from "@/components/ui/negotiate-price-panel";
 import { BuyerIdSummary } from "@/components/buyer-id-summary";
+import { BackLink, DashboardShell } from "@/components/ui/dashboard";
 
 export default async function SellerConversationPage({
   params,
@@ -65,28 +66,23 @@ export default async function SellerConversationPage({
   const buyerLabel = buyer?.email ?? "Buyer";
 
   return (
-    <main className="mx-auto max-w-3xl px-6 py-16">
-      <Link
-        href="/seller/messages"
-        className="font-mono text-xs uppercase tracking-wider text-gray-500 hover:text-black"
-      >
-        &larr; All messages
-      </Link>
+    <DashboardShell narrow>
+      <BackLink href="/seller/messages">All messages</BackLink>
 
-      <div className="mt-4 flex flex-wrap items-baseline justify-between gap-2">
-        <h1 className="text-2xl font-semibold text-black">{title}</h1>
+      <div className="mt-2 flex flex-wrap items-baseline justify-between gap-x-4 gap-y-1">
+        <h1 className="min-w-0 break-words font-display text-2xl font-extrabold tracking-tight text-ink sm:text-3xl">
+          {title}
+        </h1>
         {vehicle ? (
           <Link
             href={`/browse/${vehicle.id}`}
-            className="text-sm text-black hover:underline"
+            className="inline-flex h-11 items-center text-sm font-semibold text-ink underline underline-offset-2"
           >
             View listing &rarr;
           </Link>
         ) : null}
       </div>
-      <p className="mt-1 font-mono text-sm text-gray-500">
-        Conversation with {buyerLabel}
-      </p>
+      <p className="mt-1 break-all text-sm text-muted">Conversation with {buyerLabel}</p>
       <BuyerIdSummary summary={buyerId ?? null} />
 
       {pr && vehicle ? (
@@ -109,7 +105,7 @@ export default async function SellerConversationPage({
           emptyHint={`No messages yet. ${buyerLabel} will see your reply here.`}
         />
       </div>
-    </main>
+    </DashboardShell>
   );
 }
 

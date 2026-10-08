@@ -112,7 +112,7 @@ export function ReportIssuePanel({ purchaseRequestId }: { purchaseRequestId: str
 
   if (done) {
     return (
-      <p className="mt-3 rounded border border-verified-100 bg-verified-50 p-3 text-sm text-verified-600">
+      <p className="mt-3 rounded-lg border border-verified-100 bg-verified-50 p-3 text-sm text-verified-600">
         Dispute filed — ShipMova will review it, usually within 5 business days.
       </p>
     );
@@ -135,16 +135,16 @@ export function ReportIssuePanel({ purchaseRequestId }: { purchaseRequestId: str
   return (
     <form
       onSubmit={handleSubmit}
-      className="mt-3 flex flex-col gap-3 rounded border border-gray-200 bg-white p-4"
+      className="mt-3 flex flex-col gap-3 rounded-lg border border-line bg-white p-4"
     >
-      <p className="text-sm font-medium text-black">Report an issue</p>
+      <p className="text-sm font-medium text-ink">Report an issue</p>
 
       <label className="flex flex-col gap-1">
-        <span className="text-sm text-gray-500">Category</span>
+        <span className="text-sm text-muted">Category</span>
         <select
           value={category}
           onChange={(e) => setCategory(e.target.value as DisputeCategory)}
-          className="h-11 rounded border border-gray-200 bg-white px-3 text-sm text-black"
+          className="h-11 rounded-lg border border-line bg-white px-3 text-sm text-ink"
         >
           {DISPUTE_CATEGORIES.map((c) => (
             <option key={c} value={c}>
@@ -155,7 +155,7 @@ export function ReportIssuePanel({ purchaseRequestId }: { purchaseRequestId: str
       </label>
 
       <label className="flex flex-col gap-1">
-        <span className="text-sm text-gray-500">
+        <span className="text-sm text-muted">
           Description <span className="text-copper-700">*</span>
         </span>
         <textarea
@@ -164,12 +164,12 @@ export function ReportIssuePanel({ purchaseRequestId }: { purchaseRequestId: str
           value={description}
           onChange={(e) => setDescription(e.target.value)}
           placeholder="What happened? Include dates, amounts, and anything relevant."
-          className="rounded border border-gray-200 bg-white px-3 py-2 text-sm text-black"
+          className="rounded-lg border border-line bg-white px-3 py-2 text-sm text-ink"
         />
       </label>
 
       <label className="flex flex-col gap-1">
-        <span className="text-sm text-gray-500">
+        <span className="text-sm text-muted">
           Evidence (optional) — photos or screenshots
         </span>
         <input
@@ -181,9 +181,9 @@ export function ReportIssuePanel({ purchaseRequestId }: { purchaseRequestId: str
             addFiles(e.target.files);
             e.target.value = "";
           }}
-          className="text-sm text-gray-500 file:mr-3 file:rounded file:border-0 file:bg-black file:px-3 file:py-1.5 file:text-sm file:font-medium file:text-white"
+          className="text-sm text-muted file:mr-3 file:rounded file:border-0 file:bg-ink file:px-3 file:py-1.5 file:text-sm file:font-medium file:text-white"
         />
-        <span className="font-mono text-xs uppercase tracking-wider text-gray-500">
+        <span className="text-xs font-semibold uppercase tracking-[0.14em] text-muted">
           JPEG, PNG, WebP, or PDF · up to 10 MB each · up to {DISPUTE_EVIDENCE_MAX_FILES} files
         </span>
       </label>
@@ -193,13 +193,13 @@ export function ReportIssuePanel({ purchaseRequestId }: { purchaseRequestId: str
           {files.map((f, i) => (
             <li
               key={`${f.name}-${i}`}
-              className="flex items-center justify-between gap-2 text-sm text-black"
+              className="flex items-center justify-between gap-2 text-sm text-ink"
             >
               <span className="truncate">{f.name}</span>
               <button
                 type="button"
                 onClick={() => removeFile(i)}
-                className="shrink-0 text-xs text-black hover:underline"
+                className="shrink-0 text-xs text-ink hover:underline"
               >
                 Remove
               </button>
@@ -218,11 +218,11 @@ export function ReportIssuePanel({ purchaseRequestId }: { purchaseRequestId: str
           type="button"
           onClick={() => setOpen(false)}
           disabled={submitting}
-          className="text-sm text-gray-500 hover:text-black"
+          className="text-sm text-muted hover:text-ink"
         >
           Cancel
         </button>
-        {submitting ? <Loader2 className="h-4 w-4 animate-spin text-gray-500" aria-hidden /> : null}
+        {submitting ? <Loader2 className="h-4 w-4 animate-spin text-muted" aria-hidden /> : null}
       </div>
     </form>
   );

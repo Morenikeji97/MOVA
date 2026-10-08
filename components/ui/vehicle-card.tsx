@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { displayPlace } from "@/lib/place";
 import { VinData } from "@/components/ui/vin-data";
 import { VerifiedBadge } from "@/components/ui/verified-badge";
 import { PriceBreakdown, SellerSplitsFeeBadge } from "@/components/ui/price-breakdown";
@@ -111,7 +112,7 @@ export function VehicleCard({
           />
           <VinData
             label="Location"
-            value={`${v.location_city}, ${v.location_state}`}
+            value={displayPlace(v.location_city, v.location_state)}
           />
           <VinData label="VIN" value={v.vin_masked ?? "—"} className="col-span-2" />
         </div>

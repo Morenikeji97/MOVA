@@ -1,5 +1,7 @@
 import Link from "next/link";
 import { createClient } from "@/lib/supabase/server";
+import { cardClasses } from "@/components/ui/card";
+import { BackLink, DashboardShell, EmptyCard, StatusPill } from "@/components/ui/dashboard";
 
 const stamp = new Intl.DateTimeFormat("en-US", {
   month: "short",
@@ -85,15 +87,10 @@ export default async function SellerMessagesPage() {
   );
 
   return (
-    <main className="mx-auto max-w-4xl px-6 py-16">
-      <Link
-        href="/seller/dashboard"
-        className="font-mono text-xs uppercase tracking-wider text-gray-500 hover:text-black"
-      >
-        &larr; Seller dashboard
-      </Link>
-      <h1 className="mt-4 text-2xl font-semibold text-black">Messages</h1>
-      <p className="mt-2 text-sm text-gray-500">
+    <DashboardShell>
+      <BackLink href="/seller/dashboard">Seller dashboard</BackLink>
+      <h1 className="mt-2 font-display text-3xl font-extrabold tracking-tight text-ink sm:text-4xl">Messages</h1>
+      <p className="mt-2 text-sm text-muted">
         {conversations.length === 0
           ? "No buyer messages yet."
           : `${conversations.length} conversation${
@@ -102,15 +99,13 @@ export default async function SellerMessagesPage() {
       </p>
 
       {conversations.length === 0 ? (
-        <div className="mt-10 rounded-lg border border-dashed border-gray-200 bg-white p-10 text-center">
-          <p className="text-black">Nothing here yet.</p>
-          <p className="mt-1 text-sm text-gray-500">
-            When a buyer messages you from one of your listings, the
-            conversation shows up here.
-          </p>
+        <div className="mt-6">
+          <EmptyCard title="Nothing here yet">
+            When a buyer messages you from one of your listings, the conversation shows up here.
+          </EmptyCard>
         </div>
       ) : (
-        <ul className="mt-8 flex flex-col gap-3">
+        <ul className="mt-6 flex flex-col gap-3">
           {conversations.map((c) => {
             const vehicle = vehicleById.get(c.vehicle_id);
             const buyer = buyerById.get(c.buyer_id);
@@ -125,35 +120,33 @@ export default async function SellerMessagesPage() {
               <li key={c.id}>
                 <Link
                   href={`/seller/messages/${c.id}`}
-                  className="block rounded-lg border border-gray-200 bg-white p-5 transition-colors hover:border-black"
+                  className={cardClasses({ className: "block transition-colors hover:border-ink" })}
                 >
                   <div className="flex items-start justify-between gap-4">
                     <div className="min-w-0">
-                      <h2 className="truncate text-lg font-semibold text-black">
+                      <h2 className="truncate font-display text-lg font-bold text-ink">
                         {title}
                       </h2>
-                      <p className="mt-1 font-mono text-xs uppercase tracking-wider text-gray-500">
+                      <p className="mt-1 truncate text-xs text-muted">
                         {buyer?.email ?? "Buyer"}
                       </p>
                     </div>
                     {summary && summary.unread > 0 ? (
-                      <span className="inline-flex shrink-0 items-center rounded-full bg-copper px-2.5 py-1 text-xs font-semibold text-white">
-                        {summary.unread} new
-                      </span>
+                      <StatusPill tone="warning">{summary.unread} new</StatusPill>
                     ) : null}
                   </div>
                   {summary?.last ? (
-                    <p className="mt-3 truncate text-sm text-gray-500">
-                      <span className="text-gray-500">
+                    <p className="mt-3 truncate text-sm text-muted">
+                      <span>
                         {summary.last.fromSeller ? "You: " : ""}
                       </span>
                       {summary.last.content}
-                      <span className="ml-2 font-mono text-[11px] text-gray-500">
+                      <span className="ml-2 text-xs tabular-nums text-muted">
                         {stamp.format(new Date(summary.last.created_at))}
                       </span>
                     </p>
                   ) : (
-                    <p className="mt-3 text-sm text-gray-500">No messages yet.</p>
+                    <p className="mt-3 text-sm text-muted">No messages yet.</p>
                   )}
                 </Link>
               </li>
@@ -161,7 +154,7 @@ export default async function SellerMessagesPage() {
           })}
         </ul>
       )}
-    </main>
+    </DashboardShell>
   );
 }
 

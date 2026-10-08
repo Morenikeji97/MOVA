@@ -50,11 +50,12 @@ export function RemoveListingButton({
 
   if (!confirming) {
     return (
-      <div className={cn("flex flex-col items-start gap-2", className)}>
+      <div className={cn("flex flex-col items-stretch gap-2 sm:items-start", className)}>
         <Button
           type="button"
           variant="secondary"
           size="sm"
+          className="w-full sm:w-auto"
           onClick={() => {
             setError(null);
             setConfirming(true);
@@ -72,7 +73,7 @@ export function RemoveListingButton({
       role="alertdialog"
       aria-label="Confirm removing this listing"
       className={cn(
-        "flex flex-col items-start gap-3 rounded border border-copper-100 bg-copper-50 p-4",
+        "flex flex-col items-stretch gap-3 rounded-lg border border-copper-100 bg-copper-50 p-4 sm:items-start",
         className,
       )}
     >
@@ -83,14 +84,15 @@ export function RemoveListingButton({
           : "It will be taken out of your active listings."}{" "}
         Putting it back needs a fresh review by ShipMova.
       </p>
-      <div className="flex flex-wrap gap-2">
-        <Button type="button" size="sm" onClick={onConfirm} disabled={pending}>
+      <div className="grid grid-cols-2 gap-2 sm:flex sm:flex-wrap">
+        <Button type="button" size="sm" onClick={onConfirm} disabled={pending} className="px-2 sm:px-4">
           {pending ? "Removing…" : "Yes, remove it"}
         </Button>
         <Button
           type="button"
           variant="secondary"
           size="sm"
+          className="px-2 sm:px-4"
           onClick={() => setConfirming(false)}
           disabled={pending}
         >

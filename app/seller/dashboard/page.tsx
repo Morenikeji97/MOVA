@@ -1,6 +1,5 @@
-import Link from "next/link";
 import { createClient } from "@/lib/supabase/server";
-import { buttonClasses } from "@/components/ui/button";
+import { DashboardHeader, DashboardShell, DashboardTile, StatusPill } from "@/components/ui/dashboard";
 import { SellerReviewHub } from "@/components/reviews/seller-review-hub";
 import { ReferralPanel } from "@/components/ui/referral-panel";
 import { VerificationPanel } from "../verification/verification-panel";
@@ -61,38 +60,29 @@ export default async function SellerDashboard({
     ).length;
   }
 
+  const { count: listingCount } = await supabase
+    .from("vehicles")
+    .select("id", { count: "exact", head: true })
+    .eq("seller_id", user!.id);
+
   return (
-    <main className="mx-auto max-w-4xl px-6 py-16">
-      <h1 className="text-2xl font-semibold text-black">Seller Dashboard</h1>
-      <p className="mt-2 text-gray-500">Signed in as {user?.email}</p>
-      <p className="mt-1 font-mono text-sm text-gray-500">
-        Verification status: {profile?.id_verification_status ?? "unverified"}
-      </p>
-      <div className="mt-8 flex flex-col items-start gap-3">
-        <Link href="/seller/listings" className={buttonClasses({ size: "sm" })}>
-          My listings
-        </Link>
-        <Link
-          href="/seller/reservations"
-          className={buttonClasses({ size: "sm", variant: "secondary" })}
-        >
-          Reservations
-        </Link>
-        <Link
+    <DashboardShell>
+      <DashboardHeader eyebrow="Seller" title="Your dashboard" intro={`Signed in as ${user?.email ?? ""}`} />
+
+      <nav aria-label="Seller areas" className="mt-6 grid gap-3 sm:grid-cols-3">
+        <DashboardTile
+          href="/seller/listings"
+          title="My listings"
+          body={listingCount ? `${listingCount} listing${listingCount === 1 ? "" : "s"}` : "Add your first car"}
+        />
+        <DashboardTile href="/seller/reservations" title="Reservations" body="Buyers who reserved your cars" />
+        <DashboardTile
           href="/seller/messages"
-          className={buttonClasses({ size: "sm", variant: "secondary" })}
-        >
-          Messages
-          {unreadMessages > 0 ? (
-            <span className="ml-2 inline-flex items-center rounded-full bg-copper px-2 py-0.5 text-xs font-semibold text-white">
-              {unreadMessages}
-            </span>
-          ) : null}
-        </Link>
-        <p className="text-sm text-gray-500">
-          Photo upload and richer status tracking arrive later in Phase 1.
-        </p>
-      </div>
+          title="Messages"
+          body="Questions from buyers"
+          badge={unreadMessages > 0 ? <StatusPill tone="warning">{unreadMessages} new</StatusPill> : null}
+        />
+      </nav>
 
       <VerificationPanel
         status={profile?.id_verification_status ?? null}
@@ -103,6 +93,6 @@ export default async function SellerDashboard({
       <SellerReviewHub userId={user!.id} />
 
       <ReferralPanel userId={user!.id} />
-    </main>
+    </DashboardShell>
   );
 }

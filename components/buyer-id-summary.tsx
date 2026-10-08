@@ -7,7 +7,7 @@ export function BuyerIdSummary({ summary }: { summary: string | null }) {
   if (!summary) return null;
   const verified = summary !== "ID not verified yet";
   return (
-    <p className={`mt-2 text-sm ${verified ? "text-verified-600" : "text-gray-500"}`}>
+    <p className={`mt-2 text-sm ${verified ? "text-verified-600" : "text-muted"}`}>
       {verified ? "✓ " : ""}
       {summary}
     </p>
