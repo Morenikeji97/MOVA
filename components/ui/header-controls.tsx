@@ -16,9 +16,11 @@ export type NavLink = { label: string; href: string };
  * The interactive right side of the shared header (components/ui/header.tsx).
  * Header rules (founder, 2026-10-08), every page:
  *
- *   signed out — "Sign In" and "Create account". Desktop: both on the right.
- *                Phones: a compact "Sign In" beside the menu button, and
- *                both at the top of the full-screen menu. Sign-up stays open
+ *   signed out — "Create account" (solid, the main action) and "Sign In"
+ *                (outline). Desktop: both on the right. Phones: both beside
+ *                the menu button ("Sign up" / "Sign in" below 400px so they
+ *                fit on one line at 320px), and both at the top of the
+ *                full-screen menu. Sign-up stays open
  *                before launch; the waitlist is an extra link, never a
  *                replacement.
  *   signed in  — "My dashboard" for their role (lib/account-dashboard.ts).
@@ -56,14 +58,26 @@ export function HeaderControls({
         <DesktopAccount account={account} />
       </div>
 
-      <div className="flex shrink-0 items-center gap-1 lg:hidden">
+      <div className="flex shrink-0 items-center gap-1.5 lg:hidden">
+        {/* Signed out: both account buttons beside the menu, on one line
+            down to 320px — short labels below 400px, never wrapping. */}
         {signedOut ? (
-          <Link
-            href="/login"
-            className="flex h-11 items-center whitespace-nowrap rounded-lg border border-white/40 px-3 text-sm font-semibold text-white hover:bg-white/10"
-          >
-            Sign In
-          </Link>
+          <>
+            <Link
+              href="/login"
+              className="flex h-11 items-center whitespace-nowrap rounded-lg border border-white/40 px-2.5 text-sm font-semibold text-white hover:bg-white/10 min-[400px]:px-3"
+            >
+              <span className="min-[400px]:hidden">Sign in</span>
+              <span className="hidden min-[400px]:inline">Sign In</span>
+            </Link>
+            <Link
+              href="/signup"
+              className="flex h-11 items-center whitespace-nowrap rounded-lg bg-white px-2.5 text-sm font-semibold text-ink hover:bg-band min-[400px]:px-3"
+            >
+              <span className="min-[400px]:hidden">Sign up</span>
+              <span className="hidden min-[400px]:inline">Create account</span>
+            </Link>
+          </>
         ) : null}
         <button
           ref={menuButtonRef}
@@ -120,7 +134,7 @@ function DesktopAccount({ account }: { account: Account }) {
   if (!account.email) {
     return (
       <div className="flex items-center gap-2 whitespace-nowrap text-sm font-semibold">
-        <Link href="/login" className="flex h-11 items-center rounded-lg px-3 text-white hover:bg-white/10">
+        <Link href="/login" className="flex h-11 items-center rounded-lg border border-white/40 px-4 text-white hover:bg-white/10">
           Sign In
         </Link>
         <Link href="/signup" className="flex h-11 items-center rounded-lg bg-white px-4 text-ink hover:bg-band">
