@@ -4,6 +4,7 @@ import {
   scanForContactInfo,
   type ContactInfoCategory,
 } from "@/lib/chat-filter";
+import { BackLink, DashboardShell } from "@/components/ui/dashboard";
 
 const CATEGORY_LABEL: Record<ContactInfoCategory, string> = {
   email: "email",
@@ -103,17 +104,12 @@ export default async function AdminBlockedMessagesPage() {
     .sort((a, b) => b[1] - a[1]);
 
   return (
-    <main className="mx-auto max-w-4xl px-6 py-16">
-      <Link
-        href="/admin/dashboard"
-        className="font-mono text-xs uppercase tracking-wider text-gray-500 hover:text-black"
-      >
-        &larr; Admin dashboard
-      </Link>
-      <h1 className="mt-4 text-2xl font-semibold text-black">
+    <DashboardShell>
+      <BackLink href="/admin/dashboard">Admin dashboard</BackLink>
+      <h1 className="mt-4 font-display text-2xl font-extrabold tracking-tight text-ink">
         Blocked contact-info attempts
       </h1>
-      <p className="mt-2 text-sm text-gray-500">
+      <p className="mt-2 text-sm text-muted">
         {blocked.length === 0
           ? "No blocked attempts recorded."
           : `${blocked.length} blocked message${
@@ -139,9 +135,9 @@ export default async function AdminBlockedMessagesPage() {
       ) : null}
 
       {blocked.length === 0 ? (
-        <div className="mt-10 rounded-lg border border-dashed border-gray-200 bg-white p-10 text-center">
-          <p className="text-black">Nothing flagged.</p>
-          <p className="mt-1 text-sm text-gray-500">
+        <div className="mt-10 rounded-lg border border-dashed border-line bg-white p-10 text-center">
+          <p className="text-ink">Nothing flagged.</p>
+          <p className="mt-1 text-sm text-muted">
             Messages that trip the contact-info filter will appear here.
           </p>
         </div>
@@ -178,15 +174,15 @@ export default async function AdminBlockedMessagesPage() {
             return (
               <li
                 key={m.id}
-                className="rounded-lg border border-gray-200 bg-white p-5"
+                className="rounded-card border border-line bg-white shadow-card p-5"
               >
                 <div className="flex flex-wrap items-start justify-between gap-2">
                   <div>
-                    <p className="text-sm font-semibold text-black">
+                    <p className="text-sm font-semibold text-ink">
                       {senderEmail}{" "}
-                      <span className="font-normal text-gray-500">({role})</span>
+                      <span className="font-normal text-muted">({role})</span>
                     </p>
-                    <p className="mt-0.5 font-mono text-xs uppercase tracking-wider text-gray-500">
+                    <p className="mt-0.5 text-xs font-semibold uppercase tracking-[0.14em] text-muted">
                       {title}
                       {convo
                         ? ` · buyer ${emailById.get(convo.buyer_id) ?? "—"} · seller ${
@@ -195,7 +191,7 @@ export default async function AdminBlockedMessagesPage() {
                         : ""}
                     </p>
                   </div>
-                  <span className="font-mono text-[11px] text-gray-500">
+                  <span className="font-mono text-[11px] text-muted">
                     {stamp.format(new Date(m.created_at))}
                   </span>
                 </div>
@@ -217,14 +213,14 @@ export default async function AdminBlockedMessagesPage() {
                     {scan.categories.map((c) => (
                       <span
                         key={c}
-                        className="inline-flex items-center rounded-full bg-gray-100 px-2 py-0.5 font-mono text-[11px] text-gray-500"
+                        className="inline-flex items-center rounded-full bg-band px-2 py-0.5 font-mono text-[11px] text-muted"
                       >
                         {CATEGORY_LABEL[c]}
                       </span>
                     ))}
                   </div>
                 ) : null}
-                <p className="mt-3 whitespace-pre-wrap break-words rounded border border-gray-200 bg-white p-3 text-sm text-gray-500">
+                <p className="mt-3 whitespace-pre-wrap break-words rounded-lg border border-line bg-white p-3 text-sm text-muted">
                   {m.content}
                 </p>
               </li>
@@ -232,7 +228,7 @@ export default async function AdminBlockedMessagesPage() {
           })}
         </ul>
       )}
-    </main>
+    </DashboardShell>
   );
 }
 

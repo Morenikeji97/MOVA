@@ -5,6 +5,7 @@ import { createAdminClient } from "@/lib/supabase/admin";
 import { PHOTO_FLAG_LABEL, type PhotoFlag } from "@/lib/inspection-checks";
 import { EXCLUSION_LABEL, type ExclusionReason } from "@/lib/inspector-assignment";
 import { DecideInspectionForm, MarkPaidForm } from "../forms";
+import { BackLink, DashboardShell } from "@/components/ui/dashboard";
 
 export const dynamic = "force-dynamic";
 
@@ -39,18 +40,16 @@ export default async function AdminInspectionPage({ params }: { params: Promise<
   const note = (x.assignment_note ?? {}) as { eligible?: number; excluded?: Partial<Record<ExclusionReason, number>>; rotation_relaxed?: boolean };
 
   return (
-    <main className="mx-auto max-w-3xl px-4 py-12 sm:px-6">
-      <Link href="/admin/reservations" className="font-mono text-xs uppercase tracking-wider text-gray-500 hover:text-black">
-        &larr; Reservations
-      </Link>
-      <p className="mt-4 font-mono text-xs text-gray-500">{pr?.reference}</p>
-      <h1 className="text-2xl font-semibold text-black">
+    <DashboardShell narrow>
+      <BackLink href="/admin/reservations">Reservations</BackLink>
+      <p className="mt-4 font-mono text-xs text-muted">{pr?.reference}</p>
+      <h1 className="font-display text-2xl font-extrabold tracking-tight text-ink">
         Inspection · {car ? `${car.year} ${car.make} ${car.model}` : "car"}
       </h1>
-      <p className="mt-1 text-sm text-gray-500">
-        Status: <strong className="text-black">{x.status}</strong> · Inspector {inspector?.full_name} ({inspector?.phone}) · Car in {car?.location_city}, {car?.location_state}
+      <p className="mt-1 text-sm text-muted">
+        Status: <strong className="text-ink">{x.status}</strong> · Inspector {inspector?.full_name} ({inspector?.phone}) · Car in {car?.location_city}, {car?.location_state}
       </p>
-      <p className="mt-1 text-sm text-gray-500">
+      <p className="mt-1 text-sm text-muted">
         Picked at random from {note.eligible ?? "?"} eligible{note.rotation_relaxed ? " (all had inspected this seller recently)" : ""}
         {note.excluded && Object.keys(note.excluded).length
           ? ` · excluded: ${Object.entries(note.excluded).map(([k, n]) => `${EXCLUSION_LABEL[k as ExclusionReason] ?? k} (${n})`).join(", ")}`
@@ -58,31 +57,31 @@ export default async function AdminInspectionPage({ params }: { params: Promise<
       </p>
 
       {x.status !== "assigned" ? (
-        <section className="mt-6 rounded-lg border border-gray-200 bg-white p-4">
-          <h2 className="font-mono text-xs uppercase tracking-wider text-gray-500">Report</h2>
+        <section className="mt-6 rounded-card border border-line bg-white shadow-card p-4">
+          <h2 className="text-xs font-semibold uppercase tracking-[0.14em] text-muted">Report</h2>
           <dl className="mt-2 grid grid-cols-1 gap-2 text-sm sm:grid-cols-2">
             <div>
-              <dt className="text-gray-500">VIN read on the car</dt>
-              <dd className={`font-mono ${vinMatches === false ? "text-copper-700" : "text-black"}`}>
+              <dt className="text-muted">VIN read on the car</dt>
+              <dd className={`font-mono ${vinMatches === false ? "text-copper-700" : "text-ink"}`}>
                 {x.vin_read} {vinMatches === true ? "✓ matches listing" : vinMatches === false ? `✗ listing says ${car?.vin}` : ""}
               </dd>
             </div>
             <div>
-              <dt className="text-gray-500">Odometer</dt>
-              <dd className="text-black">
+              <dt className="text-muted">Odometer</dt>
+              <dd className="text-ink">
                 {x.odometer_reading?.toLocaleString("en-US")} mi (listing: {car?.mileage?.toLocaleString("en-US") ?? "—"})
               </dd>
             </div>
             <div>
-              <dt className="text-gray-500">Title VIN matches the car</dt>
-              <dd className={x.title_matches ? "text-black" : "text-copper-700"}>{x.title_matches ? "Yes" : "No"}</dd>
+              <dt className="text-muted">Title VIN matches the car</dt>
+              <dd className={x.title_matches ? "text-ink" : "text-copper-700"}>{x.title_matches ? "Yes" : "No"}</dd>
             </div>
             <div>
-              <dt className="text-gray-500">Sent</dt>
-              <dd className="text-black">{x.submitted_at ? `${when.format(new Date(x.submitted_at))} UTC` : "—"}</dd>
+              <dt className="text-muted">Sent</dt>
+              <dd className="text-ink">{x.submitted_at ? `${when.format(new Date(x.submitted_at))} UTC` : "—"}</dd>
             </div>
           </dl>
-          {x.condition_notes ? <p className="mt-2 text-sm text-black">{x.condition_notes}</p> : null}
+          {x.condition_notes ? <p className="mt-2 text-sm text-ink">{x.condition_notes}</p> : null}
           <p className={`mt-3 text-sm ${x.photo_check_flags.length ? "text-copper-700" : "text-verified-600"}`}>
             {x.photo_check_flags.length
               ? `Photo checks: ${x.photo_check_flags.map((f: string) => PHOTO_FLAG_LABEL[f as PhotoFlag] ?? f).join("; ")}`
@@ -92,18 +91,18 @@ export default async function AdminInspectionPage({ params }: { params: Promise<
       ) : null}
 
       <section className="mt-6">
-        <h2 className="font-mono text-xs uppercase tracking-wider text-gray-500">Photos ({photos?.length ?? 0})</h2>
+        <h2 className="text-xs font-semibold uppercase tracking-[0.14em] text-muted">Photos ({photos?.length ?? 0})</h2>
         <ul className="mt-3 grid grid-cols-1 gap-4 sm:grid-cols-2">
           {(photos ?? []).map((p) => (
-            <li key={p.id} className="rounded border border-gray-200 bg-white p-2">
+            <li key={p.id} className="rounded-lg border border-line bg-white p-2">
               {links.get(p.id) ? (
                 // eslint-disable-next-line @next/next/no-img-element -- private, short-lived link
                 <img src={links.get(p.id)} alt={`Inspection photo: ${p.kind}`} loading="lazy" className="max-h-72 w-full rounded object-contain" />
               ) : (
                 <p className="text-sm text-copper-700">Photo couldn&rsquo;t be loaded.</p>
               )}
-              <p className="mt-1 text-sm text-black">{p.kind}</p>
-              <p className="text-xs text-gray-500">
+              <p className="mt-1 text-sm text-ink">{p.kind}</p>
+              <p className="text-xs text-muted">
                 {p.captured_at ? `${when.format(new Date(p.captured_at))} UTC` : "no time"} ·{" "}
                 {p.latitude != null && p.longitude != null ? (
                   <a
@@ -125,8 +124,8 @@ export default async function AdminInspectionPage({ params }: { params: Promise<
 
       {x.status === "submitted" ? (
         <section className="mt-6">
-          <h2 className="font-mono text-xs uppercase tracking-wider text-gray-500">Decision</h2>
-          <p className="mt-1 text-sm text-gray-500">
+          <h2 className="text-xs font-semibold uppercase tracking-[0.14em] text-muted">Decision</h2>
+          <p className="mt-1 text-sm text-muted">
             Either way the inspector&rsquo;s pay ({Number(x.pay_pct)}% of the car price) is recorded as owed. Passing marks the deal &ldquo;Inspection passed&rdquo; and shows the buyer and seller &ldquo;Inspected at pickup ✓&rdquo;.
           </p>
           <div className="mt-3">
@@ -136,8 +135,8 @@ export default async function AdminInspectionPage({ params }: { params: Promise<
       ) : null}
 
       {x.pay_status !== "none" ? (
-        <section className="mt-6 rounded-lg border border-gray-200 bg-white p-4">
-          <p className="text-sm text-black">
+        <section className="mt-6 rounded-card border border-line bg-white shadow-card p-4">
+          <p className="text-sm text-ink">
             Inspector pay: <strong>${Number(x.pay_usd).toFixed(2)}</strong> — {x.pay_status === "paid" ? "paid" : "owed"}
           </p>
           {x.pay_status === "owed" ? (
@@ -147,6 +146,6 @@ export default async function AdminInspectionPage({ params }: { params: Promise<
           ) : null}
         </section>
       ) : null}
-    </main>
+    </DashboardShell>
   );
 }

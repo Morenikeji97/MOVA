@@ -21,6 +21,7 @@ const INSPECTION_STATUS_LABEL: Record<string, string> = {
   failed: "Failed",
 };
 import { mediaUrl } from "@/lib/media-url";
+import { BackLink, DashboardShell } from "@/components/ui/dashboard";
 
 const usd = new Intl.NumberFormat("en-US", {
   style: "currency",
@@ -56,8 +57,8 @@ const STATUS_LABEL: Record<string, string> = {
 function Detail({ label, children }: { label: string; children: ReactNode }) {
   return (
     <div>
-      <dt className="font-mono text-xs uppercase tracking-wider text-gray-500">{label}</dt>
-      <dd className="text-black">{children}</dd>
+      <dt className="text-xs font-semibold uppercase tracking-[0.14em] text-muted">{label}</dt>
+      <dd className="text-ink">{children}</dd>
     </div>
   );
 }
@@ -129,24 +130,19 @@ export default async function AdminReservationsPage() {
   const now = new Date();
 
   return (
-    <main className="mx-auto max-w-4xl px-6 py-16">
-      <Link
-        href="/admin/dashboard"
-        className="font-mono text-xs uppercase tracking-wider text-gray-500 hover:text-black"
-      >
-        &larr; Admin dashboard
-      </Link>
-      <h1 className="mt-4 text-2xl font-semibold text-black">Reservation requests</h1>
-      <p className="mt-2 text-sm text-gray-500">
+    <DashboardShell>
+      <BackLink href="/admin/dashboard">Admin dashboard</BackLink>
+      <h1 className="mt-4 font-display text-2xl font-extrabold tracking-tight text-ink">Reservation requests</h1>
+      <p className="mt-2 text-sm text-muted">
         {rows.length === 0
           ? "No open reservation requests."
           : `${rows.length} open request${rows.length === 1 ? "" : "s"}.`}
       </p>
 
       {rows.length === 0 ? (
-        <div className="mt-10 rounded-lg border border-dashed border-gray-200 bg-white p-10 text-center">
-          <p className="text-black">Nothing to action.</p>
-          <p className="mt-1 text-sm text-gray-500">
+        <div className="mt-10 rounded-lg border border-dashed border-line bg-white p-10 text-center">
+          <p className="text-ink">Nothing to action.</p>
+          <p className="mt-1 text-sm text-muted">
             Buyer reservation requests from vehicle pages will show up here.
           </p>
         </div>
@@ -199,12 +195,12 @@ export default async function AdminReservationsPage() {
             return (
               <li
                 key={r.id}
-                className="rounded-lg border border-gray-200 bg-white p-5"
+                className="rounded-card border border-line bg-white shadow-card p-5"
               >
                 <div className="flex items-start justify-between gap-4">
                   <div>
-                    <p className="font-mono text-sm font-medium text-black">{r.reference}</p>
-                    <h2 className="text-lg font-semibold text-black">
+                    <p className="font-mono text-sm font-medium text-ink">{r.reference}</p>
+                    <h2 className="font-display text-lg font-bold text-ink">
                       {vehicle ? (
                         <Link
                           href={`/browse/${r.vehicle_id}`}
@@ -217,7 +213,7 @@ export default async function AdminReservationsPage() {
                       )}
                     </h2>
                     {vehicle ? (
-                      <p className="mt-1 font-mono text-sm text-gray-500">
+                      <p className="mt-1 font-mono text-sm text-muted">
                         {usd.format(Number(vehicle.price_usd))} · VIN{" "}
                         {fullVinById.get(vehicle.id) ?? vehicle.vin_masked}
                         {vehicle.status !== "approved"
@@ -273,7 +269,7 @@ export default async function AdminReservationsPage() {
                 </dl>
 
                 {awaitingBankVerification ? (
-                  <div className="mt-4 rounded border border-marine-100 bg-marine-50 p-4">
+                  <div className="mt-4 rounded-lg border border-marine-100 bg-marine-50 p-4">
                     <p className="text-sm font-semibold text-marine-700">
                       Bank transfer — awaiting verification
                     </p>
@@ -298,7 +294,7 @@ export default async function AdminReservationsPage() {
                           href={proofUrl}
                           target="_blank"
                           rel="noopener noreferrer"
-                          className="mt-3 inline-block text-sm text-black underline underline-offset-2"
+                          className="mt-3 inline-block text-sm text-ink underline underline-offset-2"
                         >
                           View proof (PDF) &rarr;
                         </a>
@@ -313,7 +309,7 @@ export default async function AdminReservationsPage() {
                           <img
                             src={proofUrl}
                             alt="Bank transfer proof"
-                            className="max-h-64 rounded border border-gray-200 object-contain"
+                            className="max-h-64 rounded-lg border border-line object-contain"
                           />
                         </a>
                       )
@@ -363,19 +359,19 @@ export default async function AdminReservationsPage() {
                         : null
                   }
                 />
-                <div className="mt-4 border-t border-gray-200 pt-4">
-                  <p className="font-mono text-xs uppercase tracking-wider text-gray-500">Inspection at pickup</p>
+                <div className="mt-4 border-t border-line pt-4">
+                  <p className="text-xs font-semibold uppercase tracking-[0.14em] text-muted">Inspection at pickup</p>
                   {inspectionByDeal.get(r.id) ? (
                     <Link
                       href={`/admin/inspections/${inspectionByDeal.get(r.id)!.id}`}
-                      className="mt-1 inline-flex h-11 items-center text-sm text-black underline"
+                      className="mt-1 inline-flex h-11 items-center text-sm text-ink underline"
                     >
                       {INSPECTION_STATUS_LABEL[inspectionByDeal.get(r.id)!.status] ?? inspectionByDeal.get(r.id)!.status} — open report
                     </Link>
                   ) : r.mova_fee_payment_status === "paid" ? (
                     <AssignInspectorForm purchaseRequestId={r.id} />
                   ) : (
-                    <p className="mt-1 text-sm text-gray-500">Assigned once the buyer has paid ShipMova&rsquo;s fee.</p>
+                    <p className="mt-1 text-sm text-muted">Assigned once the buyer has paid ShipMova&rsquo;s fee.</p>
                   )}
                 </div>
               </li>
@@ -383,6 +379,6 @@ export default async function AdminReservationsPage() {
           })}
         </ul>
       )}
-    </main>
+    </DashboardShell>
   );
 }

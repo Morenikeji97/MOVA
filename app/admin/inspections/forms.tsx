@@ -33,7 +33,7 @@ export function InspectorApplicationForm({ inspectorId, approved }: { inspectorI
     <ActionForm action={decideInspectorApplication} className="mt-3 flex flex-col gap-2">
       <input type="hidden" name="id" value={inspectorId} />
       <label className="flex flex-col gap-1">
-        <span className="text-sm text-gray-500">Reason (needed to reject or suspend; the inspector sees it)</span>
+        <span className="text-sm text-muted">Reason (needed to reject or suspend; the inspector sees it)</span>
         <input name="reason" maxLength={1000} autoComplete="off" className={inputClasses()} />
       </label>
       <div className="flex flex-col gap-2 sm:flex-row">
@@ -55,7 +55,7 @@ export function DecideInspectionForm({ inspectionId }: { inspectionId: string })
     <ActionForm action={decideInspectionAction} className="flex flex-col gap-2">
       <input type="hidden" name="id" value={inspectionId} />
       <label className="flex flex-col gap-1">
-        <span className="text-sm text-gray-500">Note (needed to fail)</span>
+        <span className="text-sm text-muted">Note (needed to fail)</span>
         <input name="note" maxLength={1000} autoComplete="off" className={inputClasses()} />
       </label>
       <div className="flex flex-col gap-2 sm:flex-row">

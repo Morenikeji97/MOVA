@@ -9,6 +9,7 @@ import {
   type WaitlistAudience,
 } from "@/lib/prelaunch";
 import { requireAdminMfa } from "@/lib/admin-mfa";
+import { BackLink, DashboardShell } from "@/components/ui/dashboard";
 
 const joined = new Intl.DateTimeFormat("en-US", {
   month: "short",
@@ -80,14 +81,9 @@ export default async function AdminWaitlistPage({
   ];
 
   return (
-    <main className="mx-auto max-w-4xl px-6 py-16">
-      <Link
-        href="/admin/dashboard"
-        className="font-mono text-xs uppercase tracking-wider text-gray-500 hover:text-black"
-      >
-        &larr; Admin dashboard
-      </Link>
-      <h1 className="mt-4 text-2xl font-semibold text-black">Waitlist</h1>
+    <DashboardShell>
+      <BackLink href="/admin/dashboard">Admin dashboard</BackLink>
+      <h1 className="mt-4 font-display text-2xl font-extrabold tracking-tight text-ink">Waitlist</h1>
 
       <nav aria-label="Filter by audience" className="mt-4 flex flex-wrap gap-2">
         {filters.map((f) => (
@@ -97,7 +93,7 @@ export default async function AdminWaitlistPage({
             aria-current={f.active ? "page" : undefined}
             className={cn(
               "rounded-full border px-3 py-1 text-sm",
-              f.active ? "border-black bg-black text-white" : "border-gray-200 text-black hover:border-black",
+              f.active ? "border-ink bg-ink text-white" : "border-line text-ink hover:border-ink",
             )}
           >
             {f.label}
@@ -105,41 +101,41 @@ export default async function AdminWaitlistPage({
         ))}
       </nav>
 
-      <p className="mt-3 text-sm text-gray-500">
+      <p className="mt-3 text-sm text-muted">
         {count ?? 0} signup{count === 1 ? "" : "s"}
         {audience ? ` · ${WAITLIST_AUDIENCE_LABEL[audience]}` : ""}
         {(count ?? 0) > 500 ? " — showing the newest 500" : ""}.
       </p>
 
       {(rows ?? []).length === 0 ? (
-        <p className="mt-8 text-gray-500">No signups{audience ? " for this audience" : ""} yet.</p>
+        <p className="mt-8 text-muted">No signups{audience ? " for this audience" : ""} yet.</p>
       ) : (
-        <ul className="mt-6 divide-y divide-gray-200 rounded-lg border border-gray-200 bg-white">
+        <ul className="mt-6 divide-y divide-line rounded-card border border-line bg-white shadow-card">
           {(rows ?? []).map((r) => (
             <li key={r.id} className="flex flex-col gap-1 p-4 sm:flex-row sm:items-start sm:justify-between">
               <div className="min-w-0">
                 {r.full_name ? (
-                  <p className="font-medium text-black">
+                  <p className="font-medium text-ink">
                     {r.full_name}
-                    {r.company ? <span className="font-normal text-gray-500"> · {r.company}</span> : null}
+                    {r.company ? <span className="font-normal text-muted"> · {r.company}</span> : null}
                   </p>
                 ) : null}
-                <p className="truncate text-black">{r.email ?? "—"}</p>
-                <p className="font-mono text-sm text-gray-500">{r.whatsapp ?? "No WhatsApp"}</p>
-                {r.city_state ? <p className="text-sm text-gray-500">{r.city_state}</p> : null}
+                <p className="truncate text-ink">{r.email ?? "—"}</p>
+                <p className="font-mono text-sm text-muted">{r.whatsapp ?? "No WhatsApp"}</p>
+                {r.city_state ? <p className="text-sm text-muted">{r.city_state}</p> : null}
                 {r.ports_served?.length ? (
-                  <p className="text-sm text-gray-500">Ports: {r.ports_served.join(", ")}</p>
+                  <p className="text-sm text-muted">Ports: {r.ports_served.join(", ")}</p>
                 ) : null}
                 {r.license_number ? (
-                  <p className="text-sm text-gray-500">License / CAC: {r.license_number}</p>
+                  <p className="text-sm text-muted">License / CAC: {r.license_number}</p>
                 ) : null}
                 {r.experience ? (
-                  <p className="mt-1 max-w-prose whitespace-pre-line text-sm text-black">{r.experience}</p>
+                  <p className="mt-1 max-w-prose whitespace-pre-line text-sm text-ink">{r.experience}</p>
                 ) : null}
               </div>
-              <div className="shrink-0 text-sm text-gray-500 sm:text-right">
+              <div className="shrink-0 text-sm text-muted sm:text-right">
                 <p>
-                  <span className="font-medium text-black">
+                  <span className="font-medium text-ink">
                     {WAITLIST_AUDIENCE_LABEL[r.audience as WaitlistAudience] ?? r.audience}
                   </span>
                   {" · "}
@@ -147,7 +143,7 @@ export default async function AdminWaitlistPage({
                   {r.vehicle_id ? (
                     <>
                       {" · "}
-                      <Link href={`/browse/${r.vehicle_id}`} className="text-black underline">
+                      <Link href={`/browse/${r.vehicle_id}`} className="text-ink underline">
                         listing
                       </Link>
                     </>
@@ -159,6 +155,6 @@ export default async function AdminWaitlistPage({
           ))}
         </ul>
       )}
-    </main>
+    </DashboardShell>
   );
 }

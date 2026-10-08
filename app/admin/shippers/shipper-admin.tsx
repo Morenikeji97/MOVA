@@ -33,12 +33,12 @@ export function ShipperReviewActions({ shipperId }: { shipperId: string }) {
   const [rejecting, setRejecting] = useState(false);
 
   return (
-    <div className="mt-4 border-t border-gray-200 pt-4">
+    <div className="mt-4 border-t border-line pt-4">
       {rejecting ? (
         <ActionForm action={rejectShipper} className="flex flex-col gap-2">
           <input type="hidden" name="id" value={shipperId} />
           <label className="flex flex-col gap-1">
-            <span className="text-sm text-gray-500">
+            <span className="text-sm text-muted">
               Reason for rejection <span className="text-copper-700">*</span>
             </span>
             <textarea
@@ -46,24 +46,24 @@ export function ShipperReviewActions({ shipperId }: { shipperId: string }) {
               required
               rows={3}
               placeholder="Tell the applicant what's missing (e.g. FMC OTI license can't be verified)."
-              className="rounded border border-gray-200 bg-white px-3 py-2 text-black"
+              className={inputClasses({ multiline: true })}
             />
           </label>
-          <div className="flex items-center gap-3">
+          <div className="flex flex-wrap items-center gap-3">
             <PendingButton variant="primary" size="sm" pendingLabel="Rejecting…">
               Confirm rejection
             </PendingButton>
             <button
               type="button"
               onClick={() => setRejecting(false)}
-              className="text-sm text-gray-500 hover:text-black"
+              className="h-11 rounded-lg px-3 text-sm font-semibold text-muted hover:text-ink"
             >
               Cancel
             </button>
           </div>
         </ActionForm>
       ) : (
-        <div className="flex items-center gap-3">
+        <div className="flex flex-wrap items-center gap-3">
           <ActionForm action={approveShipper}>
             <input type="hidden" name="id" value={shipperId} />
             <PendingButton variant="primary" size="sm" pendingLabel="Approving…">

@@ -2,6 +2,11 @@ import Link from "next/link";
 import { SHIPPER_FEES_ENABLED } from "@/lib/shipping";
 import { createClient } from "@/lib/supabase/server";
 import { excludeIds, loadTestIds } from "@/lib/test-accounts";
+import { DashboardHeader, DashboardShell, DashboardTile, Notice } from "@/components/ui/dashboard";
+import { requireAdmin } from "@/lib/admin-auth";
+import { loadActionItems } from "@/lib/action-required-load";
+import { rankActions } from "@/lib/action-required";
+import { cn } from "@/lib/utils";
 
 export default async function AdminDashboard() {
   const supabase = await createClient();
@@ -133,177 +138,86 @@ export default async function AdminDashboard() {
     inspectorApplications,
   ] = results.map((r) => (r.error ? "—" : (r.count ?? 0)));
 
+  // Action required (admin with the authenticator code; service-role read).
+  const action = (await requireAdmin()) ? await loadActionItems() : null;
+  const realItems = action ? rankActions(action.items.filter((i) => !i.test), new Date()) : [];
+  const overdue = realItems.filter((i) => i.overdue).length;
+
+  const QUEUES: { href: string; title: string; count: number | string; body: string }[] = [
+    { href: "/admin/listings", title: "Listings", count: pendingListings, body: "pending review" },
+    { href: "/admin/buyer-ids", title: "Buyer IDs", count: buyerIdsToReview, body: "to check" },
+    { href: "/admin/reservations", title: "Reservations", count: openReservations, body: "open requests" },
+    { href: "/admin/shipments", title: "Shipments", count: shipmentRequests, body: SHIPPER_FEES_ENABLED ? "shipments & commission" : "all shipments" },
+    { href: "/admin/shippers", title: "Shippers", count: pendingShippers, body: "applications pending" },
+    { href: "/admin/inspectors", title: "Inspectors", count: inspectorApplications, body: "applications pending" },
+    { href: "/admin/disputes", title: "Disputes", count: openDisputes, body: "need attention" },
+    { href: "/admin/reviews", title: "Reviews", count: reviewQueue, body: "to moderate" },
+    { href: "/admin/messages", title: "Blocked chat", count: blockedMessages, body: "contact-info attempts" },
+    { href: "/admin/referrals", title: "Referrals", count: referralAttention, body: "flags & payouts" },
+    { href: "/admin/waitlist", title: "Waitlist", count: waitlistCount, body: "signups" },
+  ];
+
   return (
-    <main className="mx-auto max-w-4xl px-6 py-16">
-      <h1 className="text-2xl font-semibold text-black">Admin Dashboard</h1>
-      <p className="mt-1 text-sm text-gray-500">
-        Counts leave out test accounts ({test.userIds.length}) and test shipper
-        applications ({test.shipperIds.length}).
-      </p>
+    <DashboardShell>
+      <DashboardHeader
+        eyebrow="Admin"
+        title="Dashboard"
+        intro={`${userCount} users. Counts leave out test accounts (${test.userIds.length}) and test shipper applications (${test.shipperIds.length}).`}
+      />
       {failedCounts.length > 0 ? (
-        <p className="mt-4 rounded border border-copper-100 bg-copper-50 p-3 text-sm text-copper-700">
-          Couldn&rsquo;t load: {failedCounts.join(", ")}. Those show &ldquo;—&rdquo;,
-          not a real zero. Reload, and tell the developer if it persists.
-        </p>
+        <Notice tone="warning" role="alert" className="mt-4">
+          Couldn&rsquo;t load: {failedCounts.join(", ")}. Those show &ldquo;—&rdquo;, not a real zero.
+          Reload, and tell the developer if it persists.
+        </Notice>
       ) : null}
-      <div className="mt-6 grid grid-cols-2 gap-4 sm:grid-cols-3">
-        <div className="rounded-lg border border-gray-200 bg-white p-5">
-          <p className="font-mono text-xs uppercase tracking-wider text-gray-500">
-            Total users
-          </p>
-          <p className="mt-1 text-3xl font-semibold text-black">{userCount}</p>
-        </div>
-        <Link
-          href="/admin/waitlist"
-          className="rounded-lg border border-gray-200 bg-white p-5 transition-colors hover:border-black"
-        >
-          <p className="font-mono text-xs uppercase tracking-wider text-gray-500">
-            Waitlist signups
-          </p>
-          <p className="mt-1 text-3xl font-semibold text-black">{waitlistCount}</p>
-          <p className="mt-1 text-sm text-black">Open the waitlist &rarr;</p>
-        </Link>
-        <Link
-          href="/admin/listings"
-          className="rounded-lg border border-gray-200 bg-white p-5 transition-colors hover:border-black"
-        >
-          <p className="font-mono text-xs uppercase tracking-wider text-gray-500">
-            Listings pending review
-          </p>
-          <p className="mt-1 text-3xl font-semibold text-black">
-            {pendingListings}
-          </p>
-          <p className="mt-1 text-sm text-black">Open the review queue &rarr;</p>
-        </Link>
-        <Link
-          href="/admin/inspectors"
-          className="rounded-lg border border-gray-200 bg-white p-5 transition-colors hover:border-black"
-        >
-          <p className="font-mono text-xs uppercase tracking-wider text-gray-500">
-            Inspector applications
-          </p>
-          <p className="mt-1 text-3xl font-semibold text-black">{inspectorApplications}</p>
-          <p className="mt-1 text-sm text-black">Open inspectors &rarr;</p>
-        </Link>
-        <Link
-          href="/admin/buyer-ids"
-          className="rounded-lg border border-gray-200 bg-white p-5 transition-colors hover:border-black"
-        >
-          <p className="font-mono text-xs uppercase tracking-wider text-gray-500">
-            Buyer IDs to review
-          </p>
-          <p className="mt-1 text-3xl font-semibold text-black">{buyerIdsToReview}</p>
-          <p className="mt-1 text-sm text-black">Open the ID queue &rarr;</p>
-        </Link>
-        <Link
-          href="/admin/reservations"
-          className="rounded-lg border border-gray-200 bg-white p-5 transition-colors hover:border-black"
-        >
-          <p className="font-mono text-xs uppercase tracking-wider text-gray-500">
-            Reservation requests
-          </p>
-          <p className="mt-1 text-3xl font-semibold text-black">
-            {openReservations}
-          </p>
-          <p className="mt-1 text-sm text-black">
-            Open the reservation queue &rarr;
-          </p>
-        </Link>
-        <Link
-          href="/admin/shippers"
-          className="rounded-lg border border-gray-200 bg-white p-5 transition-colors hover:border-black"
-        >
-          <p className="font-mono text-xs uppercase tracking-wider text-gray-500">
-            Shippers pending review
-          </p>
-          <p className="mt-1 text-3xl font-semibold text-black">
-            {pendingShippers}
-          </p>
-          <p className="mt-1 text-sm text-black">Open shipper review &rarr;</p>
-        </Link>
-        <Link
-          href="/admin/shipments"
-          className="rounded-lg border border-gray-200 bg-white p-5 transition-colors hover:border-black"
-        >
-          <p className="font-mono text-xs uppercase tracking-wider text-gray-500">
-            Shipment requests
-          </p>
-          <p className="mt-1 text-3xl font-semibold text-black">
-            {shipmentRequests}
-          </p>
-          <p className="mt-1 text-sm text-black">
-            {SHIPPER_FEES_ENABLED ? <>Shipments &amp; commission &rarr;</> : <>Open shipments &rarr;</>}
-          </p>
-        </Link>
-        <Link
-          href="/admin/messages"
-          className="rounded-lg border border-gray-200 bg-white p-5 transition-colors hover:border-black"
-        >
-          <p className="font-mono text-xs uppercase tracking-wider text-gray-500">
-            Blocked contact-info attempts
-          </p>
-          <p className="mt-1 text-3xl font-semibold text-black">
-            {blockedMessages}
-          </p>
-          <p className="mt-1 text-sm text-black">Review flagged chat &rarr;</p>
-        </Link>
-        <Link
-          href="/admin/reviews"
-          className="rounded-lg border border-gray-200 bg-white p-5 transition-colors hover:border-black"
-        >
-          <p className="font-mono text-xs uppercase tracking-wider text-gray-500">
-            Reviews to moderate
-          </p>
-          <p className="mt-1 text-3xl font-semibold text-black">
-            {reviewQueue}
-          </p>
-          <p className="mt-1 text-sm text-black">Open the moderation queue &rarr;</p>
-        </Link>
-        <Link
-          href="/admin/disputes"
-          className="rounded-lg border border-gray-200 bg-white p-5 transition-colors hover:border-black"
-        >
-          <p className="font-mono text-xs uppercase tracking-wider text-gray-500">
-            Disputes needing attention
-          </p>
-          <p className="mt-1 text-3xl font-semibold text-black">
-            {openDisputes}
-          </p>
-          <p className="mt-1 text-sm text-black">Open the dispute queue &rarr;</p>
-        </Link>
-        <Link
-          href="/admin/referrals"
-          className="rounded-lg border border-gray-200 bg-white p-5 transition-colors hover:border-black"
-        >
-          <p className="font-mono text-xs uppercase tracking-wider text-gray-500">
-            Referrals flagged for review
-          </p>
-          <p className="mt-1 text-3xl font-semibold text-black">
-            {referralAttention}
-          </p>
-          <p className="mt-1 text-sm text-black">
-            Review flags &amp; payouts &rarr;
-          </p>
-        </Link>
-        <Link
-          href="/admin/audit"
-          className="rounded-lg border border-gray-200 bg-white p-5 transition-colors hover:border-black"
-        >
-          <p className="font-mono text-xs uppercase tracking-wider text-gray-500">
-            Audit log
-          </p>
-          <p className="mt-1 text-sm text-black">Who did what &rarr;</p>
-        </Link>
-        <Link
-          href="/admin/security"
-          className="rounded-lg border border-gray-200 bg-white p-5 transition-colors hover:border-black"
-        >
-          <p className="font-mono text-xs uppercase tracking-wider text-gray-500">
-            Two-step sign-in
-          </p>
-          <p className="mt-1 text-sm text-black">Manage authenticator apps &rarr;</p>
-        </Link>
+
+      {/* The one place to start the day: everything waiting on staff. */}
+      <Link
+        href="/admin/action-required"
+        className={cn(
+          "mt-6 flex items-center justify-between gap-4 rounded-card p-5 shadow-card transition-colors",
+          realItems.length > 0 ? "bg-ink text-white hover:bg-neutral-800" : "border border-line bg-white text-ink hover:border-ink",
+        )}
+      >
+        <span className="min-w-0">
+          <span className="block font-display text-2xl font-extrabold">Action required</span>
+          <span className={cn("mt-1 block text-sm", realItems.length > 0 ? "text-white/80" : "text-muted")}>
+            {!action
+              ? "Open the queue"
+              : action.failed.length > 0
+                ? `Some sources didn't load (${action.failed.join(", ")}) — open to see the rest`
+                : realItems.length === 0
+                  ? "Nothing is waiting on you"
+                  : `${realItems.length} item${realItems.length === 1 ? "" : "s"}${overdue ? ` · ${overdue} overdue` : ""}`}
+          </span>
+        </span>
+        <span aria-hidden className="text-3xl">
+          &rsaquo;
+        </span>
+      </Link>
+
+      <h2 className="mt-8 font-display text-xl font-bold text-ink">Queues</h2>
+      <nav aria-label="Admin queues" className="mt-3 grid grid-cols-2 gap-3 sm:grid-cols-3">
+        {QUEUES.map((q) => (
+          <Link
+            key={q.href}
+            href={q.href}
+            className="flex min-h-[6rem] flex-col justify-between rounded-card border border-line bg-white p-4 shadow-card transition-colors hover:border-ink"
+          >
+            <span className="text-sm font-semibold text-ink">{q.title}</span>
+            <span>
+              <span className="block font-display text-3xl font-extrabold tabular-nums text-ink">{q.count}</span>
+              <span className="block text-xs text-muted">{q.body}</span>
+            </span>
+          </Link>
+        ))}
+      </nav>
+
+      <h2 className="mt-8 font-display text-xl font-bold text-ink">Records &amp; security</h2>
+      <div className="mt-3 grid gap-3 sm:grid-cols-2">
+        <DashboardTile href="/admin/audit" title="Audit log" body="Who did what" />
+        <DashboardTile href="/admin/security" title="Two-step sign-in" body="Manage authenticator apps" />
       </div>
-    </main>
+    </DashboardShell>
   );
 }

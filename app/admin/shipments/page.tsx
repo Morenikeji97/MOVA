@@ -12,6 +12,7 @@ import { EscrowApiPanel } from "@/components/escrow-api-panel";
 import { ITEM_STATE_LABEL, escrowApiConfig } from "@/lib/escrow-com";
 import { openShippingEscrowAction } from "./actions";
 import { refreshEscrowAction } from "../reservations/actions";
+import { BackLink, DashboardShell } from "@/components/ui/dashboard";
 
 const money = (amount: number, currency: string) =>
   new Intl.NumberFormat("en-US", {
@@ -47,10 +48,10 @@ const CHARGE_LABEL: Record<CommissionChargeStatus, string> = {
 function Detail({ label, children }: { label: string; children: ReactNode }) {
   return (
     <div>
-      <dt className="font-mono text-xs uppercase tracking-wider text-gray-500">
+      <dt className="text-xs font-semibold uppercase tracking-[0.14em] text-muted">
         {label}
       </dt>
-      <dd className="text-black">{children}</dd>
+      <dd className="text-ink">{children}</dd>
     </div>
   );
 }
@@ -124,17 +125,12 @@ export default async function AdminShipmentsPage() {
   }
 
   return (
-    <main className="mx-auto max-w-5xl px-6 py-16">
-      <Link
-        href="/admin/dashboard"
-        className="font-mono text-xs uppercase tracking-wider text-gray-500 hover:text-black"
-      >
-        &larr; Admin dashboard
-      </Link>
-      <h1 className="mt-4 text-2xl font-semibold text-black">
+    <DashboardShell>
+      <BackLink href="/admin/dashboard">Admin dashboard</BackLink>
+      <h1 className="mt-4 font-display text-2xl font-extrabold tracking-tight text-ink">
         {SHIPPER_FEES_ENABLED ? <>Shipments &amp; commission</> : "Shipments"}
       </h1>
-      <p className="mt-2 text-sm text-gray-500">
+      <p className="mt-2 text-sm text-muted">
         {SHIPPER_FEES_ENABLED ? (
           <>
             Every buyer&rarr;shipper shipment request, and what each shipper owes
@@ -151,80 +147,64 @@ export default async function AdminShipmentsPage() {
       {/* Per-shipper commission summary (only while shipper fees are on) */}
       {SHIPPER_FEES_ENABLED ? (
       <section className="mt-8">
-        <h2 className="font-mono text-xs uppercase tracking-wider text-gray-500">
+        <h2 className="text-xs font-semibold uppercase tracking-[0.14em] text-muted">
           Per-shipper commission
         </h2>
         {shipperIds.length === 0 ? (
-          <p className="mt-3 text-sm text-gray-500">No shipment requests yet.</p>
+          <p className="mt-3 text-sm text-muted">No shipment requests yet.</p>
         ) : (
-          <div className="mt-3 overflow-x-auto">
-            <table className="w-full min-w-[36rem] text-sm">
-              <thead>
-                <tr className="text-left font-mono text-xs uppercase tracking-wider text-gray-500">
-                  <th className="py-2 pr-4">Shipper</th>
-                  <th className="py-2 pr-4">Standing</th>
-                  <th className="py-2 pr-4">Pending</th>
-                  <th className="py-2 pr-4">Charged</th>
-                  <th className="py-2 pr-4">Failed</th>
-                  <th className="py-2">Action</th>
-                </tr>
-              </thead>
-              <tbody>
-                {shipperIds.map((sid) => {
-                  const shipper = shipperById.get(sid);
-                  const t =
-                    totalsByShipper.get(sid) ??
-                    { owed: 0, charged: 0, failed: 0, currency: "USD" };
-                  const ps = (shipper?.payment_status ??
-                    "good_standing") as ShipperPaymentStatus;
-                  return (
-                    <tr key={sid} className="border-t border-gray-200">
-                      <td className="py-2 pr-4 text-black">
-                        {shipper?.company_name ?? "—"}
-                      </td>
-                      <td className="py-2 pr-4">
-                        <span
-                          className={`inline-flex items-center rounded-full px-2 py-0.5 text-xs font-medium ${PAYMENT_STATUS_CLASS[ps]}`}
-                        >
-                          {PAYMENT_STATUS_LABEL[ps]}
-                        </span>
-                      </td>
-                      <td className="py-2 pr-4 text-black">
-                        {money(t.owed, t.currency)}
-                      </td>
-                      <td className="py-2 pr-4 text-verified-600">
-                        {money(t.charged, t.currency)}
-                      </td>
-                      <td className="py-2 pr-4 text-copper-700">
-                        {money(t.failed, t.currency)}
-                      </td>
-                      <td className="py-2">
-                        {ps === "suspended" ? (
-                          <ReinstateShipperButton shipperId={sid} />
-                        ) : (
-                          <span className="text-gray-500">—</span>
-                        )}
-                      </td>
-                    </tr>
-                  );
-                })}
-              </tbody>
-            </table>
-          </div>
+          <ul className="mt-3 flex flex-col gap-3">
+            {shipperIds.map((sid) => {
+              const shipper = shipperById.get(sid);
+              const t = totalsByShipper.get(sid) ?? { owed: 0, charged: 0, failed: 0, currency: "USD" };
+              const ps = (shipper?.payment_status ?? "good_standing") as ShipperPaymentStatus;
+              return (
+                <li key={sid} className="rounded-card border border-line bg-white p-4 shadow-card">
+                  <div className="flex flex-wrap items-center justify-between gap-2">
+                    <p className="font-semibold text-ink">{shipper?.company_name ?? "—"}</p>
+                    <span
+                      className={`inline-flex items-center rounded-full px-2.5 py-1 text-xs font-semibold ${PAYMENT_STATUS_CLASS[ps]}`}
+                    >
+                      {PAYMENT_STATUS_LABEL[ps]}
+                    </span>
+                  </div>
+                  <dl className="mt-3 grid grid-cols-3 gap-2 text-sm">
+                    <div>
+                      <dt className="text-xs text-muted">Pending</dt>
+                      <dd className="tabular-nums text-ink">{money(t.owed, t.currency)}</dd>
+                    </div>
+                    <div>
+                      <dt className="text-xs text-muted">Charged</dt>
+                      <dd className="tabular-nums text-verified-600">{money(t.charged, t.currency)}</dd>
+                    </div>
+                    <div>
+                      <dt className="text-xs text-muted">Failed</dt>
+                      <dd className="tabular-nums text-copper-700">{money(t.failed, t.currency)}</dd>
+                    </div>
+                  </dl>
+                  {ps === "suspended" ? (
+                    <div className="mt-3">
+                      <ReinstateShipperButton shipperId={sid} />
+                    </div>
+                  ) : null}
+                </li>
+              );
+            })}
+          </ul>
         )}
       </section>
       ) : null}
 
       {/* All shipment requests */}
       <section className="mt-12">
-        <h2 className="font-mono text-xs uppercase tracking-wider text-gray-500">
+        <h2 className="text-xs font-semibold uppercase tracking-[0.14em] text-muted">
           All shipment requests ({requests.length})
         </h2>
 
         {requests.length === 0 ? (
-          <div className="mt-4 rounded-lg border border-dashed border-gray-200 bg-white p-10 text-center">
-            <p className="text-black">No shipment requests yet.</p>
-            <p className="mt-1 text-sm text-gray-500">
+          <div className="mt-4 rounded-lg border border-dashed border-line bg-white p-10 text-center">
+            <p className="text-ink">No shipment requests yet.</p>
+            <p className="mt-1 text-sm text-muted">
               These are created when a buyer selects a shipper at reservation.
             </p>
           </div>
@@ -246,14 +226,14 @@ export default async function AdminShipmentsPage() {
               return (
                 <li
                   key={r.id}
-                  className="rounded-lg border border-gray-200 bg-white p-5"
+                  className="rounded-card border border-line bg-white shadow-card p-5"
                 >
                   <div className="flex flex-wrap items-start justify-between gap-3">
                     <div>
-                      <p className="font-mono text-sm font-medium text-black">
+                      <p className="font-mono text-sm font-medium text-ink">
                         {referenceByPr.get(r.purchase_request_id) ?? "—"}
                       </p>
-                      <h3 className="text-lg font-semibold text-black">
+                      <h3 className="font-display text-lg font-bold text-ink">
                         {shipper?.company_name ?? "Shipper unavailable"}
                         {SHIPPER_FEES_ENABLED && shipper && !shipper.card_on_file ? (
                           <span className="ml-2 align-middle text-xs font-normal text-copper-700">
@@ -261,7 +241,7 @@ export default async function AdminShipmentsPage() {
                           </span>
                         ) : null}
                       </h3>
-                      <p className="mt-1 font-mono text-sm text-gray-500">
+                      <p className="mt-1 font-mono text-sm text-muted">
                         {rate
                           ? `${rate.origin_region} → ${countryName(rate.destination_country)} · `
                           : ""}
@@ -291,7 +271,7 @@ export default async function AdminShipmentsPage() {
                             ? "text-verified-600"
                             : chargeStatus === "failed"
                               ? "text-copper-700"
-                              : "text-gray-500"
+                              : "text-muted"
                         }`}
                       >
                         {CHARGE_LABEL[chargeStatus]}
@@ -351,7 +331,7 @@ export default async function AdminShipmentsPage() {
                   />
 
                   {r.status === "pending" ? (
-                    <div className="mt-4 border-t border-gray-200 pt-4">
+                    <div className="mt-4 border-t border-line pt-4">
                       <CompleteShipmentButton shipmentId={r.id} />
                     </div>
                   ) : null}
@@ -361,7 +341,7 @@ export default async function AdminShipmentsPage() {
           </ul>
         )}
       </section>
-    </main>
+    </DashboardShell>
   );
 }
 

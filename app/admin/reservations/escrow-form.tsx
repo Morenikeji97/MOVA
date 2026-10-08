@@ -27,12 +27,12 @@ export function EscrowForm({
   escrowStage: EscrowStage | null;
 }) {
   return (
-    <ActionForm action={recordEscrow} className="mt-4 flex flex-col gap-3 border-t border-gray-200 pt-4">
+    <ActionForm action={recordEscrow} className="mt-4 flex flex-col gap-3 border-t border-line pt-4">
       <input type="hidden" name="id" value={requestId} />
-      <p className="font-mono text-xs uppercase tracking-wider text-gray-500">Escrow.com</p>
+      <p className="text-xs font-semibold uppercase tracking-[0.14em] text-muted">Escrow.com</p>
       <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
         <label className="flex flex-col gap-1">
-          <span className="text-sm text-gray-500">Escrow.com reference</span>
+          <span className="text-sm text-muted">Escrow.com reference</span>
           <input
             name="escrow_reference"
             defaultValue={escrowReference ?? ""}
@@ -44,7 +44,7 @@ export function EscrowForm({
           />
         </label>
         <label className="flex flex-col gap-1">
-          <span className="text-sm text-gray-500">Stage</span>
+          <span className="text-sm text-muted">Stage</span>
           <select
             name="escrow_stage"
             defaultValue={escrowStage ?? ""}

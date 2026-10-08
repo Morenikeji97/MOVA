@@ -3,6 +3,7 @@ import { createClient } from "@/lib/supabase/server";
 import { buttonClasses } from "@/components/ui/button";
 import { markReferralFlagReviewed, updateReferralPayoutStatus } from "./actions";
 import { inputClasses } from "@/components/ui/input-classes";
+import { DashboardShell } from "@/components/ui/dashboard";
 
 export const dynamic = "force-dynamic";
 
@@ -42,19 +43,19 @@ export default async function AdminReferralsPage() {
   const emailById = new Map((userRows ?? []).map((u) => [u.id, u.email]));
 
   return (
-    <main className="mx-auto max-w-4xl px-6 py-16">
-      <h1 className="text-2xl font-semibold text-black">Referral program</h1>
-      <p className="mt-2 text-sm text-gray-500">
+    <DashboardShell>
+      <h1 className="font-display text-2xl font-extrabold tracking-tight text-ink">Referral program</h1>
+      <p className="mt-2 text-sm text-muted">
         Rate-flagged referrals (more than 5 qualifying credits for one
         referrer within 24 hours) and payout batches awaiting confirmation.
       </p>
 
       <section className="mt-10">
-        <h2 className="font-mono text-xs uppercase tracking-wider text-gray-500">
+        <h2 className="text-xs font-semibold uppercase tracking-[0.14em] text-muted">
           Flagged for review ({(flagged ?? []).length})
         </h2>
         {(flagged ?? []).length === 0 ? (
-          <p className="mt-3 text-sm text-gray-500">Nothing flagged right now.</p>
+          <p className="mt-3 text-sm text-muted">Nothing flagged right now.</p>
         ) : (
           <ul className="mt-3 flex flex-col gap-3">
             {(flagged ?? []).map((r) => {
@@ -70,11 +71,11 @@ export default async function AdminReferralsPage() {
                   key={r.id}
                   className="rounded-lg border border-copper-100 bg-copper-50 p-4"
                 >
-                  <p className="text-sm text-black">
+                  <p className="text-sm text-ink">
                     <strong>{emailById.get(r.referrer_id) ?? r.referrer_id}</strong> referred{" "}
                     <strong>{emailById.get(r.referred_id) ?? r.referred_id}</strong> ({r.role})
                   </p>
-                  <p className="mt-1 font-mono text-xs text-gray-500">
+                  <p className="mt-1 font-mono text-xs text-muted">
                     {fmtDate(r.created_at)} — flagged for referral volume (&gt;5 in 24h), not
                     identity-signal matches
                     {signals.length > 0 ? ` (also logged: ${signals.join(", ")})` : ""}
@@ -93,24 +94,24 @@ export default async function AdminReferralsPage() {
       </section>
 
       <section className="mt-10">
-        <h2 className="font-mono text-xs uppercase tracking-wider text-gray-500">
+        <h2 className="text-xs font-semibold uppercase tracking-[0.14em] text-muted">
           Payouts awaiting confirmation ({(pendingBatches ?? []).length})
         </h2>
         {(pendingBatches ?? []).length === 0 ? (
-          <p className="mt-3 text-sm text-gray-500">No payouts pending.</p>
+          <p className="mt-3 text-sm text-muted">No payouts pending.</p>
         ) : (
           <ul className="mt-3 flex flex-col gap-3">
             {(pendingBatches ?? []).map((b) => (
-              <li key={b.id} className="rounded-lg border border-gray-200 bg-white p-4">
-                <p className="text-sm text-black">
+              <li key={b.id} className="rounded-card border border-line bg-white shadow-card p-4">
+                <p className="text-sm text-ink">
                   <strong>{emailById.get(b.referrer_id) ?? b.referrer_id}</strong> — batch #
                   {b.batch_number} ({b.role}) — ${Number(b.amount_usd).toLocaleString()} via{" "}
                   {b.method === "stripe_transfer" ? "Stripe transfer" : "bank transfer"}
                 </p>
-                <p className="mt-1 font-mono text-xs text-gray-500">
+                <p className="mt-1 font-mono text-xs text-muted">
                   Opened {fmtDate(b.created_at)} — status: {b.status}
                 </p>
-                <p className="mt-2 text-xs text-gray-500">
+                <p className="mt-2 text-xs text-muted">
                   Move the ${Number(b.amount_usd).toLocaleString()} yourself (
                   {b.method === "stripe_transfer" ? "Stripe Dashboard transfer" : "bank wire"}),
                   then record the outcome below.
@@ -118,7 +119,7 @@ export default async function AdminReferralsPage() {
                 <ActionForm action={updateReferralPayoutStatus} className="mt-3 flex flex-wrap items-end gap-3">
                   <input type="hidden" name="id" value={b.id} />
                   <label className="flex flex-col gap-1">
-                    <span className="text-xs text-gray-500">Reference (optional)</span>
+                    <span className="text-xs text-muted">Reference (optional)</span>
                     <input
                       name="payout_reference"
                       placeholder="tr_… / wire ref"
@@ -126,7 +127,7 @@ export default async function AdminReferralsPage() {
                     />
                   </label>
                   <label className="flex flex-col gap-1">
-                    <span className="text-xs text-gray-500">Failure reason (if failing)</span>
+                    <span className="text-xs text-muted">Failure reason (if failing)</span>
                     <input
                       name="failure_reason"
                       placeholder="e.g. no bank details on file"
@@ -155,6 +156,6 @@ export default async function AdminReferralsPage() {
           </ul>
         )}
       </section>
-    </main>
+    </DashboardShell>
   );
 }

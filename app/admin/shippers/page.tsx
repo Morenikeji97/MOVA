@@ -24,6 +24,7 @@ import {
   ReinstateShipperButton,
   ShipperReviewActions,
 } from "./shipper-admin";
+import { BackLink, DashboardShell } from "@/components/ui/dashboard";
 
 const money = (amount: number, currency: string) =>
   new Intl.NumberFormat("en-US", {
@@ -47,10 +48,10 @@ const PAYMENT_STATUS_LABEL: Record<ShipperPaymentStatus, string> = {
 function Detail({ label, children }: { label: string; children: ReactNode }) {
   return (
     <div>
-      <dt className="font-mono text-xs uppercase tracking-wider text-gray-500">
+      <dt className="text-xs font-semibold uppercase tracking-[0.14em] text-muted">
         {label}
       </dt>
-      <dd className="text-black">{children}</dd>
+      <dd className="text-ink">{children}</dd>
     </div>
   );
 }
@@ -92,15 +93,15 @@ function VerificationPanel({ s, coiLink, today }: { s: ShipperRow; coiLink: stri
   const days = s.coi_expires_on ? daysUntil(s.coi_expires_on, today) : null;
   const license = cleanFmcLicense(s.fmc_oti_license_number);
   return (
-    <div className="mt-4 border-t border-gray-200 pt-4">
-      <p className="font-mono text-xs uppercase tracking-wider text-gray-500">
+    <div className="mt-4 border-t border-line pt-4">
+      <p className="text-xs font-semibold uppercase tracking-[0.14em] text-muted">
         Verification · {isBookable(s, today) ? "shown to buyers" : "hidden from buyers"}
       </p>
 
       <div className="mt-3">
-        <p className="text-sm font-medium text-black">Marine cargo insurance: {COI_LABEL[s.coi_status]}</p>
+        <p className="text-sm font-medium text-ink">Marine cargo insurance: {COI_LABEL[s.coi_status]}</p>
         {s.coi_status !== "none" ? (
-          <p className="mt-1 text-sm text-gray-500">
+          <p className="mt-1 text-sm text-muted">
             {s.coi_insurer ?? "—"}
             {s.coi_cargo_limit_usd != null ? ` · cover up to ${money(Number(s.coi_cargo_limit_usd), "USD")}` : ""}
             {s.coi_expires_on ? ` · expires ${formatDay(s.coi_expires_on)}` : ""}
@@ -112,7 +113,7 @@ function VerificationPanel({ s, coiLink, today }: { s: ShipperRow; coiLink: stri
             href={coiLink}
             target="_blank"
             rel="noreferrer"
-            className="mt-2 inline-flex h-11 items-center text-sm text-black underline"
+            className="mt-2 inline-flex h-11 items-center text-sm text-ink underline"
           >
             Open certificate (link works for 5 minutes)
           </a>
@@ -123,7 +124,7 @@ function VerificationPanel({ s, coiLink, today }: { s: ShipperRow; coiLink: stri
       </div>
 
       <div className="mt-5">
-        <p className="text-sm font-medium text-black">
+        <p className="text-sm font-medium text-ink">
           FMC/OTI license {s.fmc_oti_license_number}:{" "}
           {s.license_status === "active"
             ? `active on FMC list (checked ${s.license_checked_at ? fmtDate.format(new Date(s.license_checked_at)) : ""})`
@@ -136,7 +137,7 @@ function VerificationPanel({ s, coiLink, today }: { s: ShipperRow; coiLink: stri
             This doesn&rsquo;t look like an FMC license number (digits, sometimes ending in N, F or NF).
           </p>
         ) : null}
-        <p className="mt-1 text-sm text-gray-500">
+        <p className="mt-1 text-sm text-muted">
           Search {license ?? s.fmc_oti_license_number} on the FMC&rsquo;s OTI list:{" "}
           {FMC_OTI_SEARCH_URLS.map((u, i) => (
             <span key={u.href}>
@@ -238,36 +239,31 @@ export default async function AdminShippersPage() {
   }
 
   return (
-    <main className="mx-auto max-w-4xl px-6 py-16">
-      <Link
-        href="/admin/dashboard"
-        className="font-mono text-xs uppercase tracking-wider text-gray-500 hover:text-black"
-      >
-        &larr; Admin dashboard
-      </Link>
-      <h1 className="mt-4 text-2xl font-semibold text-black">
+    <DashboardShell>
+      <BackLink href="/admin/dashboard">Admin dashboard</BackLink>
+      <h1 className="mt-4 font-display text-2xl font-extrabold tracking-tight text-ink">
         Shipper review
       </h1>
-      <p className="mt-2 text-sm text-gray-500">
+      <p className="mt-2 text-sm text-muted">
         Approve applicants, manage their rates, and reinstate suspended shippers.
       </p>
 
       {/* Pending applications */}
       <section className="mt-8">
-        <h2 className="font-mono text-xs uppercase tracking-wider text-gray-500">
+        <h2 className="text-xs font-semibold uppercase tracking-[0.14em] text-muted">
           Pending applications ({pending.length})
         </h2>
         {pending.length === 0 ? (
-          <p className="mt-3 text-sm text-gray-500">Nothing waiting for review.</p>
+          <p className="mt-3 text-sm text-muted">Nothing waiting for review.</p>
         ) : (
           <ul className="mt-3 flex flex-col gap-4">
             {pending.map((s) => (
               <li
                 key={s.id}
-                className="rounded-lg border border-gray-200 bg-white p-5"
+                className="rounded-card border border-line bg-white shadow-card p-5"
               >
                 <div className="flex items-start justify-between gap-4">
-                  <h3 className="text-lg font-semibold text-black">
+                  <h3 className="font-display text-lg font-bold text-ink">
                     {s.company_name}
                   </h3>
                   <span className="inline-flex shrink-0 items-center rounded-full bg-marine-50 px-2.5 py-1 text-sm font-medium text-marine-700">
@@ -293,10 +289,10 @@ export default async function AdminShippersPage() {
       {/* Suspended */}
       {suspended.length > 0 ? (
         <section className="mt-12">
-          <h2 className="font-mono text-xs uppercase tracking-wider text-gray-500">
+          <h2 className="text-xs font-semibold uppercase tracking-[0.14em] text-muted">
             Suspended ({suspended.length})
           </h2>
-          <p className="mt-1 text-sm text-gray-500">
+          <p className="mt-1 text-sm text-muted">
             Hidden from buyer-facing results until reinstated.
           </p>
           <ul className="mt-3 flex flex-col gap-4">
@@ -306,7 +302,7 @@ export default async function AdminShippersPage() {
                 className="rounded-lg border border-copper-100 bg-copper-50 p-5"
               >
                 <div className="flex items-start justify-between gap-4">
-                  <h3 className="text-lg font-semibold text-black">
+                  <h3 className="font-display text-lg font-bold text-ink">
                     {s.company_name}
                   </h3>
                   <span className="inline-flex shrink-0 items-center rounded-full bg-copper-100 px-2.5 py-1 text-sm font-medium text-copper-700">
@@ -325,11 +321,11 @@ export default async function AdminShippersPage() {
 
       {/* Approved + rate management */}
       <section className="mt-12">
-        <h2 className="font-mono text-xs uppercase tracking-wider text-gray-500">
+        <h2 className="text-xs font-semibold uppercase tracking-[0.14em] text-muted">
           Approved shippers ({approved.length})
         </h2>
         {approved.length === 0 ? (
-          <p className="mt-3 text-sm text-gray-500">None yet.</p>
+          <p className="mt-3 text-sm text-muted">None yet.</p>
         ) : (
           <ul className="mt-3 flex flex-col gap-4">
             {approved.map((s) => {
@@ -337,10 +333,10 @@ export default async function AdminShippersPage() {
               return (
                 <li
                   key={s.id}
-                  className="rounded-lg border border-gray-200 bg-white p-5"
+                  className="rounded-card border border-line bg-white shadow-card p-5"
                 >
                   <div className="flex items-start justify-between gap-4">
-                    <h3 className="text-lg font-semibold text-black">
+                    <h3 className="font-display text-lg font-bold text-ink">
                       {s.company_name}
                     </h3>
                     <span className="inline-flex shrink-0 items-center rounded-full bg-verified-50 px-2.5 py-1 text-sm font-medium text-verified-600">
@@ -350,8 +346,8 @@ export default async function AdminShippersPage() {
                   <ShipperFacts s={s} />
                   <VerificationPanel s={s} coiLink={coiLinks.get(s.id) ?? null} today={today} />
 
-                  <div className="mt-4 border-t border-gray-200 pt-4">
-                    <p className="font-mono text-xs uppercase tracking-wider text-gray-500">
+                  <div className="mt-4 border-t border-line pt-4">
+                    <p className="text-xs font-semibold uppercase tracking-[0.14em] text-muted">
                       Rates ({rates.length}) — shown to buyers exactly as entered
                     </p>
                     {rates.length > 0 ? (
@@ -359,9 +355,9 @@ export default async function AdminShippersPage() {
                         {rates.map((r) => (
                           <li
                             key={r.id}
-                            className="flex flex-wrap items-center justify-between gap-2 rounded border border-gray-200 px-3 py-2 text-sm"
+                            className="flex flex-wrap items-center justify-between gap-2 rounded-lg border border-line px-3 py-2 text-sm"
                           >
-                            <span className="text-black">
+                            <span className="text-ink">
                               {r.origin_region}
                               {r.origin_port ? ` (${r.origin_port})` : ""} &rarr;{" "}
                               {countryName(r.destination_country)}
@@ -376,7 +372,7 @@ export default async function AdminShippersPage() {
                         ))}
                       </ul>
                     ) : (
-                      <p className="mt-2 text-sm text-gray-500">
+                      <p className="mt-2 text-sm text-muted">
                         No rates yet — buyers won&rsquo;t see this shipper until
                         one is added.
                       </p>
@@ -389,7 +385,7 @@ export default async function AdminShippersPage() {
           </ul>
         )}
       </section>
-    </main>
+    </DashboardShell>
   );
 }
 
