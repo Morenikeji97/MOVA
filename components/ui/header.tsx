@@ -9,7 +9,7 @@ import { getDisplayCurrency } from "@/lib/display-currency-server";
 const BASE_NAV_LINKS: NavLink[] = [
   { label: "Buy", href: "/browse" },
   { label: "Sell", href: "/sell" },
-  { label: "Shipping", href: "/shipper" },
+  { label: "Shipping", href: "/how-it-works#shipping" },
   { label: "Inspections", href: "/inspectors" },
   { label: "How It Works", href: "/how-it-works" },
   { label: "Referrals", href: "/referrals" },
@@ -26,7 +26,9 @@ const BASE_NAV_LINKS: NavLink[] = [
  *
  * "Sell" is hidden for signed-in buyers — a buyer browsing/reserving has no
  * reason to be pointed at seller onboarding. Everyone else sees every link.
- * "Get Started" goes to sign-up, or the waitlist before launch.
+ * "Shipping" is the How It Works shipping section (shippers have their own
+ * footer link, /shipper). Sign In / Create account / My dashboard / Sign
+ * out: components/ui/header-controls.tsx.
  */
 export async function Header() {
   const supabase = await createClient();
@@ -67,7 +69,7 @@ export async function Header() {
         <HeaderControls
           navLinks={navLinks}
           currency={selectedDisplayCurrency(currency)}
-          getStartedHref={isPrelaunch() ? "/waitlist" : "/signup"}
+          waitlistHref={isPrelaunch() ? "/waitlist" : null}
         />
       </div>
     </header>
