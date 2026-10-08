@@ -21,10 +21,11 @@ export const WHATSAPP_MESSAGE =
   process.env.NEXT_PUBLIC_WHATSAPP_MESSAGE ?? DEFAULT_WHATSAPP_MESSAGE;
 
 /**
- * `https://wa.me/<number>?text=<encoded message>`, or `null` when no number is
+ * `https://wa.me/<number>?text=<encoded message>` (the default message, or
+ * one naming a listing), or `null` when no number is
  * configured (so the button can render nothing rather than a broken link).
  */
-export function whatsappLink(): string | null {
+export function whatsappLink(message: string = WHATSAPP_MESSAGE): string | null {
   if (!WHATSAPP_NUMBER) return null;
-  return `https://wa.me/${WHATSAPP_NUMBER}?text=${encodeURIComponent(WHATSAPP_MESSAGE)}`;
+  return `https://wa.me/${WHATSAPP_NUMBER}?text=${encodeURIComponent(message)}`;
 }

@@ -48,11 +48,11 @@ export async function ReferralPanel({ userId }: { userId: string }) {
   );
 
   return (
-    <section className="mt-10 rounded-lg border border-gray-200 bg-white p-6">
-      <h2 className="font-mono text-xs uppercase tracking-wider text-gray-500">
+    <section className="mt-10 rounded-lg border border-line bg-white p-6">
+      <h2 className="text-xs font-semibold uppercase tracking-[0.14em] text-muted">
         Referral program
       </h2>
-      <p className="mt-2 text-sm text-gray-500">
+      <p className="mt-2 text-sm text-muted">
         Earn ${REFERRAL_PAYOUT_AMOUNT_USD.toLocaleString()} for every{" "}
         {REFERRAL_BATCH_SIZE} people you refer who complete a transaction on ShipMova.
       </p>
@@ -62,14 +62,14 @@ export async function ReferralPanel({ userId }: { userId: string }) {
         <img
           src={qrDataUrl}
           alt="QR code linking to your ShipMova referral signup page"
-          className="h-32 w-32 rounded border border-gray-200"
+          className="h-32 w-32 rounded-lg border border-line"
         />
         <div className="min-w-0 flex-1">
-          <p className="font-mono text-xs uppercase tracking-wider text-gray-500">
+          <p className="text-xs font-semibold uppercase tracking-[0.14em] text-muted">
             Your referral code
           </p>
-          <p className="text-lg font-semibold text-black">{user.referral_code}</p>
-          <p className="mt-2 break-all text-sm text-gray-500">{link}</p>
+          <p className="text-lg font-semibold text-ink">{user.referral_code}</p>
+          <p className="mt-2 break-all text-sm text-muted">{link}</p>
           <div className="mt-3 flex flex-wrap gap-3">
             <CopyLinkButton link={link} />
             <a
@@ -84,19 +84,19 @@ export async function ReferralPanel({ userId }: { userId: string }) {
       </div>
 
       <div className="mt-6">
-        <p className="text-sm text-black">
+        <p className="text-sm text-ink">
           {progress} of {REFERRAL_BATCH_SIZE} toward your next $
           {REFERRAL_PAYOUT_AMOUNT_USD.toLocaleString()}
         </p>
-        <div className="mt-1.5 h-2 w-full rounded-full bg-gray-100">
+        <div className="mt-1.5 h-2 w-full rounded-full bg-band">
           <div
-            className="h-2 rounded-full bg-black"
+            className="h-2 rounded-full bg-ink"
             style={{ width: `${(progress / REFERRAL_BATCH_SIZE) * 100}%` }}
           />
         </div>
-        <p className="mt-3 text-sm text-gray-500">
+        <p className="mt-3 text-sm text-muted">
           Lifetime earned:{" "}
-          <span className="font-semibold text-black">
+          <span className="font-semibold text-ink">
             ${lifetimeEarnedUsd.toLocaleString()}
           </span>{" "}
           ({batchesPaid} {batchesPaid === 1 ? "payout" : "payouts"})

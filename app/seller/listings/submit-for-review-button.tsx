@@ -11,7 +11,7 @@ import { Button } from "@/components/ui/button";
 export function SubmitForReviewButton() {
   const pending = useActionPending();
   return (
-    <Button type="submit" variant="secondary" size="sm" disabled={pending}>
+    <Button type="submit" size="sm" disabled={pending} className="w-full sm:w-auto">
       {pending ? "Submitting…" : "Submit for review"}
     </Button>
   );

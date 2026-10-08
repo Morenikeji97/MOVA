@@ -3,6 +3,7 @@
 import { useFormStatus } from "react-dom";
 import { Button } from "@/components/ui/button";
 import { VerifiedBadge } from "@/components/ui/verified-badge";
+import { cardClasses } from "@/components/ui/card";
 import type { VerificationStatus } from "@/types/database";
 import { startIdentityVerification } from "./actions";
 
@@ -15,7 +16,7 @@ const fmtDate = new Intl.DateTimeFormat("en-US", {
 function StartButton({ label }: { label: string }) {
   const { pending } = useFormStatus();
   return (
-    <Button type="submit" disabled={pending}>
+    <Button type="submit" disabled={pending} className="w-full sm:w-auto">
       {pending ? "Starting…" : label}
     </Button>
   );
@@ -41,33 +42,33 @@ export function VerificationPanel({
   const s: VerificationStatus = status ?? "unverified";
 
   return (
-    <section className="mt-10 rounded-lg border border-gray-200 bg-white p-6">
+    <section className={cardClasses({ className: "mt-8" })}>
       <div className="flex items-center justify-between gap-3">
-        <h2 className="text-lg font-semibold text-black">Identity verification</h2>
+        <h2 className="font-display text-xl font-bold text-ink">Identity verification</h2>
         {s === "verified" ? <VerifiedBadge label="Verified" /> : null}
       </div>
 
       {notice === "complete" && s !== "verified" ? (
-        <p className="mt-3 rounded border border-marine-100 bg-marine-50 p-3 text-sm text-marine-700">
+        <p className="mt-3 rounded-lg border border-marine-100 bg-marine-50 p-3 text-sm text-marine-700">
           Thanks — you&rsquo;re back from Stripe. This page updates as soon as
           Stripe confirms the result, usually within a minute.
         </p>
       ) : null}
       {notice === "error" ? (
-        <p className="mt-3 rounded border border-copper-100 bg-copper-50 p-3 text-sm text-copper-700">
+        <p className="mt-3 rounded-lg border border-copper-100 bg-copper-50 p-3 text-sm text-copper-700">
           We couldn&rsquo;t start verification just now. Please try again.
         </p>
       ) : null}
 
       {s === "verified" ? (
-        <p className="mt-3 text-sm text-gray-500">
+        <p className="mt-3 text-sm text-muted">
           Your identity was verified
           {verifiedAt ? ` on ${fmtDate.format(new Date(verifiedAt))}` : ""}. No
           further action needed.
         </p>
       ) : s === "pending" ? (
         <>
-          <p className="mt-3 text-sm text-gray-500">
+          <p className="mt-3 text-sm text-muted">
             Verification is in progress. If you didn&rsquo;t finish on Stripe or
             closed the tab, you can pick it back up.
           </p>
@@ -84,7 +85,7 @@ export function VerificationPanel({
         </>
       ) : (
         <>
-          <p className="mt-3 text-sm text-gray-500">
+          <p className="mt-3 text-sm text-muted">
             Verify your identity to list vehicles. You&rsquo;ll be taken to
             Stripe&rsquo;s secure flow to photograph a government ID and take a
             selfie, then returned here.

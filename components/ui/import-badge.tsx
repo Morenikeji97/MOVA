@@ -26,7 +26,7 @@ export function ImportBadge({
       ? { tone: "bg-verified-50 text-verified-600", Icon: null }
       : status.kind === "borderline"
         ? { tone: "bg-copper-50 text-copper-700", Icon: AlertTriangle }
-        : { tone: "bg-gray-100 text-gray-700", Icon: XCircle };
+        : { tone: "bg-band text-ink", Icon: XCircle };
 
   return (
     <span

@@ -88,15 +88,23 @@ test("the database refuses a shipper or inspector as the buyer, whatever the bro
   }
   // Not tied to the pre-launch ID switch.
   assert.doesNotMatch(sql, /is_buyer_id_check_required/);
-  // Linked shipper, linked inspector, or an approved unclaimed shipper with
-  // this login's confirmed email (what the portal offers to claim).
   assert.match(sql, /s\.user_id = p_user\) then 'shipper'/);
   assert.match(sql, /i\.user_id = p_user\) then 'inspector'/);
-  assert.match(sql, /s\.user_id is null\s+and s\.status = 'approved'\s+and u\.email_confirmed_at is not null\s+and lower\(s\.contact_email\) = lower\(u\.email\)/);
   // Nobody can ask about another user; the caller only learns about themself.
   assert.match(sql, /revoke execute on function public\.service_account_kind_for\(uuid\) from public, anon, authenticated;/);
   assert.match(sql, /select public\.service_account_kind_for\(auth\.uid\(\)\)/);
   assert.match(sql, /revoke execute on function public\.my_service_account_kind\(\) from public, anon;/);
+});
+
+test("only a linked login counts as a shipper or inspector, never a contact email (0067)", () => {
+  // Founder, 2026-10-08: the seller account used as the contact on test
+  // shipper applications must never become a shipper.
+  const sql = readFileSync("supabase/migrations/0067_service_account_login_only.sql", "utf8");
+  const body = sql.slice(sql.indexOf("create or replace function public.service_account_kind_for"));
+  assert.match(body, /s\.user_id = p_user\) then 'shipper'/);
+  assert.match(body, /i\.user_id = p_user\) then 'inspector'/);
+  assert.doesNotMatch(body, /contact_email/);
+  assert.match(body, /revoke execute on function public\.service_account_kind_for\(uuid\) from public, anon, authenticated;/);
 });
 
 test("the shipper check on reserving runs before every other check (0066)", () => {

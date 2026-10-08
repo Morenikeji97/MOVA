@@ -96,7 +96,7 @@ export function VehicleDocumentUploader({
   return (
     <div>
       {value ? (
-        <div className="flex items-center justify-between gap-3 rounded border border-verified-100 bg-verified-50 p-3 text-sm text-verified-600">
+        <div className="flex items-center justify-between gap-3 rounded-lg border border-verified-100 bg-verified-50 p-3 text-sm text-verified-600">
           <span>{successMessage}</span>
           <button
             type="button"
@@ -118,13 +118,13 @@ export function VehicleDocumentUploader({
               e.target.value = "";
               if (file) void upload(file);
             }}
-            className="text-sm text-gray-500 file:mr-3 file:rounded file:border-0 file:bg-black file:px-3 file:py-1.5 file:text-sm file:font-medium file:text-white"
+            className="text-sm text-muted file:mr-3 file:rounded file:border-0 file:bg-ink file:px-3 file:py-1.5 file:text-sm file:font-medium file:text-white"
           />
         </label>
       )}
 
       {busy ? (
-        <p className="mt-2 flex items-center gap-2 text-sm text-gray-500">
+        <p className="mt-2 flex items-center gap-2 text-sm text-muted">
           <Loader2 className="h-4 w-4 animate-spin" aria-hidden />
           Uploading…
         </p>

@@ -53,7 +53,7 @@ export function PriceBreakdown({
           <>
             ShipMova fee ({b.buyerRatePct}%)
             {b.split ? (
-              <span className="text-gray-500"> · seller pays the other 4%</span>
+              <span className="text-muted"> · seller pays the other 4%</span>
             ) : null}
           </>
         }
@@ -77,7 +77,7 @@ export function PriceBreakdown({
       {local?.fx ? (
         <div className="flex justify-end">
           <dt className="sr-only">In local currency</dt>
-          <dd className={cn("text-right font-mono text-gray-500", detail ? "text-sm" : "text-xs")}>
+          <dd className={cn("text-right tabular-nums", detail ? "text-sm font-semibold text-ink" : "text-xs text-muted")}>
             {local.currencies.map((c) => (
               <span key={c} className="block">
                 {formatLocal(b.totalBeforeShipping + (shipping?.cost ?? 0), c, local.fx!.rates[c])}
@@ -92,9 +92,9 @@ export function PriceBreakdown({
 
 function Line({ label, value }: { label: React.ReactNode; value: string }) {
   return (
-    <div className="flex items-baseline justify-between gap-4 text-gray-500">
+    <div className="flex items-baseline justify-between gap-4 text-muted">
       <dt>{label}</dt>
-      <dd className="font-mono">{value}</dd>
+      <dd className="tabular-nums">{value}</dd>
     </div>
   );
 }
@@ -103,12 +103,12 @@ function Total({ label, value, detail }: { label: string; value: string; detail:
   return (
     <div
       className={cn(
-        "mt-1 flex items-baseline justify-between gap-4 border-t border-gray-200 pt-1 font-semibold text-black",
-        detail ? "text-lg" : "text-sm",
+        "mt-1 flex items-baseline justify-between gap-4 border-t border-line pt-1 font-bold text-ink",
+        detail ? "pt-2 text-xl" : "text-sm",
       )}
     >
       <dt>{label}</dt>
-      <dd className="font-mono">{value}</dd>
+      <dd className="tabular-nums">{value}</dd>
     </div>
   );
 }
