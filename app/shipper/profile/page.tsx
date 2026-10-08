@@ -2,6 +2,8 @@ import { type ReactNode } from "react";
 import Link from "next/link";
 import { redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
+import { BackLink, DashboardHeader, DashboardShell } from "@/components/ui/dashboard";
+import { cardClasses } from "@/components/ui/card";
 import { RatingSummary } from "@/components/ui/rating-summary";
 import { ReviewList, type PublicReview } from "@/components/ui/review-list";
 import { toAggregate } from "@/lib/reviews";
@@ -9,15 +11,10 @@ import { ShipperProfileForm } from "./profile-form";
 
 function Shell({ children }: { children: ReactNode }) {
   return (
-    <main className="mx-auto max-w-2xl px-6 py-16">
-      <Link
-        href="/shipper/portal"
-        className="font-mono text-xs uppercase tracking-wider text-gray-500 hover:text-black"
-      >
-        &larr; Shipper portal
-      </Link>
+    <DashboardShell narrow>
+      <BackLink href="/shipper/portal">Shipper portal</BackLink>
       {children}
-    </main>
+    </DashboardShell>
   );
 }
 
@@ -57,13 +54,13 @@ export default async function ShipperProfilePage() {
 
   return (
     <Shell>
-      <h1 className="mt-4 text-2xl font-semibold text-black">Your profile</h1>
-      <p className="mt-1 text-sm text-gray-500">
-        Company name, description and service countries are shown on your
-        public listing page.
-      </p>
+      <DashboardHeader
+        className="mt-2"
+        title="Your profile"
+        intro="Company name, description and service countries are shown on your public listing page."
+      />
 
-      <div className="mt-6 rounded-lg border border-gray-200 bg-white p-5">
+      <div className={cardClasses({ className: "mt-6" })}>
         <ShipperProfileForm
           companyName={shipper.company_name}
           description={shipper.description ?? ""}
@@ -72,19 +69,15 @@ export default async function ShipperProfilePage() {
         />
       </div>
 
-      <section className="mt-10">
-        <h2 className="font-mono text-xs uppercase tracking-wider text-gray-500">
-          Your rating
-        </h2>
+      <section className={cardClasses({ className: "mt-4" })}>
+        <h2 className="font-display text-lg font-bold text-ink">Your rating</h2>
         <div className="mt-3">
           <RatingSummary aggregate={aggregate} size="md" />
         </div>
       </section>
 
-      <section className="mt-6">
-        <h2 className="font-mono text-xs uppercase tracking-wider text-gray-500">
-          Published reviews
-        </h2>
+      <section className={cardClasses({ className: "mt-4" })}>
+        <h2 className="font-display text-lg font-bold text-ink">Published reviews</h2>
         <div className="mt-3">
           <ReviewList
             reviews={(reviewRows ?? []) as PublicReview[]}

@@ -15,7 +15,7 @@ function Pending({
 }) {
   const { pending } = useFormStatus();
   return (
-    <Button type="submit" variant={variant} size="sm" disabled={pending}>
+    <Button type="submit" variant={variant} disabled={pending} className="w-full sm:w-auto">
       {pending ? busy : idle}
     </Button>
   );

@@ -66,28 +66,28 @@ export function InsuranceForm({ userId }: { userId: string }) {
     <ActionForm action={submitShipperCoi} className="mt-4 flex flex-col gap-4">
       <input type="hidden" name="document_path" value={path ?? ""} />
       <label className="flex flex-col gap-1">
-        <span className="text-sm text-gray-500">Certificate of insurance (PDF or photo)</span>
+        <span className="text-sm text-muted">Certificate of insurance (PDF or photo)</span>
         <input
           type="file"
           accept="application/pdf,image/jpeg,image/png,image/webp"
           onChange={(e) => void upload(takeFiles(e.target))}
-          className="text-base text-black file:mr-3 file:h-11 file:rounded file:border-0 file:bg-black file:px-4 file:text-white"
+          className="text-base text-ink file:mr-3 file:h-11 file:rounded-lg file:border-0 file:bg-ink file:px-4 file:text-white"
         />
       </label>
-      {uploading ? <p className="text-sm text-gray-500">Uploading…</p> : null}
+      {uploading ? <p className="text-sm text-muted">Uploading…</p> : null}
       {path && !uploading ? <p className="text-sm text-verified-600">Certificate ready.</p> : null}
       {uploadError ? <p className="text-sm text-copper-700">{uploadError}</p> : null}
       <label className="flex flex-col gap-1">
-        <span className="text-sm text-gray-500">Insurance company</span>
+        <span className="text-sm text-muted">Insurance company</span>
         <input name="insurer" required maxLength={200} autoComplete="organization" className={inputClasses()} />
       </label>
       <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
         <label className="flex flex-col gap-1">
-          <span className="text-sm text-gray-500">Cargo cover limit (US$ per shipment)</span>
+          <span className="text-sm text-muted">Cargo cover limit (US$ per shipment)</span>
           <input name="cargo_limit_usd" required inputMode="numeric" placeholder="50000" autoComplete="off" className={inputClasses()} />
         </label>
         <label className="flex flex-col gap-1">
-          <span className="text-sm text-gray-500">Expiry date</span>
+          <span className="text-sm text-muted">Expiry date</span>
           <input name="expires_on" type="date" required className={inputClasses()} />
         </label>
       </div>

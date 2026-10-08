@@ -91,7 +91,7 @@ export function ShipmentProofUploader({
     <div>
       <label
         htmlFor={inputId}
-        className="flex h-14 cursor-pointer items-center justify-center gap-2 rounded border-2 border-dashed border-gray-200 bg-white text-sm font-medium text-black hover:border-black aria-disabled:cursor-not-allowed aria-disabled:opacity-60"
+        className="flex h-14 cursor-pointer items-center justify-center gap-2 rounded-lg border-2 border-dashed border-line bg-white text-sm font-medium text-ink hover:border-ink aria-disabled:cursor-not-allowed aria-disabled:opacity-60"
         aria-disabled={busy}
       >
         {busy ? (

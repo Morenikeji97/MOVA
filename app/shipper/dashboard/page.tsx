@@ -2,6 +2,15 @@ import { type ReactNode } from "react";
 import Link from "next/link";
 import { redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
+import {
+  BackLink,
+  DashboardHeader,
+  DashboardShell,
+  EmptyCard,
+  StatusPill,
+  type PillTone,
+} from "@/components/ui/dashboard";
+import { cardClasses } from "@/components/ui/card";
 import { countryName } from "@/lib/shipping";
 import type { ShipmentShippingStatus } from "@/types/database";
 import { ShippingStatusControl } from "./status-control";
@@ -13,17 +22,26 @@ const URGENCY: Record<ShipmentShippingStatus, number> = {
   delivered: 3,
 };
 
+const STATUS_LABEL: Record<ShipmentShippingStatus, string> = {
+  awaiting_pickup: "Awaiting pickup",
+  picked_up: "Picked up",
+  in_transit: "In transit",
+  delivered: "Delivered",
+};
+
+const STATUS_TONE: Record<ShipmentShippingStatus, PillTone> = {
+  awaiting_pickup: "warning",
+  picked_up: "info",
+  in_transit: "info",
+  delivered: "success",
+};
+
 function Shell({ children }: { children: ReactNode }) {
   return (
-    <main className="mx-auto max-w-3xl px-6 py-16">
-      <Link
-        href="/shipper/portal"
-        className="font-mono text-xs uppercase tracking-wider text-gray-500 hover:text-black"
-      >
-        &larr; Shipper portal
-      </Link>
+    <DashboardShell narrow>
+      <BackLink href="/shipper/portal">Shipper portal</BackLink>
       {children}
-    </main>
+    </DashboardShell>
   );
 }
 
@@ -70,19 +88,18 @@ export default async function ShipperDashboardPage() {
 
   return (
     <Shell>
-      <h1 className="mt-4 text-2xl font-semibold text-black">
-        {shipper.company_name}
-      </h1>
-      <p className="mt-1 text-sm text-gray-500">
-        Your assigned shipments, most urgent first.
-      </p>
+      <DashboardHeader
+        className="mt-2"
+        eyebrow={shipper.company_name}
+        title="Your shipments"
+        intro="Most urgent first. Tap a status to update it."
+      />
 
       {shipments.length === 0 ? (
-        <div className="mt-8 rounded-lg border border-dashed border-gray-200 bg-white p-10 text-center">
-          <p className="text-black">No shipments yet.</p>
-          <p className="mt-1 text-sm text-gray-500">
+        <div className="mt-6">
+          <EmptyCard title="No shipments yet">
             When a buyer selects one of your rates, it shows up here.
-          </p>
+          </EmptyCard>
         </div>
       ) : (
         <ul className="mt-6 flex flex-col gap-4">
@@ -95,28 +112,27 @@ export default async function ShipperDashboardPage() {
               : null;
 
             return (
-              <li
-                key={s.id}
-                className="rounded-lg border border-gray-200 bg-white p-5"
-              >
+              <li key={s.id} className={cardClasses()}>
+                <StatusPill tone={STATUS_TONE[s.shipping_status]}>{STATUS_LABEL[s.shipping_status]}</StatusPill>
                 <Link
                   href={`/shipper/dashboard/${s.id}`}
-                  className="block"
+                  className="mt-2 block"
                 >
-                  <h2 className="text-lg font-semibold text-black">
+                  <h2 className="break-words font-display text-xl font-bold leading-snug text-ink">
                     {vehicleLabel || "Vehicle details unavailable"}
                     {s.vehicle_trim ? (
-                      <span className="font-normal text-gray-500"> {s.vehicle_trim}</span>
+                      <span className="font-normal text-muted"> {s.vehicle_trim}</span>
                     ) : null}
                   </h2>
-                  <p className="mt-1 font-mono text-sm text-gray-500">
+                  <p className="mt-1 text-sm text-muted">
                     {[s.pickup_city, s.pickup_state].filter(Boolean).join(", ") || "Pickup location unavailable"}
                     {" → "}
                     {countryName(destination)}
                   </p>
                 </Link>
 
-                <div className="mt-4 border-t border-gray-200 pt-4">
+                <div className="mt-4 border-t border-line pt-4">
+                  <p className="mb-2 text-xs font-semibold uppercase tracking-[0.14em] text-muted">Update status</p>
                   <ShippingStatusControl
                     shipmentId={s.id}
                     current={s.shipping_status}
@@ -125,9 +141,9 @@ export default async function ShipperDashboardPage() {
 
                 <Link
                   href={`/shipper/dashboard/${s.id}`}
-                  className="mt-3 inline-block text-sm text-black hover:underline"
+                  className="mt-3 flex h-11 items-center text-sm font-semibold text-ink underline underline-offset-2"
                 >
-                  View details, contact &amp; photos &rarr;
+                  Details, buyer contact &amp; photos &rarr;
                 </Link>
               </li>
             );

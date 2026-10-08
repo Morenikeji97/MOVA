@@ -77,7 +77,8 @@ export function ActionForm({
       {result ? (
         <p
           role="status"
-          className={`mt-2 text-sm ${result.ok ? "text-verified-600" : "text-copper-700"}`}
+          // Full row when the form itself is a grid of buttons.
+          className={`col-span-full mt-2 w-full basis-full text-sm ${result.ok ? "text-verified-600" : "text-copper-700"}`}
         >
           {result.message}
         </p>
