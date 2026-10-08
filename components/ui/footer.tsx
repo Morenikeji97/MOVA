@@ -76,6 +76,16 @@ export function Footer() {
                 Buyer Protection &amp; Refund Policy
               </Link>
             </li>
+            <li>
+              <Link href="/policies/terms" className={LINK}>
+                Terms &amp; Conditions
+              </Link>
+            </li>
+            <li>
+              <Link href="/policies/privacy" className={LINK}>
+                Privacy Policy
+              </Link>
+            </li>
           </FooterColumn>
 
           <FooterColumn title="Contact">

@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { inputClasses } from "@/components/ui/input-classes";
 import { cn } from "@/lib/utils";
 import { importStatus } from "@/lib/import-rules";
 import {
@@ -75,13 +76,13 @@ export function ShippingEstimate({
   return (
     <section
       aria-label="Shipping estimate"
-      className={cn("rounded-lg border border-gray-200 bg-white p-4 text-sm", className)}
+      className={cn("rounded-lg bg-band p-4 text-sm", className)}
     >
-      <p className="text-black">
+      <p className="font-semibold text-ink">
         Shipping to West Africa: from ~{usd.format(LOWEST_FREIGHT)} port-to-port, plus
         pickup to the US port — choose your country for an estimate
       </p>
-      <label className="mt-3 flex flex-col gap-1 text-gray-500">
+      <label className="mt-3 flex flex-col gap-1 text-muted">
         Your country
         <select
           value={country ?? ""}
@@ -91,7 +92,7 @@ export function ShippingEstimate({
             setCountry(next);
             saveLastChoice(next);
           }}
-          className="h-10 max-w-xs rounded border border-gray-200 bg-white px-3 text-black"
+          className={inputClasses({ className: "w-full" })}
         >
           <option value="" disabled>
             Choose your country
@@ -106,7 +107,7 @@ export function ShippingEstimate({
 
       {estimate ? (
         <>
-          <p className="mt-3 text-sm text-black">
+          <p className="mt-3 text-sm text-ink">
             {importStatus(estimate.code, modelYear).label}
           </p>
           <dl className="mt-3 flex flex-col gap-1">
@@ -123,7 +124,7 @@ export function ShippingEstimate({
             <Line label="Pickup to the US port (depends on distance)" value={range(US_PICKUP_TO_PORT)} />
             <Line label="Export paperwork" value={range(EXPORT_PAPERWORK)} />
           </dl>
-          <p className="mt-3 text-xs text-gray-500">
+          <p className="mt-3 text-xs text-muted">
             Larger SUVs and trucks cost toward the top of the range. Estimate from
             published 2026 rates — you&rsquo;ll get a firm quote from your shipper after
             you reserve.
@@ -136,9 +137,9 @@ export function ShippingEstimate({
 
 function Line({ label, value }: { label: string; value: string }) {
   return (
-    <div className="flex items-baseline justify-between gap-4 text-gray-500">
+    <div className="flex items-baseline justify-between gap-4 text-muted">
       <dt>{label}</dt>
-      <dd className="shrink-0 font-mono text-black">{value}</dd>
+      <dd className="shrink-0 tabular-nums text-ink">{value}</dd>
     </div>
   );
 }

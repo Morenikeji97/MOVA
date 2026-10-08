@@ -2,6 +2,9 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { BadgeDollarSign, Banknote, Globe2, ShieldCheck, SlidersHorizontal, Truck } from "lucide-react";
 import { buttonClasses } from "@/components/ui/button";
+import { cardClasses } from "@/components/ui/card";
+import { ArrowRightIcon } from "@/components/ui/icons";
+import { PageHero, SectionHeading, heroButtonClasses } from "@/components/ui/page-hero";
 import { BenefitsSection, type Benefit } from "@/components/ui/benefits-section";
 import { WaitlistForm } from "@/components/ui/waitlist-form";
 import { isPrelaunch } from "@/lib/prelaunch";
@@ -84,47 +87,43 @@ const FAQ = [
 export default function SellPage() {
   return (
     <main className="min-h-screen bg-white">
-      <section className="bg-black text-white">
-        <div className="mx-auto max-w-4xl px-6 py-16">
-          <h1 className="max-w-2xl text-4xl font-semibold leading-tight sm:text-5xl">
-            Sell your car to buyers beyond the U.S.
-          </h1>
-          <p className="mt-4 max-w-xl text-gray-300">
-            Reach verified international buyers without handling export
-            paperwork, shipping or overseas payments yourself.
-          </p>
-          <Link
-            href="/seller/listings/new"
-            className="mt-8 inline-flex h-13 items-center justify-center rounded bg-white px-7 text-lg font-medium text-black hover:bg-gray-200"
-          >
-            List your car &rarr;
-          </Link>
-        </div>
-      </section>
+      <PageHero
+        eyebrow="For sellers"
+        title="Sell your car to buyers beyond the U.S."
+        intro="Reach verified international buyers without handling export paperwork, shipping or overseas payments yourself."
+      >
+        <Link href="/seller/listings/new" className={heroButtonClasses("solid")}>
+          List your car <ArrowRightIcon size={18} />
+        </Link>
+      </PageHero>
 
       {isPrelaunch() ? (
-        <section className="border-b border-gray-200 bg-gray-100">
-          <div className="mx-auto max-w-4xl px-6 py-10">
+        <section className="border-b border-line bg-band">
+          <div className="mx-auto max-w-4xl px-4 sm:px-6 py-10">
             <WaitlistForm source="sell" audience="seller" />
           </div>
         </section>
       ) : null}
 
-      <section className="mx-auto max-w-4xl px-6 py-16">
-        <h2 className="text-2xl font-semibold text-black">How you get paid</h2>
-        <p className="mt-3 max-w-2xl text-gray-500">
+      <section className="mx-auto grid max-w-6xl grid-cols-1 gap-4 px-4 py-14 sm:px-6 sm:py-20 md:grid-cols-2">
+        <div className={cardClasses()}>
+        <h2 className="font-display text-2xl font-bold text-ink">How you get paid</h2>
+        <p className="mt-3 text-muted">
           The buyer&rsquo;s money is held by Escrow.com before your car leaves.
           You&rsquo;re paid as soon as an inspector confirms your car and a
           licensed shipper picks it up with the title — no waiting for it to
           cross the ocean.
         </p>
+        </div>
 
-        <h2 className="mt-12 text-2xl font-semibold text-black">Fees</h2>
-        <p className="mt-3 max-w-2xl text-gray-500">
+        <div className={cardClasses()}>
+        <h2 className="font-display text-2xl font-bold text-ink">Fees</h2>
+        <p className="mt-3 text-muted">
           Listing is free. Buyers pay ShipMova&rsquo;s fee. Want your car to stand
           out? Offer to split it 50/50 — your half is simply deducted from your
           payout. Nothing to pay upfront.
         </p>
+        </div>
       </section>
 
       <BenefitsSection
@@ -132,27 +131,27 @@ export default function SellPage() {
         subhead="Reach buyers across West Africa without the export headache."
         benefits={SELLER_BENEFITS}
       >
-        <Link href="/seller/listings/new" className={buttonClasses({ size: "lg", className: "mt-8" })}>
-          List your car &rarr;
+        <Link href="/seller/listings/new" className={buttonClasses({ className: "mt-8 w-full sm:w-auto" })}>
+          List your car <ArrowRightIcon size={18} />
         </Link>
       </BenefitsSection>
 
-      <section className="border-t border-gray-200">
-        <div className="mx-auto max-w-4xl px-6 py-16">
-          <h2 className="text-2xl font-semibold text-black">FAQ</h2>
-          <dl className="mt-6 flex flex-col gap-4">
+      <section className="border-t border-line bg-band">
+        <div className="mx-auto max-w-4xl px-4 py-14 sm:px-6 sm:py-20">
+          <SectionHeading title="Questions sellers ask" />
+          <dl className="mt-8 flex flex-col gap-3">
             {FAQ.map((item) => (
-              <div key={item.q} className="rounded-lg border border-gray-200 bg-white p-5">
-                <dt className="font-semibold text-black">{item.q}</dt>
-                <dd className="mt-1 text-sm text-gray-500">{item.a}</dd>
+              <div key={item.q} className={cardClasses()}>
+                <dt className="font-semibold text-ink">{item.q}</dt>
+                <dd className="mt-1 text-sm text-muted">{item.a}</dd>
               </div>
             ))}
           </dl>
           <Link
             href="/seller/listings/new"
-            className={buttonClasses({ size: "lg", className: "mt-10" })}
+            className={buttonClasses({ className: "mt-10 w-full sm:w-auto" })}
           >
-            List your car &rarr;
+            List your car <ArrowRightIcon size={18} />
           </Link>
         </div>
       </section>

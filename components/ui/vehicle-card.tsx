@@ -4,6 +4,7 @@ import { VerifiedBadge } from "@/components/ui/verified-badge";
 import { PriceBreakdown, SellerSplitsFeeBadge } from "@/components/ui/price-breakdown";
 import { ImportBadge } from "@/components/ui/import-badge";
 import { mediaUrl } from "@/lib/media-url";
+import { CarIcon } from "@/components/ui/icons";
 import type { FeeResponsibility } from "@/types/database";
 import type { FxCurrency, FxRates } from "@/lib/fx-format";
 import {
@@ -59,9 +60,9 @@ export function VehicleCard({
   return (
     <Link
       href={`/browse/${v.id}`}
-      className="group flex h-full flex-col overflow-hidden rounded-lg border border-gray-200 bg-white shadow-sm transition-colors hover:border-black"
+      className="group flex h-full flex-col overflow-hidden rounded-card border border-line bg-white shadow-card transition-colors hover:border-ink"
     >
-      <div className="aspect-[4/3] w-full overflow-hidden bg-gray-100">
+      <div className="relative aspect-[4/3] w-full overflow-hidden bg-band">
         {thumbnailUrl ? (
           // eslint-disable-next-line @next/next/no-img-element
           <img
@@ -72,18 +73,19 @@ export function VehicleCard({
             className="h-full w-full object-cover transition-transform duration-200 group-hover:scale-[1.02]"
           />
         ) : (
-          <div className="flex h-full items-center justify-center font-mono text-xs uppercase tracking-wider text-gray-500">
+          <div className="flex h-full flex-col items-center justify-center gap-2 text-xs font-semibold uppercase tracking-[0.14em] text-muted">
+            <CarIcon size={28} />
             No photo
           </div>
         )}
       </div>
-      <div className="flex flex-1 flex-col gap-3 p-5">
-        <div className="flex items-start justify-between gap-2">
-          <h2 className="text-lg font-semibold text-black">
+      <div className="flex flex-1 flex-col gap-3 p-4 sm:p-5">
+        <div className="flex flex-col gap-2">
+          <h2 className="font-display text-lg font-bold leading-snug text-ink">
             {v.year} {v.make} {v.model}
             {v.trim ? ` ${v.trim}` : ""}
           </h2>
-          <div className="flex shrink-0 flex-col items-end gap-1">
+          <div className="flex flex-wrap gap-1.5">
             {verifiedListing ? <VerifiedBadge /> : null}
             {v.vin_verification_status === "verified" ? (
               <VerifiedBadge label="VIN Verified" />
@@ -102,7 +104,7 @@ export function VehicleCard({
           feeResponsibility={v.fee_responsibility}
           local={fx && localCurrencies.length ? { fx, currencies: localCurrencies } : null}
         />
-        <div className="mt-auto grid grid-cols-2 gap-3 pt-1">
+        <div className="mt-auto grid grid-cols-2 gap-3 border-t border-line pt-3">
           <VinData
             label="Mileage"
             value={`${v.mileage.toLocaleString("en-US")} mi`}

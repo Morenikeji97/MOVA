@@ -3,7 +3,7 @@ function renderInline(text: string) {
   const parts = text.split(/\*\*(.+?)\*\*/g);
   return parts.map((part, i) =>
     i % 2 === 1 ? (
-      <strong key={i} className="font-semibold text-black">
+      <strong key={i} className="font-semibold text-ink">
         {part}
       </strong>
     ) : (
@@ -34,14 +34,14 @@ export function MarkdownLite({ source }: { source: string }) {
 
         if (lines[0].startsWith("## ")) {
           return (
-            <h2 key={i} className="mt-8 text-lg font-semibold text-black">
+            <h2 key={i} className="mt-10 font-display text-xl font-bold text-ink">
               {lines[0].slice(3)}
             </h2>
           );
         }
         if (lines[0].startsWith("# ")) {
           return (
-            <h1 key={i} className="text-2xl font-semibold text-black">
+            <h1 key={i} className="font-display text-3xl font-extrabold tracking-tight text-ink">
               {lines[0].slice(2)}
             </h1>
           );
@@ -59,14 +59,14 @@ export function MarkdownLite({ source }: { source: string }) {
               !lines[0].endsWith("**")))
         ) {
           return (
-            <p key={i} className="mt-2 text-sm italic text-gray-500">
+            <p key={i} className="mt-2 text-sm italic text-muted">
               {lines[0].slice(1, -1)}
             </p>
           );
         }
         if (lines.every((l) => l.startsWith("- "))) {
           return (
-            <ul key={i} className="mt-3 list-disc space-y-1 pl-5 text-sm text-gray-500">
+            <ul key={i} className="mt-3 list-disc space-y-1.5 pl-5 text-sm leading-relaxed text-muted sm:text-[15px]">
               {lines.map((l, j) => (
                 <li key={j}>{renderInline(l.slice(2))}</li>
               ))}
@@ -75,7 +75,7 @@ export function MarkdownLite({ source }: { source: string }) {
         }
         if (lines.every((l) => /^\d+\.\s/.test(l))) {
           return (
-            <ol key={i} className="mt-3 list-decimal space-y-1 pl-5 text-sm text-gray-500">
+            <ol key={i} className="mt-3 list-decimal space-y-1.5 pl-5 text-sm leading-relaxed text-muted sm:text-[15px]">
               {lines.map((l, j) => (
                 <li key={j}>{renderInline(l.replace(/^\d+\.\s*/, ""))}</li>
               ))}
@@ -83,7 +83,7 @@ export function MarkdownLite({ source }: { source: string }) {
           );
         }
         return (
-          <p key={i} className="mt-3 text-sm text-gray-500">
+          <p key={i} className="mt-3 text-sm leading-relaxed text-muted sm:text-[15px]">
             {renderInline(lines.join(" "))}
           </p>
         );

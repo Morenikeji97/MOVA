@@ -36,9 +36,7 @@ export function MessageSeller({
 
   return (
     <section className="mt-10">
-      <h2 className="font-mono text-xs uppercase tracking-wider text-gray-500">
-        Message the seller
-      </h2>
+      <h2 className="font-display text-xl font-bold text-ink">Message the seller</h2>
 
       {conversationId ? (
         <div className="mt-3">
@@ -50,15 +48,14 @@ export function MessageSeller({
           />
         </div>
       ) : (
-        <div className="mt-3 rounded-lg border border-gray-200 bg-white p-6">
-          <p className="text-sm text-gray-500">
+        <div className="mt-3 rounded-card border border-line bg-white p-5 shadow-card">
+          <p className="text-sm text-muted">
             Have a question about this vehicle? Message the seller directly.
             You don&rsquo;t need to reserve it first.
           </p>
           <Button
             type="button"
-            size="sm"
-            className="mt-4"
+            className="mt-4 w-full sm:w-auto"
             onClick={open}
             disabled={opening}
           >
