@@ -2,6 +2,8 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { BadgeCheck, BadgeDollarSign, FileCheck, MapPin, Receipt, Rocket } from "lucide-react";
 import { buttonClasses } from "@/components/ui/button";
+import { ArrowRightIcon } from "@/components/ui/icons";
+import { PageHero, heroButtonClasses } from "@/components/ui/page-hero";
 import { BenefitsSection, type Benefit } from "@/components/ui/benefits-section";
 import { whatsappLink } from "@/lib/whatsapp";
 import { SHIPPER_NO_FEES_HEADLINE } from "@/lib/shipping";
@@ -53,40 +55,28 @@ export default function ShipperLandingPage() {
   const wa = whatsappLink();
   return (
     <main className="min-h-screen bg-white">
-      <section className="bg-black text-white">
-        <div className="mx-auto max-w-6xl px-6 py-16">
-          <h1 className="max-w-2xl text-4xl font-semibold leading-tight sm:text-5xl">
-            Ship with ShipMova
-          </h1>
-          <p className="mt-4 max-w-xl text-gray-300">
-            Verified cars, paid-up buyers and clean paperwork, ready to move.
-          </p>
-          <div className="mt-8 flex flex-wrap gap-3">
-            <Link
-              href="/shipper/signup"
-              className="inline-flex h-13 items-center justify-center rounded bg-white px-7 text-lg font-medium text-black hover:bg-gray-200"
-            >
-              Apply to ship with us &rarr;
-            </Link>
-            <Link
-              href="/shipper/portal"
-              className="inline-flex h-13 items-center justify-center rounded border border-white px-7 text-lg font-medium text-white hover:bg-white/10"
-            >
-              Shipper sign in
-            </Link>
-          </div>
-        </div>
-      </section>
+      <PageHero
+        eyebrow="For shippers"
+        title="Ship with ShipMova"
+        intro="Verified cars, paid-up buyers and clean paperwork, ready to move."
+      >
+        <Link href="/shipper/signup" className={heroButtonClasses("solid")}>
+          Apply to ship with us <ArrowRightIcon size={18} />
+        </Link>
+        <Link href="/shipper/portal" className={heroButtonClasses("outline")}>
+          Shipper sign in
+        </Link>
+      </PageHero>
 
       <BenefitsSection
         benefits={SHIPPER_BENEFITS}
       >
         <div className="mt-8 flex flex-wrap items-center gap-4">
-          <Link href="/shipper/signup" className={buttonClasses({ size: "lg" })}>
-            Apply to ship with us &rarr;
+          <Link href="/shipper/signup" className={buttonClasses({ className: "w-full sm:w-auto" })}>
+            Apply to ship with us <ArrowRightIcon size={18} />
           </Link>
           {wa ? (
-            <a href={wa} target="_blank" rel="noopener noreferrer" className="text-sm text-black underline underline-offset-4">
+            <a href={wa} target="_blank" rel="noopener noreferrer" className="flex h-11 items-center text-sm font-semibold text-ink underline underline-offset-4">
               Questions? WhatsApp us
             </a>
           ) : null}

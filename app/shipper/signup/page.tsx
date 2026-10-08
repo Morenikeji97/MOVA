@@ -53,40 +53,40 @@ function ShipperSignupForm() {
   const [termsAccepted, setTermsAccepted] = useState(false);
 
   return (
-    <main className="mx-auto max-w-xl px-6 py-16">
+    <main className="mx-auto max-w-xl px-4 py-8 sm:px-6 sm:py-12">
       <Link
         href="/"
-        className="font-mono text-xs uppercase tracking-wider text-gray-500 hover:text-black"
+        className="flex h-11 w-fit items-center text-sm font-semibold text-muted hover:text-ink"
       >
         &larr; ShipMova
       </Link>
-      <h1 className="mt-4 text-2xl font-semibold text-black">
+      <h1 className="mt-2 font-display text-3xl font-extrabold tracking-tight text-ink">
         Become a ShipMova shipper
       </h1>
-      <p className="mt-2 text-sm text-gray-500">
+      <p className="mt-2 text-sm text-muted">
         List your shipping rates to reach international buyers. Applications are
         reviewed by our team before your rates go live.
       </p>
 
       {error ? (
-        <p className="mt-6 rounded border border-copper-100 bg-copper-50 p-3 text-sm text-copper-700">
+        <p className="mt-6 rounded-lg border border-copper-100 bg-copper-50 p-3 text-sm text-copper-700">
           {errorText}
         </p>
       ) : null}
 
       <form action={formAction} className="mt-8 flex flex-col gap-5">
         <label className="flex flex-col gap-1">
-          <span className="text-sm text-gray-500">Company name</span>
+          <span className="text-sm text-muted">Company name</span>
           <input name="company_name" required defaultValue={v.company_name} autoComplete="organization" className={inputClass} />
         </label>
 
         <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
           <label className="flex flex-col gap-1">
-            <span className="text-sm text-gray-500">Contact name</span>
+            <span className="text-sm text-muted">Contact name</span>
             <input name="contact_name" required defaultValue={v.contact_name} autoComplete="name" className={inputClass} />
           </label>
           <label className="flex flex-col gap-1">
-            <span className="text-sm text-gray-500">Contact email</span>
+            <span className="text-sm text-muted">Contact email</span>
             <input
               type="email"
               name="contact_email"
@@ -97,11 +97,11 @@ function ShipperSignupForm() {
             />
           </label>
           <label className="flex flex-col gap-1">
-            <span className="text-sm text-gray-500">Contact phone</span>
+            <span className="text-sm text-muted">Contact phone</span>
             <input name="contact_phone" type="tel" defaultValue={v.contact_phone} autoComplete="tel" className={inputClass} />
           </label>
           <label className="flex flex-col gap-1">
-            <span className="text-sm text-gray-500">FMC OTI license number</span>
+            <span className="text-sm text-muted">FMC OTI license number</span>
             <input
               name="fmc_oti_license_number"
               defaultValue={v.fmc_oti_license_number}
@@ -112,19 +112,19 @@ function ShipperSignupForm() {
         </div>
 
         <fieldset className="flex flex-col gap-2">
-          <legend className="text-sm text-gray-500">Countries you ship to</legend>
+          <legend className="text-sm text-muted">Countries you ship to</legend>
           <div className="mt-1 flex flex-wrap gap-3">
             {SERVICE_COUNTRIES.map((c) => (
               <label
                 key={c.code}
-                className="inline-flex items-center gap-2 rounded border border-gray-200 bg-white px-3 py-2 text-sm text-black"
+                className="inline-flex min-h-11 items-center gap-2 rounded-lg border border-line bg-white px-3 text-sm text-ink"
               >
                 <input
                   type="checkbox"
                   name="service_countries"
                   value={c.code}
                   defaultChecked={v.service_countries.includes(c.code)}
-                  className="h-4 w-4"
+                  className="h-5 w-5 accent-ink"
                 />
                 {c.name}
               </label>
@@ -133,25 +133,25 @@ function ShipperSignupForm() {
         </fieldset>
 
         <fieldset className="flex flex-col gap-2">
-          <legend className="text-sm text-gray-500">
+          <legend className="text-sm text-muted">
             US states you pick up vehicles from
           </legend>
-          <p className="text-xs text-gray-500">
+          <p className="text-xs text-muted">
             Buyers see you flagged as a local, likely-cheaper pickup option
             for vehicles located in these states.
           </p>
-          <div className="mt-1 grid max-h-56 grid-cols-2 gap-2 overflow-y-auto rounded border border-gray-200 bg-white p-3 sm:grid-cols-3">
+          <div className="mt-1 grid max-h-56 grid-cols-2 gap-2 overflow-y-auto rounded-lg border border-line bg-white p-3 sm:grid-cols-3">
             {US_STATES.map(([code, name]) => (
               <label
                 key={code}
-                className="inline-flex items-center gap-2 text-sm text-black"
+                className="inline-flex min-h-11 items-center gap-2 text-sm text-ink"
               >
                 <input
                   type="checkbox"
                   name="service_areas"
                   value={code}
                   defaultChecked={v.service_areas.includes(code)}
-                  className="h-4 w-4"
+                  className="h-5 w-5 accent-ink"
                 />
                 {name}
               </label>
@@ -159,26 +159,26 @@ function ShipperSignupForm() {
           </div>
         </fieldset>
 
-        <div className="rounded border border-verified-100 bg-verified-50 p-4 text-sm text-verified-600">
-          <p className="font-medium">{SHIPPER_NO_FEES_HEADLINE}</p>
+        <div className="rounded-lg border border-verified-100 bg-verified-50 p-4 text-sm text-verified-600">
+          <p className="font-semibold">{SHIPPER_NO_FEES_HEADLINE}</p>
           <p className="mt-1">
             ShipMova charges you nothing: no commission and no card on file. If that
             ever changes, we&rsquo;ll tell you first and ask you to accept new terms.
           </p>
         </div>
 
-        <label className="flex items-start gap-3 rounded border border-gray-200 bg-white p-4">
+        <label className="flex items-start gap-3 rounded-lg border border-line bg-white p-4">
           <input
             type="checkbox"
             name="terms_accepted"
             required
             checked={termsAccepted}
             onChange={(e) => setTermsAccepted(e.target.checked)}
-            className="mt-0.5 h-5 w-5 shrink-0"
+            className="mt-0.5 h-5 w-5 shrink-0 accent-ink"
           />
-          <span className="text-sm text-black">
+          <span className="text-sm text-ink">
             I agree to ShipMova&rsquo;s{" "}
-            <Link href="/terms" className="underline" target="_blank">
+            <Link href="/policies/terms" className="underline" target="_blank">
               Terms &amp; Conditions
             </Link>
             .
@@ -198,7 +198,7 @@ function ShipperSignupForm() {
         <div className="flex items-center gap-4">
           <Link
             href="/shipper/portal"
-            className="text-sm text-gray-500 hover:text-black"
+            className="text-sm text-muted hover:text-ink"
           >
             Already approved? Go to the shipper portal
           </Link>

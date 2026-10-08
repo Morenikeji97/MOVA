@@ -14,7 +14,7 @@ export function ReportReviewButton({ reviewId }: { reviewId: string }) {
 
   if (state === "done") {
     return (
-      <span className="font-mono text-[11px] uppercase tracking-wider text-verified-600">
+      <span className="text-[11px] font-semibold uppercase tracking-[0.14em] text-verified-600">
         Reported
       </span>
     );
@@ -25,7 +25,7 @@ export function ReportReviewButton({ reviewId }: { reviewId: string }) {
       <button
         type="button"
         onClick={() => setOpen(true)}
-        className="inline-flex items-center gap-1 font-mono text-[11px] uppercase tracking-wider text-gray-500 hover:text-black"
+        className="inline-flex items-center gap-1 text-[11px] font-semibold uppercase tracking-[0.14em] text-muted hover:text-ink"
       >
         <Flag className="h-3 w-3" /> Report
       </button>
@@ -54,7 +54,7 @@ export function ReportReviewButton({ reviewId }: { reviewId: string }) {
         rows={2}
         maxLength={500}
         placeholder="What's wrong with this review? (optional)"
-        className="rounded border border-gray-200 bg-white px-2 py-1.5 text-xs text-black focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-black"
+        className="rounded-lg border border-line bg-white px-2 py-1.5 text-xs text-ink focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-black"
       />
       {error ? <p className="text-xs text-copper-700">{error}</p> : null}
       <div className="flex items-center gap-2">
@@ -64,7 +64,7 @@ export function ReportReviewButton({ reviewId }: { reviewId: string }) {
         <button
           type="button"
           onClick={() => setOpen(false)}
-          className="text-xs text-gray-500 hover:text-black"
+          className="text-xs text-muted hover:text-ink"
         >
           Cancel
         </button>

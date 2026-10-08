@@ -20,6 +20,7 @@ import { modelYearFrom, nigeriaImportStatus, vinYearCode } from "@/lib/import-ru
 /** Seller-form error for vehicles_vin_active_unique (0044). */
 const DUPLICATE_VIN_MESSAGE = "This VIN is already listed on ShipMova";
 import { US_STATES } from "@/lib/us-states";
+import { BackLink, DashboardHeader, DashboardShell } from "@/components/ui/dashboard";
 import { inputClasses } from "@/components/ui/input-classes";
 
 const MAX_PHOTOS = 20;
@@ -217,9 +218,9 @@ function orNull(value: string): string | null {
 
 function SectionLabel({ children, className }: { children: ReactNode; className?: string }) {
   return (
-    <p className={cn("font-mono text-xs uppercase tracking-wider text-gray-500", className)}>
+    <h2 className={cn("font-display text-lg font-bold text-ink sm:col-span-2", className)}>
       {children}
-    </p>
+    </h2>
   );
 }
 
@@ -238,9 +239,9 @@ function Field({
 }) {
   return (
     <label className={cn("flex flex-col gap-1", className)}>
-      <span className="text-sm text-gray-500">
+      <span className="text-sm text-muted">
         {label}
-        {optional ? <span className="text-gray-500"> (optional)</span> : null}
+        {optional ? <span className="text-muted"> (optional)</span> : null}
       </span>
       {children}
       {error ? <span className="text-sm text-copper-700">{error}</span> : null}
@@ -509,19 +510,19 @@ export default function NewListingPage() {
   }
 
   return (
-    <main className="mx-auto max-w-2xl px-6 py-16">
-      <Link
-        href="/seller/listings"
-        className="font-mono text-xs uppercase tracking-wider text-gray-500 hover:text-black"
-      >
-        &larr; My listings
-      </Link>
-      <h1 className="mt-4 text-2xl font-semibold text-black">New vehicle listing</h1>
-      <p className="mt-2 text-sm text-gray-500">
-        This saves as a draft. Submit it for review once the details look right.
-      </p>
+    <DashboardShell narrow>
+      <BackLink href="/seller/listings">My listings</BackLink>
+      <DashboardHeader
+        className="mt-2"
+        title="New vehicle listing"
+        intro="This saves as a draft. Submit it for review once the details look right."
+      />
 
-      <form onSubmit={handleSubmit(onSubmit)} className="mt-8 flex flex-col gap-8">
+      {/* Each section is a card; the Save row sticks to the bottom on phones. */}
+      <form
+        onSubmit={handleSubmit(onSubmit)}
+        className="mt-6 flex flex-col gap-4 [&>section]:rounded-card [&>section]:border [&>section]:border-line [&>section]:bg-white [&>section]:p-5 [&>section]:shadow-card"
+      >
         <section className="flex flex-col gap-3">
           <SectionLabel>Vehicle identification</SectionLabel>
           <Field
@@ -531,7 +532,7 @@ export default function NewListingPage() {
             <div className="flex flex-col gap-2 sm:flex-row">
               <input
                 {...register("vin")}
-                className={cn(inputClass, "flex-1 font-mono uppercase tracking-wide")}
+                className={cn(inputClass, "font-mono uppercase tracking-wide sm:flex-1")}
                 maxLength={17}
                 autoCapitalize="characters"
                 autoComplete="off"
@@ -539,7 +540,7 @@ export default function NewListingPage() {
                 // Was "1HGCM82633A004352" — the published Honda sample VIN
                 // this whole fix exists because of, and now blocklisted.
                 // A format hint, not a copy-pasteable VIN.
-                placeholder="17-character VIN from your title"
+                placeholder="17 characters"
               />
               <Button
                 type="button"
@@ -556,8 +557,8 @@ export default function NewListingPage() {
           {vinError ? <p className="text-sm text-copper-700">{vinError}</p> : null}
 
           {vinDecoded ? (
-            <div className="rounded-lg border border-gray-200 bg-white p-4">
-              <p className="font-mono text-xs uppercase tracking-wider text-gray-500">
+            <div className="rounded-card border border-line bg-white shadow-card p-4">
+              <p className="text-xs font-semibold uppercase tracking-[0.14em] text-muted">
                 NHTSA VIN decode
               </p>
               <div className="mt-3 grid grid-cols-2 gap-4 sm:grid-cols-4">
@@ -571,7 +572,7 @@ export default function NewListingPage() {
               </div>
 
               {vinMismatches.length > 0 ? (
-                <div className="mt-4 rounded border border-copper-100 bg-copper-50 p-3">
+                <div className="mt-4 rounded-lg border border-copper-100 bg-copper-50 p-3">
                   <p className="text-sm font-medium text-copper-700">
                     These entries do not match the VIN:
                   </p>
@@ -583,11 +584,11 @@ export default function NewListingPage() {
                   <button
                     type="button"
                     onClick={applyVinValues}
-                    className="mt-2 text-sm font-medium text-black underline underline-offset-2"
+                    className="mt-2 text-sm font-medium text-ink underline underline-offset-2"
                   >
                     Use the decoded year, make and model
                   </button>
-                  <p className="mt-2 text-xs text-gray-500">
+                  <p className="mt-2 text-xs text-muted">
                     You can still save and submit. The listing will be flagged as a VIN
                     mismatch for admin review.
                   </p>
@@ -615,7 +616,7 @@ export default function NewListingPage() {
             {importWarning ? (
               <span
                 role="status"
-                className="rounded border border-copper-100 bg-copper-50 p-2 text-sm text-copper-700"
+                className="rounded-lg border border-copper-100 bg-copper-50 p-2 text-sm text-copper-700"
               >
                 {importWarning}
               </span>
@@ -729,11 +730,11 @@ export default function NewListingPage() {
             />
           </Field>
           <div className="sm:col-span-2">
-            <label className="flex items-start gap-2 text-sm text-gray-500">
+            <label className="flex min-h-11 items-start gap-3 py-2 text-sm text-muted">
               <input
                 type="checkbox"
                 {...register("not_titled_owner")}
-                className="mt-0.5 h-4 w-4"
+                className="mt-0.5 h-5 w-5 shrink-0 accent-ink"
               />
               <span>
                 I am not the titled owner, but I am authorized to sell this
@@ -793,33 +794,33 @@ export default function NewListingPage() {
           </Field>
 
           <fieldset className="flex flex-col gap-2 sm:col-span-2">
-            <legend className="text-sm text-gray-500">
+            <legend className="text-sm text-muted">
               Who covers ShipMova&rsquo;s 8% service fee?
             </legend>
-            <label className="flex items-start gap-2 rounded border border-gray-200 bg-white p-3">
+            <label className="flex min-h-11 items-start gap-3 rounded-lg border border-line bg-white p-3">
               <input
                 type="radio"
                 value="buyer_pays_full"
                 {...register("fee_responsibility")}
-                className="mt-1"
+                className="mt-0.5 h-5 w-5 shrink-0 accent-ink"
               />
-              <span className="text-sm text-black">
-                Buyer pays the full fee <span className="text-gray-500">(default)</span>
+              <span className="text-sm text-ink">
+                Buyer pays the full fee <span className="text-muted">(default)</span>
               </span>
             </label>
-            <label className="flex items-start gap-2 rounded border border-gray-200 bg-white p-3">
+            <label className="flex min-h-11 items-start gap-3 rounded-lg border border-line bg-white p-3">
               <input
                 type="radio"
                 value="split"
                 {...register("fee_responsibility")}
-                className="mt-1"
+                className="mt-0.5 h-5 w-5 shrink-0 accent-ink"
               />
-              <span className="text-sm text-black">
+              <span className="text-sm text-ink">
                 Split it 50/50 — your listing shows a &ldquo;Seller splits the
                 fee&rdquo; badge
               </span>
             </label>
-            <p className="text-xs text-gray-500">
+            <p className="text-xs text-muted">
               Nothing to pay upfront either way. If you split, your 4% is
               deducted from your escrow payout; otherwise you receive your full
               price.
@@ -838,7 +839,7 @@ export default function NewListingPage() {
             <textarea
               {...register("description")}
               rows={5}
-              className="rounded border border-gray-200 bg-white px-3 py-2 text-black"
+              className={inputClasses({ multiline: true })}
               placeholder="Service history, notable features, anything a buyer should know."
             />
           </Field>
@@ -846,7 +847,7 @@ export default function NewListingPage() {
 
         <section className="flex flex-col gap-3">
           <SectionLabel>Photos</SectionLabel>
-          <p className="text-sm text-gray-500">
+          <p className="text-sm text-muted">
             Add up to {MAX_PHOTOS} photos. The primary photo leads the listing in
             search results; drag a thumbnail or use the arrows to reorder the rest.
           </p>
@@ -863,7 +864,7 @@ export default function NewListingPage() {
 
         <section className="flex flex-col gap-3">
           <SectionLabel>Video (optional)</SectionLabel>
-          <p className="text-sm text-gray-500">
+          <p className="text-sm text-muted">
             Add one walk-around video alongside your photos, up to 90 seconds.
           </p>
           <VideoUploader
@@ -877,21 +878,28 @@ export default function NewListingPage() {
         </section>
 
         {errors.root?.message ? (
-          <p className="text-sm text-copper-700">{errors.root.message}</p>
+          <p role="alert" className="text-sm text-copper-700">{errors.root.message}</p>
         ) : null}
 
-        <div className="flex items-center gap-4">
-          <Button type="submit" disabled={isSubmitting || saving}>
+        <p className="text-xs font-semibold uppercase tracking-[0.14em] text-muted">
+          VIN check: {vinDecodeStatus}
+        </p>
+        <div
+          data-sticky-action
+          className="sticky bottom-0 z-20 -mx-4 grid grid-cols-[1fr_auto] items-center gap-3 border-t border-line bg-white/95 px-4 pt-3 backdrop-blur sm:static sm:mx-0 sm:flex sm:border-0 sm:bg-transparent sm:p-0"
+          style={{ paddingBottom: "max(0.75rem, env(safe-area-inset-bottom))" }}
+        >
+          <Button type="submit" disabled={isSubmitting || saving} className="w-full sm:w-auto">
             {isSubmitting || saving ? "Saving…" : "Save draft"}
           </Button>
-          <Link href="/seller/listings" className="text-sm text-gray-500 hover:text-black">
+          <Link
+            href="/seller/listings"
+            className="inline-flex h-11 items-center px-2 text-sm font-semibold text-muted hover:text-ink"
+          >
             Cancel
           </Link>
-          <span className="ml-auto font-mono text-xs uppercase tracking-wider text-gray-500">
-            VIN check: {vinDecodeStatus}
-          </span>
         </div>
       </form>
-    </main>
+    </DashboardShell>
   );
 }

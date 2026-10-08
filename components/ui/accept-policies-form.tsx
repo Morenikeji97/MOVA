@@ -33,9 +33,9 @@ export function AcceptPoliciesForm({
   }
 
   return (
-    <div className="mt-8 rounded-lg border border-gray-200 bg-white p-5">
+    <div className="mt-8 rounded-lg border border-line bg-white p-5">
       {needsTerms ? (
-        <label className="flex items-start gap-2 text-sm text-black">
+        <label className="flex items-start gap-2 text-sm text-ink">
           <input
             type="checkbox"
             checked={termsAgreed}
@@ -47,7 +47,7 @@ export function AcceptPoliciesForm({
       ) : null}
 
       {needsPrivacy ? (
-        <label className={`flex items-start gap-2 text-sm text-black ${needsTerms ? "mt-3" : ""}`}>
+        <label className={`flex items-start gap-2 text-sm text-ink ${needsTerms ? "mt-3" : ""}`}>
           <input
             type="checkbox"
             checked={privacyAgreed}
@@ -58,7 +58,7 @@ export function AcceptPoliciesForm({
         </label>
       ) : null}
 
-      <p className="mt-3 text-xs text-gray-500">
+      <p className="mt-3 text-xs text-muted">
         By clicking &ldquo;I Agree,&rdquo; you are submitting an electronic
         signature and agreeing to be legally bound by the document(s) above.
       </p>

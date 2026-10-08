@@ -42,7 +42,7 @@ export function AcceptPricePrompt({
 
   if (accepted) {
     return (
-      <p className="mt-3 rounded border border-verified-100 bg-verified-50 p-3 text-sm text-verified-600">
+      <p className="mt-3 rounded-lg border border-verified-100 bg-verified-50 p-3 text-sm text-verified-600">
         Accepted — {usd.format(negotiatedPriceUsd)}. ShipMova&rsquo;s service fee will
         be based on this price.
       </p>
@@ -50,12 +50,12 @@ export function AcceptPricePrompt({
   }
 
   return (
-    <div className="mt-3 rounded border border-marine-100 bg-marine-50 p-4">
+    <div className="mt-3 rounded-lg border border-marine-100 bg-marine-50 p-4">
       <p className="text-sm font-medium text-marine-700">
         Seller proposed {usd.format(negotiatedPriceUsd)}, down from{" "}
         {usd.format(listingPriceUsd)}
       </p>
-      <p className="mt-1 text-sm text-gray-500">
+      <p className="mt-1 text-sm text-muted">
         Accepting locks in this price for your reservation — ShipMova&rsquo;s service
         fee will be calculated from it instead of the listing price.
       </p>

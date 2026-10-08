@@ -1,21 +1,25 @@
 import type { Metadata } from "next";
-import { Inter, JetBrains_Mono } from "next/font/google";
+import { Archivo, DM_Sans } from "next/font/google";
 import { Header } from "@/components/ui/header";
 import { WhatsAppButton } from "@/components/ui/whatsapp-button";
 import { Footer } from "@/components/ui/footer";
 import { PrelaunchBanner } from "@/components/ui/prelaunch-banner";
 import "./globals.css";
 
-const inter = Inter({
+// The only two fonts (redesign PR A). next/font self-hosts them and sizes a
+// matching fallback, so the swap doesn't shift the layout.
+const dmSans = DM_Sans({
   subsets: ["latin"],
+  weight: ["400", "500", "600", "700"],
   display: "swap",
   variable: "--font-sans",
 });
 
-const jetbrainsMono = JetBrains_Mono({
+const archivo = Archivo({
   subsets: ["latin"],
+  weight: ["600", "700", "800"],
   display: "swap",
-  variable: "--font-mono",
+  variable: "--font-display",
 });
 
 export const metadata: Metadata = {
@@ -42,7 +46,7 @@ export const metadata: Metadata = {
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
-    <html lang="en" className={`${inter.variable} ${jetbrainsMono.variable}`}>
+    <html lang="en" className={`${dmSans.variable} ${archivo.variable}`}>
       <body>
         <PrelaunchBanner />
         <Header />

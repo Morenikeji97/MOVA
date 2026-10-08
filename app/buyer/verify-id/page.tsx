@@ -3,6 +3,8 @@ import { redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
 import { safeNextPath } from "@/lib/auth-redirect";
 import { VerifyIdForm } from "./verify-id-form";
+import { AuthShell } from "@/components/ui/auth-shell";
+import { ShieldCheckIcon } from "@/components/ui/icons";
 import { isIdVerificationLive } from "@/lib/id-verification";
 
 export const metadata: Metadata = {
@@ -41,16 +43,19 @@ export default async function VerifyIdPage({
   }
 
   return (
-    <main className="mx-auto max-w-xl px-4 py-12 sm:px-6">
-      <h1 className="text-2xl font-semibold text-black">Verify your ID</h1>
-      <p className="mt-2 text-gray-500">
+    <AuthShell wide>
+      <span className="flex h-11 w-11 items-center justify-center rounded-full bg-band text-ink">
+        <ShieldCheckIcon size={22} />
+      </span>
+      <h1 className="mt-4 font-display text-2xl font-extrabold tracking-tight text-ink">Verify your ID</h1>
+      <p className="mt-2 text-muted">
         Every ShipMova buyer verifies their ID once, before using their account. It keeps
         sellers and other buyers safe. No selfie needed.
       </p>
 
       {profile?.verification_status === "pending" ? (
-        <div className="mt-6 rounded-lg border border-marine-700 bg-marine-50 p-4 text-marine-700">
-          <p className="font-medium">ShipMova is checking your ID</p>
+        <div className="mt-6 rounded-lg border border-marine-700/30 bg-marine-50 p-4 text-marine-700">
+          <p className="font-semibold">ShipMova is checking your ID</p>
           <p className="mt-1 text-sm">
             We&rsquo;ll email you when it&rsquo;s done, usually within a day. Your account opens
             as soon as it&rsquo;s approved.
@@ -59,7 +64,7 @@ export default async function VerifyIdPage({
       ) : (
         <>
           {profile?.id_review_note ? (
-            <p className="mt-6 rounded border border-copper-100 bg-copper-50 p-3 text-sm text-copper-700">
+            <p className="mt-6 rounded-lg border border-copper-100 bg-copper-50 p-3 text-sm text-copper-700">
               Your last ID check wasn&rsquo;t accepted: {profile.id_review_note}. Please try again.
             </p>
           ) : null}
@@ -70,6 +75,6 @@ export default async function VerifyIdPage({
           />
         </>
       )}
-    </main>
+    </AuthShell>
   );
 }

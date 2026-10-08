@@ -64,43 +64,43 @@ export default async function AcceptPoliciesPage({
   }
 
   return (
-    <main className="mx-auto max-w-2xl px-6 py-16">
-      <h1 className="mt-2 text-2xl font-semibold text-black">
+    <main className="mx-auto max-w-2xl px-4 py-10 sm:px-6 sm:py-16">
+      <h1 className="font-display text-3xl font-extrabold tracking-tight text-ink">
         Please review and accept our policies
       </h1>
-      <p className="mt-2 text-sm text-gray-500">
+      <p className="mt-2 text-sm text-muted">
         You must accept the current Terms &amp; Conditions and Privacy Policy
         to continue using ShipMova.
       </p>
 
       {needsTerms ? (
         <section className="mt-8">
-          <p className="font-mono text-xs uppercase tracking-wider text-gray-500">
+          <p className="text-xs font-semibold uppercase tracking-[0.14em] text-muted">
             Effective {TERMS_EFFECTIVE_DATE} &middot; Version {CURRENT_TERMS_VERSION}
           </p>
-          <h2 className="mt-1 text-lg font-semibold text-black">Terms &amp; Conditions</h2>
-          <article className="mt-3 max-h-[24rem] overflow-y-auto rounded-lg border border-gray-200 bg-white p-6">
+          <h2 className="mt-1 font-display text-xl font-bold text-ink">Terms &amp; Conditions</h2>
+          <article className="mt-3 max-h-[24rem] overflow-y-auto rounded-card border border-line bg-white p-5 shadow-card sm:p-6">
             <MarkdownLite source={TERMS_AND_CONDITIONS_MARKDOWN} />
           </article>
         </section>
       ) : (
-        <p className="mt-8 rounded border border-verified-100 bg-verified-50 p-3 text-sm text-black">
+        <p className="mt-8 rounded-lg border border-verified-100 bg-verified-50 p-3 text-sm text-ink">
           Terms &amp; Conditions — already accepted.
         </p>
       )}
 
       {needsPrivacy ? (
         <section className="mt-6">
-          <p className="font-mono text-xs uppercase tracking-wider text-gray-500">
+          <p className="text-xs font-semibold uppercase tracking-[0.14em] text-muted">
             Effective {PRIVACY_EFFECTIVE_DATE} &middot; Version {CURRENT_PRIVACY_VERSION}
           </p>
-          <h2 className="mt-1 text-lg font-semibold text-black">Privacy Policy</h2>
-          <article className="mt-3 max-h-[24rem] overflow-y-auto rounded-lg border border-gray-200 bg-white p-6">
+          <h2 className="mt-1 font-display text-xl font-bold text-ink">Privacy Policy</h2>
+          <article className="mt-3 max-h-[24rem] overflow-y-auto rounded-card border border-line bg-white p-5 shadow-card sm:p-6">
             <MarkdownLite source={PRIVACY_POLICY_MARKDOWN} />
           </article>
         </section>
       ) : (
-        <p className="mt-6 rounded border border-verified-100 bg-verified-50 p-3 text-sm text-black">
+        <p className="mt-6 rounded-lg border border-verified-100 bg-verified-50 p-3 text-sm text-ink">
           Privacy Policy — already accepted.
         </p>
       )}

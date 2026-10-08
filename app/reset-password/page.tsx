@@ -5,6 +5,8 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { createClient } from "@/lib/supabase/client";
 import { Button } from "@/components/ui/button";
+import { AuthShell } from "@/components/ui/auth-shell";
+import { inputClasses } from "@/components/ui/input-classes";
 
 type LinkStatus = "checking" | "ready" | "expired";
 
@@ -70,54 +72,56 @@ export default function ResetPasswordPage() {
 
   if (status === "checking") {
     return (
-      <main className="mx-auto flex min-h-screen max-w-md flex-col justify-center px-6 text-center">
-        <p className="text-gray-500">Checking your link…</p>
-      </main>
+      <AuthShell center>
+        <p className="text-muted">Checking your link…</p>
+      </AuthShell>
     );
   }
 
   if (status === "expired") {
     return (
-      <main className="mx-auto flex min-h-screen max-w-md flex-col justify-center px-6 text-center">
-        <h1 className="text-2xl font-semibold text-black">Link expired</h1>
-        <p className="mt-2 text-gray-500">
+      <AuthShell center>
+        <h1 className="font-display text-2xl font-extrabold tracking-tight text-ink">Link expired</h1>
+        <p className="mt-2 text-muted">
           This password reset link is invalid, already used, or has expired.
         </p>
         <Link
           href="/forgot-password"
-          className="mt-6 text-sm text-black hover:underline"
+          className="mt-6 text-sm font-semibold text-ink hover:underline"
         >
           Request a new link
         </Link>
-      </main>
+      </AuthShell>
     );
   }
 
   return (
-    <main className="mx-auto flex min-h-screen max-w-md flex-col justify-center px-6">
-      <h1 className="mb-6 text-2xl font-semibold text-black">Set a new password</h1>
+    <AuthShell>
+      <h1 className="mb-6 font-display text-2xl font-extrabold tracking-tight text-ink">Set a new password</h1>
       <form onSubmit={handleSubmit} className="flex flex-col gap-4">
         <label className="flex flex-col gap-1">
-          <span className="text-sm text-gray-500">New password</span>
+          <span className="text-sm text-muted">New password</span>
           <input
             type="password"
+            autoComplete="new-password"
             required
             minLength={8}
             autoFocus
             value={password}
             onChange={(e) => setPassword(e.target.value)}
-            className="h-11 rounded border border-gray-200 px-3"
+            className={inputClasses()}
           />
         </label>
         <label className="flex flex-col gap-1">
-          <span className="text-sm text-gray-500">Confirm new password</span>
+          <span className="text-sm text-muted">Confirm new password</span>
           <input
             type="password"
+            autoComplete="new-password"
             required
             minLength={8}
             value={confirmPassword}
             onChange={(e) => setConfirmPassword(e.target.value)}
-            className="h-11 rounded border border-gray-200 px-3"
+            className={inputClasses()}
           />
         </label>
         {error && <p className="text-sm text-copper-700">{error}</p>}
@@ -125,6 +129,6 @@ export default function ResetPasswordPage() {
           {loading ? "Updating…" : "Update password"}
         </Button>
       </form>
-    </main>
+    </AuthShell>
   );
 }

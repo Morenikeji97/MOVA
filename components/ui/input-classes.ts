@@ -13,7 +13,8 @@ export function inputClasses({
   className,
 }: { multiline?: boolean; className?: string } = {}) {
   return cn(
-    "rounded border border-gray-200 bg-white px-3 text-base text-black",
+    "rounded-lg border border-line bg-white px-3 text-base text-ink placeholder:text-muted",
+    "focus:border-ink focus:outline-none focus:ring-1 focus:ring-ink",
     multiline ? "py-2" : "h-11",
     className,
   );
