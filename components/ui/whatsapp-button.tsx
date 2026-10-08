@@ -10,7 +10,9 @@ import { whatsappLink } from "@/lib/whatsapp";
  * recognizable, and the brand green only appears on hover/active. `z-50`
  * keeps it above content;
  * the bottom-right corner is clear of every form submit / nav in the app, and
- * the inset shrinks on small viewports.
+ * the inset shrinks on small viewports. On a phone page with a sticky
+ * bottom action (data-sticky-action, components/ui/dashboard.tsx) it moves
+ * up above that bar (app/globals.css).
  */
 export function WhatsAppButton() {
   const href = whatsappLink();
@@ -23,7 +25,7 @@ export function WhatsAppButton() {
       rel="noopener noreferrer"
       aria-label="Chat with ShipMova on WhatsApp"
       className={cn(
-        "fixed bottom-4 right-4 z-50 sm:bottom-6 sm:right-6 print:hidden",
+        "wa-float fixed bottom-4 right-4 z-50 sm:bottom-6 sm:right-6 print:hidden",
         "flex h-14 w-14 items-center justify-center rounded-full",
         "bg-black text-white shadow-lg shadow-black/25",
         "transition-colors hover:bg-[#128C7E] active:bg-[#0f7a6b]",

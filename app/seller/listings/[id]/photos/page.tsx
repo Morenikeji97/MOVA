@@ -1,9 +1,10 @@
-import Link from "next/link";
 import { notFound } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
 import type { PhotoDraft } from "@/components/ui/photo-uploader";
 import { SELLER_ARCHIVABLE_STATUSES } from "@/lib/listing-removal";
 import { RemoveListingButton } from "../../remove-listing-button";
+import { cardClasses } from "@/components/ui/card";
+import { BackLink, DashboardHeader, DashboardShell } from "@/components/ui/dashboard";
 import { EditPhotosForm } from "./edit-photos-form";
 
 /**
@@ -59,24 +60,18 @@ export default async function EditListingPhotosPage({
   }`;
 
   return (
-    <main className="mx-auto max-w-3xl px-6 py-16">
-      <Link
-        href="/seller/listings"
-        className="font-mono text-xs uppercase tracking-wider text-gray-500 hover:text-black"
-      >
-        &larr; My listings
-      </Link>
-      <h1 className="mt-4 text-2xl font-semibold text-black">Edit photos</h1>
-      <p className="mt-1 text-gray-500">{title}</p>
+    <DashboardShell narrow>
+      <BackLink href="/seller/listings">My listings</BackLink>
+      <DashboardHeader className="mt-2" title="Edit photos" intro={title} />
 
-      <div className="mt-8">
+      <div className={cardClasses({ className: "mt-6" })}>
         <EditPhotosForm vehicleId={vehicle.id} initialPhotos={initialPhotos} />
       </div>
 
       {SELLER_ARCHIVABLE_STATUSES.includes(vehicle.status) ? (
-        <section className="mt-12 border-t border-gray-200 pt-8">
-          <h2 className="text-lg font-semibold text-black">Remove this listing</h2>
-          <p className="mt-1 text-sm text-gray-500">
+        <section className={cardClasses({ className: "mt-6" })}>
+          <h2 className="font-display text-lg font-bold text-ink">Remove this listing</h2>
+          <p className="mt-1 text-sm text-muted">
             Takes the car off ShipMova. Use this if it&rsquo;s sold elsewhere or you
             no longer want it listed.
           </p>
@@ -87,6 +82,6 @@ export default async function EditListingPhotosPage({
           />
         </section>
       ) : null}
-    </main>
+    </DashboardShell>
   );
 }

@@ -167,6 +167,15 @@ Supabase project) to remove before launch.
       on iPhone. Remove the listing with its photos and title file. (The 2012
       LR4 draft `2ff0684d` is real data, not test data.)
 
+- [ ] **Removed "2018 FORD F-150 TEST V (VIN not verified)"**
+      (`3fa0e953-be87-4298-921f-0edf9c0adcf1`, archived, seller
+      `tbakare2@gmail.com`; its `vin_verification_status` is `verified`, which
+      is why it showed badges on My listings until PR C1 hid badges on removed
+      listings). The other archived test F-150s from the same seller — 2015
+      THROWAWAY A/B and TEST LISTING C/D/E/F, 2012 TEST G, 2014 TEST H,
+      2016 TEST K, 2017 TEST M — are test data too. Remove them with their
+      photos and title files. (Founder, 2026-10-08.)
+
 - [ ] **Flagged test accounts** (`users.is_test_account = true`, migration
       0054, 2026-10-04): `tbakare2+buyer`, `+buyer2`, `+ref1`, `+shipper` and
       `+e2e-webkit` (all `@gmail.com`). Excluded from admin counts. Not test:

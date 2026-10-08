@@ -156,23 +156,23 @@ export function VideoUploader({ value, onChange, disabled, error }: VideoUploade
           }}
           className={cn(
             "flex flex-col items-center justify-center gap-2 rounded-lg border-2 border-dashed px-6 py-8 text-center transition-colors",
-            dragOver ? "border-black bg-gray-100" : "border-gray-200 bg-white",
+            dragOver ? "border-ink bg-band" : "border-line bg-white",
             !canAdd && "opacity-60",
           )}
         >
-          <VideoIcon className="h-6 w-6 text-gray-500" aria-hidden />
-          <p className="text-sm text-gray-500">
+          <VideoIcon className="h-6 w-6 text-muted" aria-hidden />
+          <p className="text-sm text-muted">
             Drag a video here, or{" "}
             <button
               type="button"
               onClick={() => inputRef.current?.click()}
               disabled={!canAdd}
-              className="font-medium text-black underline underline-offset-2 disabled:no-underline disabled:opacity-60"
+              className="font-medium text-ink underline underline-offset-2 disabled:no-underline disabled:opacity-60"
             >
               choose a file
             </button>
           </p>
-          <p className="font-mono text-xs uppercase tracking-wider text-gray-500">
+          <p className="text-xs font-semibold uppercase tracking-[0.14em] text-muted">
             MP4 only · up to 100 MB · up to {MAX_DURATION_SECONDS}s
           </p>
           <input
@@ -186,20 +186,20 @@ export function VideoUploader({ value, onChange, disabled, error }: VideoUploade
           />
         </div>
       ) : (
-        <div className="relative overflow-hidden rounded border border-gray-200 bg-white">
+        <div className="relative overflow-hidden rounded-lg border border-line bg-white">
           {/* eslint-disable-next-line jsx-a11y/media-has-caption */}
           <video
             src={mediaUrl(value.url)}
             preload="none"
             controls
-            className="aspect-video w-full bg-black object-contain"
+            className="aspect-video w-full bg-ink object-contain"
           />
           <button
             type="button"
             onClick={remove}
             disabled={disabled}
             aria-label="Remove video"
-            className="absolute right-1.5 top-1.5 rounded-full bg-black/70 p-1 text-white transition-opacity hover:bg-black"
+            className="absolute right-1.5 top-1.5 rounded-full bg-ink/70 p-1 text-white transition-opacity hover:bg-ink"
           >
             <X className="h-3.5 w-3.5" aria-hidden />
           </button>
@@ -207,7 +207,7 @@ export function VideoUploader({ value, onChange, disabled, error }: VideoUploade
       )}
 
       {busy ? (
-        <p className="flex items-center gap-2 text-sm text-gray-500">
+        <p className="flex items-center gap-2 text-sm text-muted">
           <Loader2 className="h-4 w-4 animate-spin" aria-hidden />
           Uploading…
         </p>

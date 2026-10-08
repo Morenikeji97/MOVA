@@ -1,15 +1,12 @@
 import { type ReactNode } from "react";
+import { displayPlace } from "@/lib/place";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
 import { VEHICLE_DETAIL_COLUMNS, loadFullVins } from "@/lib/listings";
 import { cn } from "@/lib/utils";
 import { VerifiedBadge } from "@/components/ui/verified-badge";
-import {
-  badgeFacts,
-  hasTitleReviewedBadge,
-  hasVerifiedListingBadge,
-} from "@/lib/listing-badges";
+import { badgeFacts, listingBadges } from "@/lib/listing-badges";
 import { PriceBreakdown, SellerSplitsFeeBadge } from "@/components/ui/price-breakdown";
 import { FxNote } from "@/components/ui/fx-note";
 import { getFxRates } from "@/lib/fx";
@@ -262,8 +259,9 @@ export default async function VehicleDetailPage({
   // Full VIN only for an admin, the seller, or a buyer past the fee-paid
   // reveal — vehicle_vin decides; everyone else sees vin_masked.
   const fullVin = (await loadFullVins(supabase, [v.id])).get(v.id);
-  const titleReviewed = hasTitleReviewedBadge(facts);
-  const verifiedListing = hasVerifiedListingBadge(facts);
+  // A removed listing (seller preview only) shows no badge or done check.
+  const badges = listingBadges(facts, v.status);
+  const { titleReviewed, verifiedListing } = badges;
 
   const priceLocal = localCurrencies.length && fx ? { fx, currencies: localCurrencies } : null;
   const whatsapp = whatsappLink(`Hi ShipMova, I have a question about the ${title} (listing ${id}).`);
@@ -296,7 +294,7 @@ export default async function VehicleDetailPage({
             {title}
           </h1>
           <p className="mt-2 text-sm text-muted">
-            {v.mileage.toLocaleString("en-US")} mi · {v.location_city}, {v.location_state}
+            {v.mileage.toLocaleString("en-US")} mi · {displayPlace(v.location_city, v.location_state)}
           </p>
           <div className="mt-2 flex flex-wrap items-center gap-x-1">
             <RatingSummary aggregate={sellerAggregate} />
@@ -424,9 +422,9 @@ export default async function VehicleDetailPage({
                 Checks on this listing
               </h2>
               <ul className="mt-3 flex flex-col gap-3 text-sm">
-                <TrustCheck done={facts.sellerIdentityVerified} label="Seller’s ID verified" />
+                <TrustCheck done={badges.sellerIdVerified} label="Seller’s ID verified" />
                 <TrustCheck
-                  done={v.vin_verification_status === "verified"}
+                  done={badges.vinVerified}
                   label="VIN checked against U.S. records"
                 />
                 <TrustCheck done={titleReviewed} label="Title reviewed by ShipMova" />
@@ -465,7 +463,7 @@ export default async function VehicleDetailPage({
                   <Spec label="Accident history">{v.accident_history}</Spec>
                 ) : null}
                 <Spec label="Location">
-                  {v.location_city}, {v.location_state}
+                  {displayPlace(v.location_city, v.location_state)}
                 </Spec>
               </dl>
             </section>
