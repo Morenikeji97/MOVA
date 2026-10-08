@@ -128,6 +128,13 @@ the copy can be changed instead if a feature is dropped.
   Supabase SMTP sender name, `RESEND_FROM_ADDRESS` and
   `NEXT_PUBLIC_WHATSAPP_MESSAGE` in Netlify should all say "ShipMova".
 
+- [ ] **Homepage photos are temporary AI images.** The hero (desktop and
+      phone) and the four role-card photos in `public/images/home/`
+      (`*-TEMP-AI-*.webp`) are AI-generated stand-ins. Replace them with
+      real photos ShipMova owns or has licensed (same sizes, WebP:
+      hero 1600×1000 and 800×1000, cards 800×500), drop `TEMP-AI` from the
+      names and update `lib/home-images.ts`.
+
 ## Pre-launch cleanup
 
 Test data in the production database (previews and shipmova.com share one
