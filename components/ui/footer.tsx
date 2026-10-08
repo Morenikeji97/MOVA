@@ -12,7 +12,7 @@ const PLATFORM_LINKS = [
 ];
 
 const PARTNER_LINKS = [
-  { label: "Become a shipper", href: "/shipper" },
+  { label: "For shippers", href: "/shipper" },
   { label: "Become an inspector", href: "/inspectors" },
   { label: "Clearing agents (Nigeria)", href: "/clearing-agents" },
 ];
