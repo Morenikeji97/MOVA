@@ -25,7 +25,7 @@ function SubmitButton({ children }: { children: React.ReactNode }) {
 function NameField() {
   return (
     <label className="flex flex-col gap-1">
-      <span className="text-sm text-gray-500">Full legal name, as on your ID</span>
+      <span className="text-sm text-muted">Full legal name, as on your ID</span>
       <input name="legal_name" required autoComplete="name" className={inputClasses()} />
     </label>
   );
@@ -34,7 +34,7 @@ function NameField() {
 /** Where the "opens at launch" refusal points: the waitlist. */
 function WaitlistHint() {
   return (
-    <p className="text-sm text-gray-500">
+    <p className="text-sm text-muted">
       <Link href="/waitlist" className="underline">
         Join the waitlist
       </Link>{" "}
@@ -59,7 +59,7 @@ export function VerifyIdForm({
   return (
     <div className="mt-6 flex flex-col gap-5">
       <label className="flex flex-col gap-1">
-        <span className="text-sm text-gray-500">Your country</span>
+        <span className="text-sm font-semibold text-ink">Your country</span>
         <select
           value={country}
           onChange={(e) => setCountry(e.target.value as IdCountry)}
@@ -81,7 +81,7 @@ export function VerifyIdForm({
           <input type="hidden" name="country" value={selected.code} />
           <NameField />
           <label className="flex flex-col gap-1">
-            <span className="text-sm text-gray-500">{selected.idLabel}</span>
+            <span className="text-sm text-muted">{selected.idLabel}</span>
             <input
               name="id_number"
               required
@@ -136,18 +136,18 @@ function DocumentForm({ userId, country }: { userId: string; country: IdCountry 
       <input type="hidden" name="document_path" value={path ?? ""} />
       <NameField />
       <fieldset className="flex flex-col gap-2">
-        <legend className="text-sm text-gray-500">Which ID?</legend>
-        <label className="flex h-11 items-center gap-3 text-black">
-          <input type="radio" name="document_type" value="national_id" required className="h-5 w-5" />
+        <legend className="text-sm text-muted">Which ID?</legend>
+        <label className="flex h-11 items-center gap-3 text-ink">
+          <input type="radio" name="document_type" value="national_id" required className="h-5 w-5 accent-ink" />
           National ID card
         </label>
-        <label className="flex h-11 items-center gap-3 text-black">
-          <input type="radio" name="document_type" value="passport" className="h-5 w-5" />
+        <label className="flex h-11 items-center gap-3 text-ink">
+          <input type="radio" name="document_type" value="passport" className="h-5 w-5 accent-ink" />
           Passport
         </label>
       </fieldset>
       <label className="flex flex-col gap-1">
-        <span className="text-sm text-gray-500">
+        <span className="text-sm text-muted">
           Photo of the ID (the page with your photo and name). It&rsquo;s private and deleted once
           ShipMova has checked it.
         </span>
@@ -155,10 +155,10 @@ function DocumentForm({ userId, country }: { userId: string; country: IdCountry 
           type="file"
           accept="image/jpeg,image/png,image/webp"
           onChange={(e) => void upload(takeFiles(e.target))}
-          className="text-base text-black file:mr-3 file:h-11 file:rounded file:border-0 file:bg-black file:px-4 file:text-white"
+          className="text-base text-ink file:mr-3 file:h-11 file:rounded-lg file:border-0 file:bg-ink file:px-4 file:font-semibold file:text-white"
         />
       </label>
-      {uploading ? <p className="text-sm text-gray-500">Uploading your photo…</p> : null}
+      {uploading ? <p className="text-sm text-muted">Uploading your photo…</p> : null}
       {path && !uploading ? <p className="text-sm text-verified-600">Photo ready.</p> : null}
       {uploadError ? <p className="text-sm text-copper-700">{uploadError}</p> : null}
       <SubmitButton>Send for review</SubmitButton>

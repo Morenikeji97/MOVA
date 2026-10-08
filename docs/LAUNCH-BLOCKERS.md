@@ -158,6 +158,13 @@ the copy can be changed instead if a feature is dropped.
   Supabase SMTP sender name, `RESEND_FROM_ADDRESS` and
   `NEXT_PUBLIC_WHATSAPP_MESSAGE` in Netlify should all say "ShipMova".
 
+- [ ] **Homepage photos are temporary AI images.** The hero (desktop and
+      phone) and the four role-card photos in `public/images/home/`
+      (`*-TEMP-AI-*.webp`) are AI-generated stand-ins. Replace them with
+      real photos ShipMova owns or has licensed (same sizes, WebP:
+      hero 1600×1000 and 800×1000, cards 800×500), drop `TEMP-AI` from the
+      names and update `lib/home-images.ts`.
+
 ## Pre-launch cleanup
 
 Test data in the production database (previews and shipmova.com share one
@@ -196,6 +203,15 @@ Supabase project) to remove before launch.
       plus any photos uploaded to it. Created 2026-10-04 to retest photo upload
       on iPhone. Remove the listing with its photos and title file. (The 2012
       LR4 draft `2ff0684d` is real data, not test data.)
+
+- [ ] **Removed "2018 FORD F-150 TEST V (VIN not verified)"**
+      (`3fa0e953-be87-4298-921f-0edf9c0adcf1`, archived, seller
+      `tbakare2@gmail.com`; its `vin_verification_status` is `verified`, which
+      is why it showed badges on My listings until PR C1 hid badges on removed
+      listings). The other archived test F-150s from the same seller — 2015
+      THROWAWAY A/B and TEST LISTING C/D/E/F, 2012 TEST G, 2014 TEST H,
+      2016 TEST K, 2017 TEST M — are test data too. Remove them with their
+      photos and title files. (Founder, 2026-10-08.)
 
 - [ ] **Flagged test accounts** (`users.is_test_account = true`, migration
       0054, 2026-10-04): `tbakare2+buyer`, `+buyer2`, `+ref1`, `+shipper` and
@@ -241,6 +257,10 @@ Supabase project) to remove before launch.
       photo for the founder's #39 phone check (approving/rejecting deletes
       the photo). Before launch: delete the account, and check the
       `buyer-id-documents` bucket has no files under its id.
+
+- [ ] **Test buyer `tbakare2+buyer6@gmail.com`** (created 2026-10-07 for the
+      #43 phone check, flagged test 2026-10-07, unverified, nothing public).
+      Before launch: delete the account.
 
 - [ ] **Restart SM- numbering so the first real deal is SM-000001.**
       Safe as long as no real deal exists yet: the reference is a label only

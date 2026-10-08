@@ -5,6 +5,14 @@ const config: Config = {
   theme: {
     extend: {
       colors: {
+        // ShipMova design system (redesign PR A). "black" is the brand
+        // near-black, so every existing bg-black / text-black follows it.
+        black: "#0A0A0B",
+        ink: "#0A0A0B",
+        band: "#F3F3F1", // light section band
+        muted: "#555555", // body grey
+        line: "#E4E4E4", // borders
+        // Status badge colors — unchanged by the redesign.
         marine: {
           DEFAULT: "#1D4E6B",
           50: "#EEF4F7",
@@ -28,13 +36,20 @@ const config: Config = {
         },
       },
       fontFamily: {
+        // DM Sans for body, Archivo for headings (app/layout.tsx). Monospace
+        // (VINs, references) is the device's own — no font download.
         sans: ["var(--font-sans)", "system-ui", "sans-serif"],
-        mono: ["var(--font-mono)", "ui-monospace", "SFMono-Regular", "monospace"],
+        display: ["var(--font-display)", "var(--font-sans)", "system-ui", "sans-serif"],
+        mono: ["ui-monospace", "SFMono-Regular", "Menlo", "monospace"],
       },
       borderRadius: {
         sm: "4px",
         DEFAULT: "8px",
         lg: "12px",
+        card: "14px",
+      },
+      boxShadow: {
+        card: "0 1px 2px rgba(10, 10, 11, 0.04), 0 4px 16px rgba(10, 10, 11, 0.06)",
       },
       spacing: {
         // Keeps the button size rhythm on an 8px step: sm h-9 (36) → md h-11 (44) → lg h-13 (52).

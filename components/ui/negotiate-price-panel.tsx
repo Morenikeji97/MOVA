@@ -61,30 +61,30 @@ export function NegotiatePricePanel({
   }
 
   return (
-    <section className="mt-6 rounded-lg border border-gray-200 bg-white p-5">
-      <h2 className="font-mono text-xs uppercase tracking-wider text-gray-500">
+    <section className="mt-6 rounded-card border border-line bg-white shadow-card p-5">
+      <h2 className="text-xs font-semibold uppercase tracking-[0.14em] text-muted">
         Negotiated price
       </h2>
-      <p className="mt-1 text-sm text-gray-500">
+      <p className="mt-1 text-sm text-muted">
         Listing price: {usd.format(listingPriceUsd)}
       </p>
 
       {locked ? (
-        <p className="mt-3 rounded border border-verified-100 bg-verified-50 p-3 text-sm text-verified-600">
+        <p className="mt-3 rounded-lg border border-verified-100 bg-verified-50 p-3 text-sm text-verified-600">
           The buyer accepted {negotiatedPriceUsd != null ? usd.format(negotiatedPriceUsd) : "your offer"}.
           ShipMova&rsquo;s fee will be based on this price.
         </p>
       ) : (
         <>
           {negotiatedPriceStatus === "proposed" && negotiatedPriceUsd != null ? (
-            <p className="mt-2 text-sm text-gray-500">
+            <p className="mt-2 text-sm text-muted">
               Current offer: {usd.format(negotiatedPriceUsd)} — waiting on the buyer.
               You can revise it below.
             </p>
           ) : null}
           <form onSubmit={submit} className="mt-3 flex flex-wrap items-end gap-3">
             <label className="flex flex-col gap-1">
-              <span className="text-sm text-gray-500">Propose a price (USD)</span>
+              <span className="text-sm text-muted">Propose a price (USD)</span>
               <input
                 type="number"
                 inputMode="decimal"
@@ -93,7 +93,7 @@ export function NegotiatePricePanel({
                 value={price}
                 onChange={(e) => setPrice(e.target.value)}
                 disabled={pending}
-                className="h-10 w-40 rounded border border-gray-200 bg-white px-3 text-black"
+                className="h-10 w-40 rounded-lg border border-line bg-white px-3 text-ink"
                 placeholder={usd.format(listingPriceUsd)}
               />
             </label>

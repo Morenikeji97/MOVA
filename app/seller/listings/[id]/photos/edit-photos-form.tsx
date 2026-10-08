@@ -37,9 +37,9 @@ export function EditPhotosForm({
     <div className="flex flex-col gap-4">
       <PhotoUploader value={photos} onChange={setPhotos} />
 
-      {error ? <p className="text-sm text-copper-700">{error}</p> : null}
+      {error ? <p role="alert" className="text-sm text-copper-700">Not saved: {error}</p> : null}
       {saved ? (
-        <p className="text-sm text-verified-600">Photos saved.</p>
+        <p role="status" className="text-sm text-verified-600">Photos saved.</p>
       ) : null}
 
       <div>
@@ -47,6 +47,7 @@ export function EditPhotosForm({
           type="button"
           onClick={handleSave}
           disabled={saving || photos.length === 0}
+          className="w-full sm:w-auto"
         >
           {saving ? "Saving…" : "Save changes"}
         </Button>

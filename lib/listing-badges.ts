@@ -101,3 +101,30 @@ export function badgeFacts(row: ListingBadgeRow): ListingBadgeFacts {
     sellerIdentityVerified: row.seller_identity_verified,
   };
 }
+
+/** Statuses that never show a verification badge or a done check. */
+const NO_BADGE_STATUSES: readonly string[] = ["archived"];
+
+/**
+ * Every verification badge/check for one listing, in one place, so the
+ * seller's list, the browse cards and the listing page can't disagree.
+ *
+ * A removed listing (status 'archived') shows none of them (founder,
+ * 2026-10-08): a badge advertises a car that's for sale, and a removed one
+ * isn't. The underlying facts are untouched, so restoring a listing brings
+ * its badges back.
+ */
+export function listingBadges(
+  facts: ListingBadgeFacts,
+  status: string,
+): { verifiedListing: boolean; vinVerified: boolean; titleReviewed: boolean; sellerIdVerified: boolean } {
+  if (NO_BADGE_STATUSES.includes(status)) {
+    return { verifiedListing: false, vinVerified: false, titleReviewed: false, sellerIdVerified: false };
+  }
+  return {
+    verifiedListing: hasVerifiedListingBadge(facts),
+    vinVerified: facts.vinVerificationStatus === "verified",
+    titleReviewed: hasTitleReviewedBadge(facts),
+    sellerIdVerified: facts.sellerIdentityVerified,
+  };
+}

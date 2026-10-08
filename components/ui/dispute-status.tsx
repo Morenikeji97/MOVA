@@ -46,19 +46,19 @@ export function DisputeStatusList({
       {disputes.map((d) => (
         <div
           key={d.id}
-          className={`rounded border p-3 text-sm ${STATUS_STYLE[d.status]}`}
+          className={`rounded-lg border p-3 text-sm ${STATUS_STYLE[d.status]}`}
         >
           <div className="flex flex-wrap items-center justify-between gap-2">
             <p className="font-medium">
               {DISPUTE_CATEGORY_LABEL[d.category]} —{" "}
               {d.reporter_id === currentUserId ? "reported by you" : "reported by the other party"}
             </p>
-            <span className="font-mono text-xs uppercase tracking-wider">
+            <span className="text-xs font-semibold uppercase tracking-[0.14em]">
               {DISPUTE_STATUS_LABEL[d.status]}
             </span>
           </div>
           {d.status === "open" ? (
-            <p className="mt-1 text-gray-500">
+            <p className="mt-1 text-muted">
               ShipMova is reviewing this dispute — usually within 5 business days.
             </p>
           ) : null}

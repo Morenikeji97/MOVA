@@ -3,6 +3,16 @@ import { createClient } from "@/lib/supabase/server";
 import { ReportIssuePanel } from "@/components/ui/report-issue-panel";
 import { DisputeStatusList, type DisputeSummary } from "@/components/ui/dispute-status";
 import { BuyerIdSummary } from "@/components/buyer-id-summary";
+import { cardClasses } from "@/components/ui/card";
+import {
+  BackLink,
+  DashboardHeader,
+  DashboardShell,
+  EmptyCard,
+  Notice,
+  StatusPill,
+  type PillTone,
+} from "@/components/ui/dashboard";
 
 const usd = new Intl.NumberFormat("en-US", {
   style: "currency",
@@ -15,6 +25,24 @@ const submitted = new Intl.DateTimeFormat("en-US", {
   day: "numeric",
   year: "numeric",
 });
+
+const RESERVATION_LABEL: Record<string, string> = {
+  submitted: "Submitted",
+  under_review: "In review",
+  verified: "Verified",
+  completed: "Completed",
+  rejected: "Not accepted",
+  cancelled: "Released",
+};
+
+const RESERVATION_TONE: Record<string, PillTone> = {
+  submitted: "info",
+  under_review: "info",
+  verified: "success",
+  completed: "success",
+  rejected: "warning",
+  cancelled: "neutral",
+};
 
 const RESERVATION_STATUS_COPY: Record<string, string> = {
   submitted: "Submitted — waiting for ShipMova to review.",
@@ -94,29 +122,26 @@ export default async function SellerReservationsPage() {
   }
 
   return (
-    <main className="mx-auto max-w-4xl px-6 py-16">
-      <Link
-        href="/seller/dashboard"
-        className="font-mono text-xs uppercase tracking-wider text-gray-500 hover:text-black"
-      >
-        &larr; Seller dashboard
-      </Link>
-      <h1 className="mt-4 text-2xl font-semibold text-black">Reservations</h1>
-      <p className="mt-2 text-sm text-gray-500">
-        {reservations.length === 0
-          ? "No reservations against your listings yet."
-          : `${reservations.length} reservation${reservations.length === 1 ? "" : "s"}.`}
-      </p>
+    <DashboardShell>
+      <BackLink href="/seller/dashboard">Seller dashboard</BackLink>
+      <DashboardHeader
+        className="mt-2"
+        title="Reservations"
+        intro={
+          reservations.length === 0
+            ? "No reservations against your listings yet."
+            : `${reservations.length} reservation${reservations.length === 1 ? "" : "s"}`
+        }
+      />
 
       {reservations.length === 0 ? (
-        <div className="mt-10 rounded-lg border border-dashed border-gray-200 bg-white p-10 text-center">
-          <p className="text-black">Nothing here yet.</p>
-          <p className="mt-1 text-sm text-gray-500">
+        <div className="mt-6">
+          <EmptyCard title="Nothing here yet">
             When a buyer reserves one of your listings, it shows up here.
-          </p>
+          </EmptyCard>
         </div>
       ) : (
-        <ul className="mt-8 flex flex-col gap-4">
+        <ul className="mt-6 flex flex-col gap-4">
           {reservations.map((r) => {
             const vehicle = vehicleById.get(r.vehicle_id);
             const title = vehicle
@@ -136,14 +161,18 @@ export default async function SellerReservationsPage() {
             );
 
             return (
-              <li
-                key={r.id}
-                className="rounded-lg border border-gray-200 bg-white p-5"
-              >
-                <div className="flex items-start justify-between gap-4">
+              <li key={r.id} className={cardClasses()}>
+                <div className="flex flex-wrap items-center justify-between gap-2">
+                  <StatusPill tone={RESERVATION_TONE[r.status] ?? "neutral"}>
+                    {RESERVATION_LABEL[r.status] ?? r.status}
+                  </StatusPill>
+                  <span className="text-xs text-muted">
+                    <span className="font-mono">{r.reference}</span> · {submitted.format(new Date(r.created_at))}
+                  </span>
+                </div>
+                <div>
                   <div>
-                    <p className="font-mono text-xs text-gray-500">{r.reference}</p>
-                    <h2 className="text-lg font-semibold text-black">
+                    <h2 className="mt-3 break-words font-display text-xl font-bold leading-snug text-ink">
                       {vehicle ? (
                         <Link href={`/browse/${r.vehicle_id}`} className="hover:underline">
                           {title}
@@ -153,25 +182,22 @@ export default async function SellerReservationsPage() {
                       )}
                     </h2>
                     {price != null ? (
-                      <p className="mt-1 font-mono text-sm text-gray-500">
+                      <p className="mt-1 text-sm font-semibold tabular-nums text-ink">
                         {usd.format(price)}
                       </p>
                     ) : null}
                   </div>
-                  <span className="font-mono text-xs uppercase tracking-wider text-gray-500">
-                    {submitted.format(new Date(r.created_at))}
-                  </span>
                 </div>
-                <p className="mt-2 text-sm text-gray-500">
+                <p className="mt-2 text-sm text-muted">
                   {RESERVATION_STATUS_COPY[r.status] ?? r.status}
                 </p>
                 <BuyerIdSummary summary={idSummaries.get(r.buyer_id) ?? null} />
                 {r.mova_fee_payment_status === "paid" ? (
-                  <p className="mt-2 rounded border border-verified-100 bg-verified-50 p-3 text-sm text-verified-600">
+                  <Notice tone="success" className="mt-3">
                     Buyer has paid ShipMova&rsquo;s fee. Next they pay the car price
                     into Escrow.com; you&rsquo;re paid once an inspector confirms
                     the car and a licensed shipper collects it with the title.
-                  </p>
+                  </Notice>
                 ) : null}
 
                 <DisputeStatusList disputes={disputes} currentUserId={user!.id} />
@@ -181,6 +207,6 @@ export default async function SellerReservationsPage() {
           })}
         </ul>
       )}
-    </main>
+    </DashboardShell>
   );
 }

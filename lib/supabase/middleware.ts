@@ -6,6 +6,7 @@ import { assertSupabaseKey } from "@/lib/supabase/keys";
 import { CURRENT_TERMS_VERSION } from "@/lib/terms";
 import { CURRENT_PRIVACY_VERSION } from "@/lib/privacy";
 import { hasMfaSession } from "@/lib/admin-mfa";
+import { serviceAccountKind, type ServiceAccountKind } from "@/lib/account-kind";
 
 export async function updateSession(request: NextRequest) {
   let supabaseResponse = NextResponse.next({ request });
@@ -61,6 +62,9 @@ export async function updateSession(request: NextRequest) {
   // Buyers only: their account isn't usable until their ID is verified
   // (lib/id-verification.ts, migration 0058).
   let needsIdVerification = false;
+  // Shippers (and, with #46, inspectors) sign in with buyer-role accounts
+  // but aren't buyers: no ID step, their own portal (lib/account-kind.ts).
+  let accountKind: ServiceAccountKind | null = null;
   if (user) {
     const { data: profile } = await supabase
       .from("users")
@@ -73,7 +77,14 @@ export async function updateSession(request: NextRequest) {
       adminMfaVerified = await hasMfaSession(supabase);
     }
 
-    if (role === "buyer") {
+    if (role === "buyer" || role === "seller") {
+      // An error reads as "not a service account": the buyer ID gate then
+      // applies as before, never the other way round.
+      const { data: kind } = await supabase.rpc("my_service_account_kind");
+      accountKind = serviceAccountKind(kind);
+    }
+
+    if (role === "buyer" && !accountKind) {
       const { data: buyer } = await supabase
         .from("buyer_profiles")
         .select("verification_status")
@@ -101,5 +112,13 @@ export async function updateSession(request: NextRequest) {
     }
   }
 
-  return { supabaseResponse, user, role, needsPolicyAcceptance, adminMfaVerified, needsIdVerification };
+  return {
+    supabaseResponse,
+    user,
+    role,
+    needsPolicyAcceptance,
+    adminMfaVerified,
+    needsIdVerification,
+    accountKind,
+  };
 }
