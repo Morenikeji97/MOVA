@@ -76,10 +76,10 @@ export async function BuyerReviewHub({ userId }: { userId: string }) {
 
   return (
     <section className="mt-10">
-      <h2 className="text-lg font-semibold text-black">Reviews</h2>
+      <h2 className="font-display text-lg font-bold text-ink">Reviews</h2>
 
-      <div className="mt-3 rounded-lg border border-gray-200 bg-white p-5">
-        <p className="font-mono text-xs uppercase tracking-wider text-gray-500">
+      <div className="mt-3 rounded-card border border-line bg-white shadow-card p-5">
+        <p className="text-xs font-semibold uppercase tracking-[0.14em] text-muted">
           Your buyer rating
         </p>
         <div className="mt-1">
@@ -93,11 +93,11 @@ export async function BuyerReviewHub({ userId }: { userId: string }) {
       </div>
 
       <div className="mt-4">
-        <p className="font-mono text-xs uppercase tracking-wider text-gray-500">
+        <p className="text-xs font-semibold uppercase tracking-[0.14em] text-muted">
           Reviews you can leave
         </p>
         {nothingToLeave ? (
-          <p className="mt-2 text-sm text-gray-500">
+          <p className="mt-2 text-sm text-muted">
             Nothing to review yet — you can review a seller once you&rsquo;ve paid
             ShipMova&rsquo;s fee, and a shipper once your shipment is completed.
           </p>

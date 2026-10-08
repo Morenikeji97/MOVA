@@ -1,5 +1,6 @@
 import { test } from "node:test";
 import assert from "node:assert/strict";
+import { readFileSync } from "node:fs";
 import {
   badgeFacts,
   hasTitleReviewedBadge,
@@ -181,4 +182,33 @@ test("badgeFacts maps a selected row onto the rule input", () => {
       sellerIdentityVerified: true,
     },
   );
+});
+
+test("a removed listing shows no verification badge or done check (founder, 2026-10-08)", async () => {
+  const { listingBadges } = await import("./listing-badges.ts");
+  const allTrue = {
+    titleIdentityMatchConfirmed: true,
+    titleIdentityMatchConfirmedAt: "2026-10-01T00:00:00Z",
+    hasTitleDocument: true,
+    notTitledOwner: false,
+    hasAuthorizationDocument: false,
+    vinVerificationStatus: "verified" as const,
+    sellerIdentityVerified: true,
+  };
+  assert.deepEqual(listingBadges(allTrue, "archived"), {
+    verifiedListing: false,
+    vinVerified: false,
+    titleReviewed: false,
+    sellerIdVerified: false,
+  });
+  assert.equal(listingBadges(allTrue, "approved").verifiedListing, true);
+  assert.equal(listingBadges(allTrue, "draft").vinVerified, true);
+});
+
+test("the seller's list and the listing page use the shared badge rule", () => {
+  for (const f of ["app/seller/listings/page.tsx", "app/browse/[id]/page.tsx"]) {
+    const src = readFileSync(f, "utf8");
+    assert.match(src, /listingBadges\(/, f);
+    assert.doesNotMatch(src, /vin_verification_status === "verified"/, f);
+  }
 });

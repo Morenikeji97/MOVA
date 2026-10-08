@@ -1,6 +1,6 @@
 import type { Metadata } from "next";
 import Link from "next/link";
-import { buttonClasses } from "@/components/ui/button";
+import { PageHero, SectionHeading, heroButtonClasses } from "@/components/ui/page-hero";
 import { REFERRAL_BATCH_SIZE, REFERRAL_PAYOUT_AMOUNT_USD } from "@/lib/referrals";
 
 export const metadata: Metadata = {
@@ -11,12 +11,12 @@ export const metadata: Metadata = {
 function Step({ n, title, children }: { n: number; title: string; children: React.ReactNode }) {
   return (
     <div className="flex gap-4">
-      <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-black text-sm font-semibold text-white">
+      <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-ink font-display text-sm font-bold text-white">
         {n}
       </div>
       <div>
-        <h3 className="font-semibold text-black">{title}</h3>
-        <p className="mt-1 text-sm text-gray-500">{children}</p>
+        <h3 className="font-display text-lg font-bold text-ink">{title}</h3>
+        <p className="mt-1 text-sm text-muted">{children}</p>
       </div>
     </div>
   );
@@ -25,41 +25,35 @@ function Step({ n, title, children }: { n: number; title: string; children: Reac
 export default function ReferralsPage() {
   return (
     <main className="min-h-screen bg-white">
-      <section className="bg-black text-white">
-        <div className="mx-auto max-w-4xl px-6 py-16">
-          <p className="font-mono text-sm uppercase tracking-widest text-gray-400">
-            ShipMova Referral Program
-          </p>
-          <h1 className="mt-4 max-w-2xl text-4xl font-semibold leading-tight sm:text-5xl">
-            Earn ${REFERRAL_PAYOUT_AMOUNT_USD.toLocaleString()} for every {REFERRAL_BATCH_SIZE}{" "}
-            people you bring to ShipMova.
-          </h1>
-          <p className="mt-4 max-w-xl text-gray-300">
-            Every Buyer and every Seller account gets its own referral link.
-            Once {REFERRAL_BATCH_SIZE} people you referred complete a
-            transaction on ShipMova, you get paid ${REFERRAL_PAYOUT_AMOUNT_USD.toLocaleString()}
-            . No cap — refer {REFERRAL_BATCH_SIZE * 2}, get paid twice; refer{" "}
-            {REFERRAL_BATCH_SIZE * 10}, get paid ten times.
-          </p>
-          <div className="mt-8 flex flex-wrap gap-3">
-            <Link href="/signup" className={buttonClasses({ size: "lg" })}>
-              Create your account
-            </Link>
-            <Link
-              href="/login"
-              className="inline-flex h-13 items-center justify-center rounded border border-white px-7 text-lg font-medium text-white hover:bg-white/10"
-            >
-              I already have an account
-            </Link>
-          </div>
-        </div>
-      </section>
+      <PageHero
+        narrow
+        eyebrow="ShipMova Referral Program"
+        title={
+          <>
+            Earn ${REFERRAL_PAYOUT_AMOUNT_USD.toLocaleString()} for every {REFERRAL_BATCH_SIZE} people you bring
+            to ShipMova.
+          </>
+        }
+        intro={
+          <>
+            Every Buyer and every Seller account gets its own referral link. Once {REFERRAL_BATCH_SIZE} people
+            you referred complete a transaction on ShipMova, you get paid $
+            {REFERRAL_PAYOUT_AMOUNT_USD.toLocaleString()}. No cap — refer {REFERRAL_BATCH_SIZE * 2}, get paid
+            twice; refer {REFERRAL_BATCH_SIZE * 10}, get paid ten times.
+          </>
+        }
+      >
+        <Link href="/signup" className={heroButtonClasses("solid")}>
+          Create your account
+        </Link>
+        <Link href="/login" className={heroButtonClasses("outline")}>
+          I already have an account
+        </Link>
+      </PageHero>
 
-      <section className="mx-auto max-w-4xl px-6 py-16">
-        <h2 className="font-mono text-xs uppercase tracking-wider text-gray-500">
-          How it works
-        </h2>
-        <div className="mt-6 flex flex-col gap-8">
+      <section className="mx-auto max-w-4xl px-4 py-14 sm:px-6 sm:py-20">
+        <SectionHeading title="How it works" />
+        <div className="mt-8 flex flex-col gap-8">
           <Step n={1} title="Get your link">
             Sign in to your Buyer or Seller dashboard for your unique referral
             code, a shareable link, and a QR code you can post, text, or
@@ -82,14 +76,14 @@ export default function ReferralsPage() {
           </Step>
         </div>
 
-        <p className="mt-10 text-sm text-gray-500">
+        <p className="mt-10 text-sm text-muted">
           Track your progress, referral code, and lifetime earnings any time
           from your{" "}
-          <Link href="/buyer/dashboard" className="text-black underline underline-offset-2">
+          <Link href="/buyer/dashboard" className="text-ink underline underline-offset-2">
             Buyer
           </Link>{" "}
           or{" "}
-          <Link href="/seller/dashboard" className="text-black underline underline-offset-2">
+          <Link href="/seller/dashboard" className="text-ink underline underline-offset-2">
             Seller
           </Link>{" "}
           dashboard.

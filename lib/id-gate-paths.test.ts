@@ -13,3 +13,10 @@ test("everything a member uses is gated, including look-alike prefixes", () => {
     assert.equal(isIdExempt(p), false, p);
   }
 });
+
+test("shippers (who sign in with buyer-role accounts) reach the shipper pages", () => {
+  for (const p of ["/shipper", "/shipper/signup", "/shipper/portal", "/shipper/dashboard", "/shipper/profile"]) {
+    assert.equal(isIdExempt(p), true, p);
+  }
+  assert.equal(isIdExempt("/shippers-guide"), false);
+});

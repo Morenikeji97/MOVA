@@ -38,7 +38,7 @@ export function ReviewForm({
 
   return (
     <form
-      className="rounded-lg border border-gray-200 bg-white p-4"
+      className="rounded-lg border border-line bg-white p-4"
       onSubmit={async (e) => {
         e.preventDefault();
         if (!rating || sending) return;
@@ -57,7 +57,7 @@ export function ReviewForm({
         }
       }}
     >
-      <p className="text-sm font-semibold text-black">
+      <p className="text-sm font-semibold text-ink">
         Rate your experience with {counterpartyLabel}
       </p>
 
@@ -71,11 +71,11 @@ export function ReviewForm({
         rows={3}
         maxLength={REVIEW_COMMENT_MAX}
         placeholder="How did it go? (optional)"
-        className="mt-3 w-full resize-y rounded border border-gray-200 bg-white px-3 py-2 text-sm text-black focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-black"
+        className="mt-3 w-full resize-y rounded-lg border border-line bg-white px-3 py-2 text-sm text-ink focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-black"
       />
 
       {blockReason ? (
-        <p className="mt-2 rounded border border-copper-100 bg-copper-50 p-2 text-sm text-copper-700">
+        <p className="mt-2 rounded-lg border border-copper-100 bg-copper-50 p-2 text-sm text-copper-700">
           {blockReason}
         </p>
       ) : null}
@@ -85,7 +85,7 @@ export function ReviewForm({
         <Button type="submit" size="sm" disabled={!rating || sending}>
           {sending ? "Submitting…" : "Submit review"}
         </Button>
-        <span className="font-mono text-[11px] text-gray-500">
+        <span className="tabular-nums text-[11px] text-muted">
           Phone numbers, emails and links aren&rsquo;t allowed in reviews.
         </span>
       </div>

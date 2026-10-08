@@ -3,27 +3,34 @@ import { ActionForm } from "@/components/ui/action-form";
 import { createClient } from "@/lib/supabase/server";
 import { VEHICLE_DETAIL_COLUMNS, loadFullVins } from "@/lib/listings";
 import { canSubmitForReview } from "@/lib/listings-review";
+import { badgeFacts, listingBadges } from "@/lib/listing-badges";
+import { displayPlace } from "@/lib/place";
+import { cardClasses } from "@/components/ui/card";
 import {
-  badgeFacts,
-  hasTitleReviewedBadge,
-  hasVerifiedListingBadge,
-} from "@/lib/listing-badges";
+  BackLink,
+  DashboardHeader,
+  DashboardShell,
+  EmptyCard,
+  Notice,
+  StatusPill,
+  StickyAction,
+  type PillTone,
+} from "@/components/ui/dashboard";
 import { buttonClasses } from "@/components/ui/button";
 import { VerifiedBadge } from "@/components/ui/verified-badge";
-import { cn } from "@/lib/utils";
 import type { FeeResponsibility, VehicleStatus } from "@/types/database";
 import { submitForReview } from "./actions";
 import { SubmitForReviewButton } from "./submit-for-review-button";
 import { RemoveListingButton } from "./remove-listing-button";
 import { SELLER_ARCHIVABLE_STATUSES } from "@/lib/listing-removal";
 
-const STATUS_META: Record<VehicleStatus, { label: string; pill: string }> = {
-  draft: { label: "Draft", pill: "bg-gray-100 text-gray-500" },
-  pending_review: { label: "Pending review", pill: "bg-marine-50 text-marine-700" },
-  approved: { label: "Live", pill: "bg-verified-50 text-verified-600" },
-  rejected: { label: "Rejected", pill: "bg-copper-50 text-copper-700" },
-  sold: { label: "Sold", pill: "bg-gray-100 text-gray-700" },
-  archived: { label: "Removed", pill: "bg-gray-100 text-gray-500" },
+const STATUS_META: Record<VehicleStatus, { label: string; tone: PillTone }> = {
+  draft: { label: "Draft", tone: "neutral" },
+  pending_review: { label: "Pending review", tone: "info" },
+  approved: { label: "Live", tone: "success" },
+  rejected: { label: "Rejected", tone: "warning" },
+  sold: { label: "Sold", tone: "neutral" },
+  archived: { label: "Removed", tone: "neutral" },
 };
 
 const usd = new Intl.NumberFormat("en-US", {
@@ -45,16 +52,7 @@ const FEE_LABEL: Record<FeeResponsibility, string> = {
  */
 function StatusBadge({ status }: { status: VehicleStatus }) {
   const meta = STATUS_META[status];
-  return (
-    <span
-      className={cn(
-        "inline-flex shrink-0 items-center rounded-full px-2.5 py-1 text-sm font-medium",
-        meta.pill
-      )}
-    >
-      {meta.label}
-    </span>
-  );
+  return <StatusPill tone={meta.tone}>{meta.label}</StatusPill>;
 }
 
 export default async function SellerListingsPage() {
@@ -94,137 +92,132 @@ export default async function SellerListingsPage() {
     }
   }
 
+  const newListing = (
+    <Link href="/seller/listings/new" className={buttonClasses({ className: "w-full sm:w-auto" })}>
+      New listing
+    </Link>
+  );
+
   return (
-    <main className="mx-auto max-w-4xl px-6 py-16">
-      <div className="flex items-center justify-between gap-4">
-        <h1 className="text-2xl font-semibold text-black">My listings</h1>
-        <Link href="/seller/listings/new" className={buttonClasses({ size: "sm" })}>
-          New listing
-        </Link>
-      </div>
+    <DashboardShell>
+      <BackLink href="/seller/dashboard">Seller dashboard</BackLink>
+      <DashboardHeader
+        className="mt-2"
+        title="My listings"
+        intro={
+          rows.length === 0
+            ? "Add your first car to get it in front of buyers."
+            : `${rows.length} listing${rows.length === 1 ? "" : "s"}`
+        }
+        action={newListing}
+      />
 
       {rows.length === 0 ? (
-        <div className="mt-10 rounded-lg border border-dashed border-gray-200 bg-white p-10 text-center">
-          <p className="text-black">No listings yet.</p>
-          <p className="mt-1 text-sm text-gray-500">
+        <div className="mt-6">
+          <EmptyCard title="No listings yet" action={newListing}>
             Add your first vehicle to get it in front of buyers.
-          </p>
-          <Link
-            href="/seller/listings/new"
-            className={cn(buttonClasses({ size: "sm" }), "mt-4")}
-          >
-            Create a listing
-          </Link>
+          </EmptyCard>
         </div>
       ) : (
-        <ul className="mt-8 flex flex-col gap-3">
-          {rows.map((v) => (
-            <li
-              key={v.id}
-              className="rounded-lg border border-gray-200 bg-white p-5"
-            >
-              <div className="flex items-start justify-between gap-4">
-                <div>
-                  <h2 className="text-lg font-semibold text-black">
-                    {v.year} {v.make} {v.model}
-                    {v.trim ? ` ${v.trim}` : ""}
-                  </h2>
-                  <p className="mt-1 font-mono text-sm text-gray-500">
-                    {usd.format(Number(v.price_usd))} · {v.mileage.toLocaleString("en-US")} mi ·{" "}
-                    {v.location_city}, {v.location_state}
-                  </p>
-                  <p className="mt-1 font-mono text-xs uppercase tracking-wider text-gray-500">
-                    VIN {fullVinById.get(v.id) ?? v.vin_masked}
-                    {v.vin_decode_status === "mismatch" ? " · VIN mismatch flagged" : ""}
-                  </p>
-                  <p className="mt-1 text-xs text-gray-500">
-                    {FEE_LABEL[v.fee_responsibility]}
-                  </p>
-                </div>
-                <div className="flex shrink-0 flex-col items-end gap-2">
-                  <StatusBadge status={v.status} />
-                  {hasVerifiedListingBadge(badgeFacts(v)) ? <VerifiedBadge /> : null}
-                  {v.vin_verification_status === "verified" ? (
-                    <VerifiedBadge label="VIN Verified" />
-                  ) : null}
-                  {hasTitleReviewedBadge(badgeFacts(v)) ? (
-                    <VerifiedBadge label="Title reviewed" />
-                  ) : null}
-                </div>
-              </div>
-              {v.vin_verification_status === "flagged" ? (
-                <p className="mt-3 text-sm text-copper-700">
-                  This listing&rsquo;s VIN was flagged during admin review and can&rsquo;t
-                  be approved until that&rsquo;s resolved. Contact support.
-                </p>
-              ) : null}
-              {v.status === "rejected" && v.rejection_reason ? (
-                <p className="mt-3 text-sm text-copper-700">
-                  Reason: {v.rejection_reason}
-                </p>
-              ) : null}
-              {paidByVehicle.has(v.id) ? (
-                <p className="mt-3 rounded border border-verified-100 bg-verified-50 p-3 text-sm text-verified-600">
-                  A buyer has paid ShipMova&rsquo;s fee
-                  {paidByVehicle.get(v.id)!.vehicle_price_usd != null
-                    ? ` at ${usd.format(
-                        Number(paidByVehicle.get(v.id)!.vehicle_price_usd),
-                      )}`
-                    : ""}
-                  . Next they pay the car price into Escrow.com; you&rsquo;re
-                  paid once an inspector confirms the car and a licensed
-                  shipper collects it with the title.
-                </p>
-              ) : null}
-              {v.status === "draft" &&
-              !canSubmitForReview({
+        <ul className="mt-6 flex flex-col gap-4">
+          {rows.map((v) => {
+            const badges = listingBadges(badgeFacts(v), v.status);
+            const canSubmit =
+              v.status === "draft" &&
+              canSubmitForReview({
                 hasTitleDocument: v.has_title_document,
                 notTitledOwner: v.not_titled_owner,
                 hasAuthorizationDocument: v.has_authorization_document,
-              }) ? (
-                <p className="mt-3 text-sm text-copper-700">
-                  {!v.has_title_document
-                    ? "This draft predates the title-upload requirement — it needs a title photo before it can be submitted for review."
-                    : "Missing the authorization document required for a non-owner seller before this can be submitted for review."}
+              });
+            const paid = paidByVehicle.get(v.id);
+            return (
+              <li key={v.id} className={cardClasses()}>
+                <div className="flex flex-wrap items-center gap-2">
+                  <StatusBadge status={v.status} />
+                  {badges.verifiedListing ? <VerifiedBadge className="text-xs" /> : null}
+                  {badges.vinVerified ? <VerifiedBadge label="VIN Verified" className="text-xs" /> : null}
+                  {badges.titleReviewed ? <VerifiedBadge label="Title reviewed" className="text-xs" /> : null}
+                </div>
+                <h2 className="mt-3 break-words font-display text-xl font-bold leading-snug text-ink">
+                  {v.year} {v.make} {v.model}
+                  {v.trim ? ` ${v.trim}` : ""}
+                </h2>
+                <p className="mt-1 text-sm text-muted">
+                  <span className="font-semibold tabular-nums text-ink">{usd.format(Number(v.price_usd))}</span>
+                  {" · "}
+                  <span className="tabular-nums">{v.mileage.toLocaleString("en-US")} mi</span>
+                  {" · "}
+                  {displayPlace(v.location_city, v.location_state)}
                 </p>
-              ) : null}
-              <div className="mt-4 flex items-center gap-3">
-                {v.status === "draft" &&
-                canSubmitForReview({
-                  hasTitleDocument: v.has_title_document,
-                  notTitledOwner: v.not_titled_owner,
-                  hasAuthorizationDocument: v.has_authorization_document,
-                }) ? (
-                  <ActionForm action={submitForReview}>
-                    <input type="hidden" name="id" value={v.id} />
-                    <SubmitForReviewButton />
-                  </ActionForm>
+                <p className="mt-1 break-all font-mono text-xs uppercase tracking-wider text-muted">
+                  VIN {fullVinById.get(v.id) ?? v.vin_masked}
+                  {v.vin_decode_status === "mismatch" ? " · VIN mismatch flagged" : ""}
+                </p>
+                <p className="mt-1 text-xs text-muted">{FEE_LABEL[v.fee_responsibility]}</p>
+
+                {v.vin_verification_status === "flagged" ? (
+                  <Notice tone="warning" className="mt-3">
+                    This listing&rsquo;s VIN was flagged during admin review and can&rsquo;t be approved
+                    until that&rsquo;s resolved. Contact support.
+                  </Notice>
                 ) : null}
-                {/* Opens the listing page exactly as buyers see it; for a
-                    listing that isn't live yet, only its seller can. */}
-                <Link
-                  href={`/browse/${v.id}`}
-                  className={buttonClasses({ variant: "secondary" })}
-                >
-                  {v.status === "approved" ? "View listing" : "Preview listing"}
-                </Link>
-                <Link
-                  href={`/seller/listings/${v.id}/photos`}
-                  className={buttonClasses({ variant: "secondary" })}
-                >
-                  Edit photos
-                </Link>
-                {SELLER_ARCHIVABLE_STATUSES.includes(v.status) ? (
-                  <RemoveListingButton
-                    vehicleId={v.id}
-                    isLive={v.status === "approved"}
-                  />
+                {v.status === "rejected" && v.rejection_reason ? (
+                  <Notice tone="warning" className="mt-3">
+                    Reason: {v.rejection_reason}
+                  </Notice>
                 ) : null}
-              </div>
-            </li>
-          ))}
+                {paid ? (
+                  <Notice tone="success" className="mt-3">
+                    A buyer has paid ShipMova&rsquo;s fee
+                    {paid.vehicle_price_usd != null ? ` at ${usd.format(Number(paid.vehicle_price_usd))}` : ""}.
+                    Next they pay the car price into Escrow.com; you&rsquo;re paid once an inspector
+                    confirms the car and a licensed shipper collects it with the title.
+                  </Notice>
+                ) : null}
+                {v.status === "draft" && !canSubmit ? (
+                  <Notice tone="warning" className="mt-3">
+                    {!v.has_title_document
+                      ? "This draft predates the title-upload requirement — it needs a title photo before it can be submitted for review."
+                      : "Missing the authorization document required for a non-owner seller before this can be submitted for review."}
+                  </Notice>
+                ) : null}
+
+                {/* Two per row on phones (each button half the card, text
+                    never wider than its button); one row from sm up. The
+                    main action, when there is one, spans the full width. */}
+                <div className="mt-4 grid grid-cols-2 gap-2 sm:flex sm:flex-wrap">
+                  {canSubmit ? (
+                    <ActionForm action={submitForReview} className="col-span-2 sm:col-auto">
+                      <input type="hidden" name="id" value={v.id} />
+                      <SubmitForReviewButton />
+                    </ActionForm>
+                  ) : null}
+                  {/* Opens the listing page exactly as buyers see it; for a
+                      listing that isn't live yet, only its seller can. */}
+                  <Link href={`/browse/${v.id}`} className={buttonClasses({ variant: "secondary", size: "sm", className: "w-full px-2 sm:w-auto sm:px-4" })}>
+                    {v.status === "approved" ? "View listing" : "Preview listing"}
+                  </Link>
+                  <Link
+                    href={`/seller/listings/${v.id}/photos`}
+                    className={buttonClasses({ variant: "secondary", size: "sm", className: "w-full px-2 sm:w-auto sm:px-4" })}
+                  >
+                    Edit photos
+                  </Link>
+                  {SELLER_ARCHIVABLE_STATUSES.includes(v.status) ? (
+                    <RemoveListingButton
+                      vehicleId={v.id}
+                      isLive={v.status === "approved"}
+                      className="col-span-2 sm:col-auto"
+                    />
+                  ) : null}
+                </div>
+              </li>
+            );
+          })}
         </ul>
       )}
-    </main>
+
+      <StickyAction>{newListing}</StickyAction>
+    </DashboardShell>
   );
 }

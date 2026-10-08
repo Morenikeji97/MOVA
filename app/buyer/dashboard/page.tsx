@@ -14,6 +14,18 @@ import { FeePaymentOptions } from "@/components/ui/fee-payment-options";
 import { WaitlistForm } from "@/components/ui/waitlist-form";
 import { isPrelaunch } from "@/lib/prelaunch";
 import type { FeeResponsibility } from "@/types/database";
+import { buttonClasses } from "@/components/ui/button";
+import { cardClasses } from "@/components/ui/card";
+import {
+  DashboardHeader,
+  DashboardSection,
+  DashboardShell,
+  EmptyCard,
+  Notice,
+  StatusPill,
+  StickyAction,
+  type PillTone,
+} from "@/components/ui/dashboard";
 
 const usdCents = new Intl.NumberFormat("en-US", {
   style: "currency",
@@ -30,6 +42,26 @@ const RESERVATION_STATUS_COPY: Record<string, string> = {
   cancelled: "Released.",
   expired:
     "Your reservation expired — payment wasn't completed in time. You can reserve this vehicle again if it's still available.",
+};
+
+const RESERVATION_LABEL: Record<string, string> = {
+  submitted: "Submitted",
+  under_review: "In review",
+  verified: "Verified",
+  completed: "Completed",
+  rejected: "Not accepted",
+  cancelled: "Released",
+  expired: "Expired",
+};
+
+const RESERVATION_TONE: Record<string, PillTone> = {
+  submitted: "info",
+  under_review: "info",
+  verified: "success",
+  completed: "success",
+  rejected: "warning",
+  cancelled: "neutral",
+  expired: "warning",
 };
 
 const OPEN_STATUSES = ["submitted", "under_review", "verified"];
@@ -112,46 +144,43 @@ export default async function BuyerDashboard({
     disputesByReservation.set(d.purchase_request_id, list);
   }
 
+  const browse = (
+    <Link href="/browse" className={buttonClasses({ className: "w-full sm:w-auto" })}>
+      Browse vehicles
+    </Link>
+  );
+
   return (
-    <main className="mx-auto max-w-4xl px-6 py-16">
-      <h1 className="text-2xl font-semibold text-black">Buyer Dashboard</h1>
-      <p className="mt-2 text-gray-500">Signed in as {user?.email}</p>
+    <DashboardShell>
+      <DashboardHeader
+        eyebrow="Buyer"
+        title="Your dashboard"
+        intro={`Signed in as ${user?.email ?? ""}`}
+        action={browse}
+      />
       {/* Buyers reach this page only once their ID is verified (middleware.ts). */}
       <BuyerIdSummary summary={idSummary ?? null} />
 
       {feeNotice === "paid" && awaitingFeeConfirmation ? (
-        <p className="mt-6 rounded border border-verified-100 bg-verified-50 p-3 text-sm text-verified-600">
+        <Notice tone="success" role="status" className="mt-6">
           Thanks — your ShipMova fee is being confirmed. It shows as paid below as
           soon as Stripe confirms, usually within a minute.
-        </p>
+        </Notice>
       ) : null}
       {feeNotice === "cancelled" ? (
-        <p className="mt-6 rounded border border-copper-100 bg-copper-50 p-3 text-sm text-copper-700">
+        <Notice tone="warning" role="status" className="mt-6">
           Payment was cancelled. You can reopen the payment link below whenever
           you&rsquo;re ready.
-        </p>
+        </Notice>
       ) : null}
 
-      <section className="mt-10">
-        <div className="flex items-center justify-between gap-4">
-          <h2 className="text-lg font-semibold text-black">Your reservations</h2>
-          <Link
-            href="/browse"
-            className="text-sm text-black hover:underline"
-          >
-            Browse vehicles &rarr;
-          </Link>
-        </div>
-
+      <DashboardSection title="Your reservations">
         {reservations.length === 0 ? (
-          <div className="mt-4 rounded-lg border border-dashed border-gray-200 bg-white p-8 text-center">
-            <p className="text-black">You haven&rsquo;t reserved any vehicles yet.</p>
-            <p className="mt-1 text-sm text-gray-500">
-              Reserve a vehicle from its listing to send ShipMova a request.
-            </p>
-          </div>
+          <EmptyCard title="No reservations yet">
+            Reserve a vehicle from its listing to send ShipMova a request.
+          </EmptyCard>
         ) : (
-          <ul className="mt-4 flex flex-col gap-3">
+          <ul className="flex flex-col gap-4">
             {reservations.map((r) => {
               const vehicle = vehicleById.get(r.vehicle_id);
               const title = vehicle
@@ -214,14 +243,16 @@ export default async function BuyerDashboard({
               );
 
               return (
-                <li
-                  key={r.id}
-                  className="rounded-lg border border-gray-200 bg-white p-5"
-                >
-                  <div className="flex items-start justify-between gap-4">
-                    <div>
-                      <p className="font-mono text-xs text-gray-500">{r.reference}</p>
-                      <h3 className="font-semibold text-black">
+                <li key={r.id} className={cardClasses()}>
+                  <div className="flex flex-wrap items-center justify-between gap-2">
+                    <StatusPill tone={RESERVATION_TONE[r.status] ?? "neutral"}>
+                      {RESERVATION_LABEL[r.status] ?? r.status}
+                    </StatusPill>
+                    <span className="font-mono text-xs text-muted">{r.reference}</span>
+                  </div>
+                  <div>
+                    <div className="min-w-0">
+                      <h3 className="mt-3 break-words font-display text-xl font-bold leading-snug text-ink">
                         {vehicle ? (
                           <Link
                             href={`/browse/${r.vehicle_id}`}
@@ -245,12 +276,12 @@ export default async function BuyerDashboard({
                                 }
                               : null
                           }
-                          className="mt-1 max-w-xs"
+                          className="mt-2 max-w-sm"
                         />
                       ) : null}
                     </div>
                   </div>
-                  <p className="mt-2 text-sm text-gray-500">
+                  <p className="mt-3 text-sm text-muted">
                     {RESERVATION_STATUS_COPY[r.status] ?? r.status}
                   </p>
 
@@ -267,29 +298,29 @@ export default async function BuyerDashboard({
                   {r.negotiated_price_status === "accepted" &&
                   r.negotiated_price_usd != null &&
                   !feePaid ? (
-                    <p className="mt-3 rounded border border-verified-100 bg-verified-50 p-3 text-sm text-verified-600">
+                    <Notice tone="success" className="mt-3">
                       You accepted {usdCents.format(Number(r.negotiated_price_usd))} —
                       ShipMova&rsquo;s service fee will be based on this price.
-                    </p>
+                    </Notice>
                   ) : null}
 
                   {showNeedsShipping ? (
-                    <p className="mt-3 rounded border border-copper-100 bg-copper-50 p-3 text-sm text-copper-700">
+                    <Notice tone="warning" className="mt-3">
                       Choose a destination and shipper on the listing page —
                       ShipMova can&rsquo;t send your invoice until shipping is
                       selected.{" "}
-                      <Link href={`/browse/${r.vehicle_id}`} className="underline">
+                      <Link href={`/browse/${r.vehicle_id}`} className="font-semibold underline underline-offset-2">
                         Select shipping
                       </Link>
-                    </p>
+                    </Notice>
                   ) : null}
 
                   {showFeePending ? (
-                    <p className="mt-3 rounded border border-gray-200 bg-white p-3 text-sm text-gray-500">
+                    <Notice className="mt-3">
                       Shipping selected. ShipMova will send your service-fee
                       payment link here once your reservation has been
                       reviewed.
-                    </p>
+                    </Notice>
                   ) : null}
 
                   {showPaymentOptions && prelaunch ? (
@@ -303,24 +334,24 @@ export default async function BuyerDashboard({
                   ) : null}
 
                   {showPaymentOptions && !prelaunch ? (
-                    <div className="mt-3 rounded border border-marine-100 bg-marine-50 p-4">
+                    <div className="mt-3 rounded-lg border border-marine-100 bg-marine-50 p-4">
                       <p className="text-sm font-medium text-marine-700">
                         Pay ShipMova&rsquo;s fee
                         {buyerFee != null ? ` — ${usdCents.format(buyerFee)}` : ""}
                       </p>
-                      <p className="mt-1 text-sm text-gray-500">
+                      <p className="mt-1 text-sm text-muted">
                         This covers ShipMova&rsquo;s verification and coordination.
                         Next, the car price goes into Escrow.com — never to the
                         seller or ShipMova directly.
                       </p>
                       {feeBankTransferRejected ? (
-                        <p className="mt-3 rounded border border-copper-100 bg-copper-50 p-3 text-sm text-copper-700">
+                        <Notice tone="warning" className="mt-3">
                           ShipMova couldn&rsquo;t confirm your last bank transfer
                           {r.bank_transfer_rejection_reason
                             ? `: ${r.bank_transfer_rejection_reason}`
                             : "."}{" "}
                           You can try again below, or pay with card instead.
-                        </p>
+                        </Notice>
                       ) : null}
                       <FeePaymentOptions
                         purchaseRequestId={r.id}
@@ -333,20 +364,20 @@ export default async function BuyerDashboard({
                   ) : null}
 
                   {feeAwaitingBankVerification ? (
-                    <p className="mt-3 rounded border border-marine-100 bg-marine-50 p-3 text-sm text-marine-700">
+                    <Notice tone="info" className="mt-3">
                       ShipMova is verifying your bank transfer (reference{" "}
                       {bankTransferReference(r.id)}). This can take a little
                       longer than an instant card payment — it shows as paid
                       here once it&rsquo;s confirmed.
-                    </p>
+                    </Notice>
                   ) : null}
 
                   {feePaid ? (
-                    <div className="mt-3 rounded border border-verified-100 bg-verified-50 p-4">
-                      <p className="text-sm font-semibold text-black">
+                    <div className="mt-3 rounded-lg border border-verified-600/20 bg-verified-50 p-4">
+                      <p className="text-sm font-semibold text-ink">
                         ShipMova&rsquo;s fee is paid
                       </p>
-                      <p className="mt-1 text-sm text-gray-500">
+                      <p className="mt-1 text-sm text-muted">
                         Next, the car price goes into Escrow.com. ShipMova sets up
                         the escrow transaction and it appears here. The seller
                         is only paid once the car passes inspection and your
@@ -369,11 +400,13 @@ export default async function BuyerDashboard({
             })}
           </ul>
         )}
-      </section>
+      </DashboardSection>
 
       <BuyerReviewHub userId={user!.id} />
 
       <ReferralPanel userId={user!.id} />
-    </main>
+
+      <StickyAction>{browse}</StickyAction>
+    </DashboardShell>
   );
 }

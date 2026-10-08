@@ -206,12 +206,12 @@ export function PhotoUploader({
         }}
         className={cn(
           "flex flex-col items-center justify-center gap-2 rounded-lg border-2 border-dashed px-6 py-8 text-center transition-colors",
-          dragOver ? "border-black bg-gray-100" : "border-gray-200 bg-white",
+          dragOver ? "border-ink bg-band" : "border-line bg-white",
           !canAdd && "opacity-60",
         )}
       >
-        <ImagePlus className="h-6 w-6 text-gray-500" aria-hidden />
-        <p className="text-sm text-gray-500 [@media(hover:none)]:hidden">Drag photos here, or</p>
+        <ImagePlus className="h-6 w-6 text-muted" aria-hidden />
+        <p className="text-sm text-muted [@media(hover:none)]:hidden">Drag photos here, or</p>
         <button
           type="button"
           onClick={() => inputRef.current?.click()}
@@ -220,7 +220,7 @@ export function PhotoUploader({
         >
           Choose photos
         </button>
-        <p className="font-mono text-xs uppercase tracking-wider text-gray-500">
+        <p className="text-xs font-semibold uppercase tracking-[0.14em] text-muted">
           JPEG, PNG or WebP · up to 10 MB · {value.length}/{maxPhotos} added
         </p>
         <input
@@ -236,7 +236,7 @@ export function PhotoUploader({
       </div>
 
       {busy ? (
-        <p className="flex items-center gap-2 text-sm text-gray-500">
+        <p className="flex items-center gap-2 text-sm text-muted">
           <Loader2 className="h-4 w-4 animate-spin" aria-hidden />
           {progress && progress.total > 1
             ? `Uploading photo ${progress.done + 1} of ${progress.total}…`
@@ -268,8 +268,8 @@ export function PhotoUploader({
                 dragIndex.current = null;
               }}
               className={cn(
-                "group relative overflow-hidden rounded border bg-white",
-                photo.isPrimary ? "border-black" : "border-gray-200",
+                "group relative overflow-hidden rounded-lg border bg-white",
+                photo.isPrimary ? "border-ink" : "border-line",
               )}
             >
               {/* eslint-disable-next-line @next/next/no-img-element */}
@@ -283,7 +283,7 @@ export function PhotoUploader({
               />
 
               {photo.isPrimary ? (
-                <span className="absolute left-1.5 top-1.5 inline-flex items-center gap-1 rounded-full bg-black px-2 py-0.5 text-xs font-medium text-white">
+                <span className="absolute left-1.5 top-1.5 inline-flex items-center gap-1 rounded-full bg-ink px-2 py-0.5 text-xs font-medium text-white">
                   <Star className="h-3 w-3 fill-current" aria-hidden />
                   Primary
                 </span>
@@ -298,19 +298,19 @@ export function PhotoUploader({
                 aria-label={`Remove photo ${index + 1}`}
                 className="absolute right-0 top-0 flex h-11 w-11 items-start justify-end p-1.5 opacity-0 transition-opacity focus-visible:opacity-100 group-hover:opacity-100 [@media(hover:none)]:opacity-100"
               >
-                <span className="rounded-full bg-black/70 p-1 text-white">
+                <span className="rounded-full bg-ink/70 p-1 text-white">
                   <X className="h-4 w-4" aria-hidden />
                 </span>
               </button>
 
-              <div className="flex items-center justify-between gap-1 border-t border-gray-200 px-0.5">
+              <div className="flex items-center justify-between gap-1 border-t border-line px-0.5">
                 <div className="flex gap-0.5">
                   <button
                     type="button"
                     onClick={() => move(index, index - 1)}
                     disabled={disabled || index === 0}
                     aria-label={`Move photo ${index + 1} earlier`}
-                    className="flex h-11 w-11 items-center justify-center rounded text-gray-500 hover:text-black disabled:opacity-30"
+                    className="flex h-11 w-11 items-center justify-center rounded text-muted hover:text-ink disabled:opacity-30"
                   >
                     <ArrowUp className="h-4 w-4" aria-hidden />
                   </button>
@@ -319,7 +319,7 @@ export function PhotoUploader({
                     onClick={() => move(index, index + 1)}
                     disabled={disabled || index === value.length - 1}
                     aria-label={`Move photo ${index + 1} later`}
-                    className="flex h-11 w-11 items-center justify-center rounded text-gray-500 hover:text-black disabled:opacity-30"
+                    className="flex h-11 w-11 items-center justify-center rounded text-muted hover:text-ink disabled:opacity-30"
                   >
                     <ArrowDown className="h-4 w-4" aria-hidden />
                   </button>
@@ -334,7 +334,7 @@ export function PhotoUploader({
                       : `Make photo ${index + 1} the cover photo`
                   }
                   title={photo.isPrimary ? "Cover photo" : "Make cover photo"}
-                  className="flex h-11 w-11 items-center justify-center rounded text-black hover:bg-gray-100 disabled:hover:bg-transparent"
+                  className="flex h-11 w-11 items-center justify-center rounded text-ink hover:bg-band disabled:hover:bg-transparent"
                 >
                   <Star
                     className={cn("h-4 w-4", photo.isPrimary && "fill-current")}

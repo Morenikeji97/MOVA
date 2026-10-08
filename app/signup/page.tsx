@@ -5,6 +5,8 @@ import Link from "next/link";
 import { useSearchParams } from "next/navigation";
 import { createClient } from "@/lib/supabase/client";
 import { Button } from "@/components/ui/button";
+import { AuthShell } from "@/components/ui/auth-shell";
+import { inputClasses } from "@/components/ui/input-classes";
 import { CURRENT_POLICY_VERSION, BUYER_PROTECTION_POLICY_PATH } from "@/lib/policy";
 import { collectDeviceFingerprint } from "@/lib/device-fingerprint";
 import type { UserRole } from "@/types/database";
@@ -71,22 +73,22 @@ function SignupForm() {
 
   if (submitted) {
     return (
-      <main className="mx-auto flex min-h-screen max-w-md flex-col justify-center px-6 text-center">
-        <h1 className="text-2xl font-semibold text-black">Check your email</h1>
-        <p className="mt-2 text-gray-500">
+      <AuthShell center>
+        <h1 className="font-display text-2xl font-extrabold tracking-tight text-ink">Check your email</h1>
+        <p className="mt-2 text-muted">
           We&apos;ve sent a verification link to {email}. Confirm your email to
           finish creating your ShipMova account.
         </p>
-      </main>
+      </AuthShell>
     );
   }
 
   return (
-    <main className="mx-auto flex min-h-screen max-w-md flex-col justify-center px-6">
-      <h1 className="mb-6 text-2xl font-semibold text-black">Create your ShipMova account</h1>
+    <AuthShell>
+      <h1 className="mb-6 font-display text-2xl font-extrabold tracking-tight text-ink">Create your ShipMova account</h1>
       {referralCode ? (
-        <p className="mb-4 rounded border border-gray-200 bg-gray-50 px-3 py-2 text-sm text-gray-500">
-          Signing up with referral code <strong className="text-black">{referralCode}</strong>.
+        <p className="mb-4 rounded-lg border border-line bg-band px-3 py-2 text-sm text-muted">
+          Signing up with referral code <strong className="text-ink">{referralCode}</strong>.
         </p>
       ) : null}
       <form onSubmit={handleSubmit} className="flex flex-col gap-4">
@@ -96,10 +98,10 @@ function SignupForm() {
               type="button"
               key={r}
               onClick={() => setRole(r)}
-              className={`h-11 flex-1 rounded border text-sm font-medium capitalize ${
+              className={`h-11 flex-1 rounded-lg border text-sm font-semibold capitalize ${
                 role === r
-                  ? "border-black bg-gray-100 text-black"
-                  : "border-gray-200 text-gray-500"
+                  ? "border-ink bg-ink text-white"
+                  : "border-line text-muted"
               }`}
             >
               I&apos;m a {r}
@@ -109,39 +111,41 @@ function SignupForm() {
               license, Stripe card capture), so this jumps straight there. */}
           <Link
             href="/shipper/signup"
-            className="flex h-11 flex-1 items-center justify-center rounded border border-gray-200 text-sm font-medium text-gray-500"
+            className="flex h-11 flex-1 items-center justify-center rounded-lg border border-line text-sm font-semibold text-muted"
           >
             I&apos;m a shipper
           </Link>
         </fieldset>
         <label className="flex flex-col gap-1">
-          <span className="text-sm text-gray-500">Email</span>
+          <span className="text-sm text-muted">Email</span>
           <input
             type="email"
+            autoComplete="email"
             required
             value={email}
             onChange={(e) => setEmail(e.target.value)}
-            className="h-11 rounded border border-gray-200 px-3"
+            className={inputClasses()}
           />
         </label>
         <label className="flex flex-col gap-1">
-          <span className="text-sm text-gray-500">Password</span>
+          <span className="text-sm text-muted">Password</span>
           <input
             type="password"
+            autoComplete="new-password"
             required
             minLength={8}
             value={password}
             onChange={(e) => setPassword(e.target.value)}
-            className="h-11 rounded border border-gray-200 px-3"
+            className={inputClasses()}
           />
         </label>
-        <label className="flex items-start gap-2 text-sm text-gray-500">
+        <label className="flex items-start gap-3 py-1 text-sm text-muted">
           <input
             type="checkbox"
             checked={policyAccepted}
             onChange={(e) => setPolicyAccepted(e.target.checked)}
             required
-            className="mt-0.5"
+            className="mt-0.5 h-5 w-5 shrink-0 accent-ink"
           />
           <span>
             I have read and agree to ShipMova&rsquo;s{" "}
@@ -149,7 +153,7 @@ function SignupForm() {
               href={BUYER_PROTECTION_POLICY_PATH}
               target="_blank"
               rel="noopener noreferrer"
-              className="text-black underline underline-offset-2"
+              className="text-ink underline underline-offset-2"
             >
               Buyer Protection &amp; Refund Policy
             </Link>
@@ -161,7 +165,7 @@ function SignupForm() {
           {loading ? "Creating account…" : "Create account"}
         </Button>
       </form>
-    </main>
+    </AuthShell>
   );
 }
 

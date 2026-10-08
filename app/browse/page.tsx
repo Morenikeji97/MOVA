@@ -5,10 +5,22 @@ import { buttonClasses } from "@/components/ui/button";
 import { VehicleCard, type VehicleCardData } from "@/components/ui/vehicle-card";
 import { LISTING_CARD_COLUMNS, loadListingThumbnails } from "@/lib/listings";
 import { getFxRates } from "@/lib/fx";
+import { getDisplayCurrency } from "@/lib/display-currency-server";
+import { cardCurrencies } from "@/lib/display-currency";
 import { FxNote } from "@/components/ui/fx-note";
 import { isPrelaunch } from "@/lib/prelaunch";
 import { WaitlistForm } from "@/components/ui/waitlist-form";
 import { inputClasses } from "@/components/ui/input-classes";
+import { cardClasses } from "@/components/ui/card";
+import { CarIcon, CheckIcon, ChevronDownIcon, SearchIcon } from "@/components/ui/icons";
+import {
+  BODY_FILTERS,
+  FUEL_FILTERS,
+  keywordOrFilter,
+  keywordTerms,
+  parseBodyFilter,
+  parseFuelFilter,
+} from "@/lib/browse-filters";
 
 const inputClass = inputClasses();
 
@@ -32,7 +44,14 @@ export default async function BrowsePage({
   const make = str(sp.make);
   const minPrice = int(sp.min);
   const maxPrice = int(sp.max);
-  const hasFilters = make !== "" || minPrice !== null || maxPrice !== null;
+  // From the homepage search bar and category chips (lib/browse-filters.ts).
+  const keyword = str(sp.q);
+  const terms = keywordTerms(keyword);
+  const body = parseBodyFilter(str(sp.type));
+  const fuel = parseFuelFilter(str(sp.fuel));
+  const category = body ? BODY_FILTERS[body].label : fuel ? FUEL_FILTERS[fuel].label : null;
+  const hasFilters =
+    make !== "" || minPrice !== null || maxPrice !== null || terms.length > 0 || body !== null || fuel !== null;
 
   const supabase = await createClient();
 
@@ -53,6 +72,9 @@ export default async function BrowsePage({
   if (make) query = query.eq("make", make);
   if (minPrice !== null) query = query.gte("price_usd", minPrice);
   if (maxPrice !== null) query = query.lte("price_usd", maxPrice);
+  for (const term of terms) query = query.or(keywordOrFilter(term));
+  if (body) query = query.eq("vehicle_size_type", BODY_FILTERS[body].sizeType);
+  if (fuel) query = query.in("fuel_type", [...FUEL_FILTERS[fuel].fuelTypes]);
 
   const { data: vehicles } = await query;
   const rows = (vehicles ?? []) as VehicleCardData[];
@@ -64,104 +86,181 @@ export default async function BrowsePage({
     ),
     getFxRates(),
   ]);
+  const localCurrencies = cardCurrencies(await getDisplayCurrency());
+
+  // Category chips keep the other filters; one category at a time, and
+  // tapping the active one clears it (same ?type= / ?fuel= the homepage uses).
+  const keep = new URLSearchParams();
+  if (make) keep.set("make", make);
+  if (keyword) keep.set("q", keyword);
+  if (minPrice !== null) keep.set("min", String(minPrice));
+  if (maxPrice !== null) keep.set("max", String(maxPrice));
+  const chipHref = (param: "type" | "fuel", key: string, active: boolean) => {
+    const next = new URLSearchParams(keep);
+    if (!active) next.set(param, key);
+    const qs = next.toString();
+    return qs ? `/browse?${qs}` : "/browse";
+  };
+  const chips = [
+    ...Object.entries(BODY_FILTERS).map(([key, f]) => ({
+      label: f.label,
+      active: body === key,
+      href: chipHref("type", key, body === key),
+    })),
+    ...Object.entries(FUEL_FILTERS).map(([key, f]) => ({
+      label: f.label,
+      active: fuel === key,
+      href: chipHref("fuel", key, fuel === key),
+    })),
+  ];
+  const labelClass = "text-xs font-semibold uppercase tracking-[0.14em] text-muted";
 
   return (
-    <div className="min-h-screen bg-white">
-      <main className="mx-auto max-w-6xl px-6 py-12">
-        <h1 className="text-2xl font-semibold text-black">Browse vehicles</h1>
-        <p className="mt-2 text-sm text-gray-500">
-          {/* Not "verified listings" — this is every approved listing, and
-              approval isn't verification. Same overclaim the homepage heading
-              had; see migration 0032 and lib/listing-badges.ts. */}
-          {rows.length} {rows.length === 1 ? "listing" : "listings"}
-          {hasFilters ? " matching your filters" : " available now"}.
-        </p>
+    <div className="min-h-screen bg-band">
+      <section className="border-b border-line bg-white">
+        <div className="mx-auto max-w-6xl px-4 pb-6 pt-10 sm:px-6 sm:pt-14">
+          <h1 className="font-display text-3xl font-extrabold tracking-tight text-ink sm:text-4xl">
+            Browse vehicles
+          </h1>
+          <p className="mt-2 text-sm text-muted">
+            {/* Not "verified listings" — this is every approved listing, and
+                approval isn't verification. Same overclaim the homepage heading
+                had; see migration 0032 and lib/listing-badges.ts. */}
+            {rows.length} {rows.length === 1 ? "listing" : "listings"}
+            {category ? ` · ${category}` : ""}
+            {hasFilters ? " matching your filters" : " available now"}.
+          </p>
 
-        <form
-          method="get"
-          className="mt-6 flex flex-wrap items-end gap-3 rounded-lg border border-gray-200 bg-white p-4"
-        >
-          <label className="flex flex-col gap-1">
-            <span className="font-mono text-xs uppercase tracking-wider text-gray-500">
-              Make
-            </span>
-            <select name="make" defaultValue={make} className={cn(inputClass, "min-w-40")}>
-              <option value="">All makes</option>
-              {makes.map((m) => (
-                <option key={m} value={m}>
-                  {m}
-                </option>
-              ))}
-            </select>
-          </label>
-          <label className="flex flex-col gap-1">
-            <span className="font-mono text-xs uppercase tracking-wider text-gray-500">
-              Min price (USD)
-            </span>
-            <input
-              type="number"
-              name="min"
-              min={0}
-              step={500}
-              defaultValue={minPrice ?? ""}
-              placeholder="0"
-              className={cn(inputClass, "w-36")}
-            />
-          </label>
-          <label className="flex flex-col gap-1">
-            <span className="font-mono text-xs uppercase tracking-wider text-gray-500">
-              Max price (USD)
-            </span>
-            <input
-              type="number"
-              name="max"
-              min={0}
-              step={500}
-              defaultValue={maxPrice ?? ""}
-              placeholder="Any"
-              className={cn(inputClass, "w-36")}
-            />
-          </label>
-          <button type="submit" className={buttonClasses({ size: "md" })}>
-            Apply filters
-          </button>
-          {hasFilters ? (
-            <Link
-              href="/browse"
-              className="text-sm text-gray-500 hover:text-black"
-            >
-              Clear
-            </Link>
-          ) : null}
-        </form>
+          <ul aria-label="Category" className="mt-5 flex flex-wrap gap-2">
+            {chips.map((chip) => (
+              <li key={chip.label}>
+                <Link
+                  href={chip.href}
+                  aria-current={chip.active ? "true" : undefined}
+                  className={cn(
+                    "flex h-11 items-center gap-1.5 rounded-full border px-4 text-sm font-semibold",
+                    chip.active
+                      ? "border-ink bg-ink text-white"
+                      : "border-line bg-white text-ink hover:border-ink",
+                  )}
+                >
+                  {chip.active ? <CheckIcon size={16} /> : null}
+                  {chip.label}
+                </Link>
+              </li>
+            ))}
+          </ul>
 
+          <form
+            method="get"
+            className="mt-5 grid grid-cols-2 gap-3 lg:grid-cols-[minmax(0,1fr)_minmax(0,1.4fr)_9rem_9rem_auto] lg:items-end"
+          >
+            <label className="flex min-w-0 flex-col gap-1">
+              <span className={labelClass}>Make</span>
+              <span className="relative flex items-center">
+                <select
+                  name="make"
+                  defaultValue={make}
+                  className={cn(inputClass, "w-full appearance-none pr-9")}
+                >
+                  <option value="">All makes</option>
+                  {makes.map((m) => (
+                    <option key={m} value={m}>
+                      {m}
+                    </option>
+                  ))}
+                </select>
+                <ChevronDownIcon size={18} className="pointer-events-none absolute right-3 text-muted" />
+              </span>
+            </label>
+            {/* Kept across "Apply filters": the category chip. */}
+            {body ? <input type="hidden" name="type" value={body} /> : null}
+            {fuel ? <input type="hidden" name="fuel" value={fuel} /> : null}
+            <label className="flex min-w-0 flex-col gap-1">
+              <span className={labelClass}>Keyword</span>
+              <input
+                type="search"
+                name="q"
+                defaultValue={keyword}
+                placeholder="Model, trim…"
+                maxLength={80}
+                enterKeyHint="search"
+                className={cn(inputClass, "w-full")}
+              />
+            </label>
+            <label className="flex min-w-0 flex-col gap-1">
+              <span className={labelClass}>Min price (USD)</span>
+              <input
+                type="number"
+                name="min"
+                min={0}
+                step={500}
+                inputMode="numeric"
+                defaultValue={minPrice ?? ""}
+                placeholder="0"
+                className={cn(inputClass, "w-full")}
+              />
+            </label>
+            <label className="flex min-w-0 flex-col gap-1">
+              <span className={labelClass}>Max price (USD)</span>
+              <input
+                type="number"
+                name="max"
+                min={0}
+                step={500}
+                inputMode="numeric"
+                defaultValue={maxPrice ?? ""}
+                placeholder="Any"
+                className={cn(inputClass, "w-full")}
+              />
+            </label>
+            <div className="col-span-2 flex items-center gap-3 lg:col-span-1">
+              <button type="submit" className={buttonClasses({ className: "flex-1 lg:flex-none" })}>
+                <SearchIcon size={18} />
+                Apply filters
+              </button>
+              {hasFilters ? (
+                <Link
+                  href="/browse"
+                  className="flex h-11 items-center px-2 text-sm font-semibold text-muted hover:text-ink"
+                >
+                  Clear
+                </Link>
+              ) : null}
+            </div>
+          </form>
+        </div>
+      </section>
+
+      <main className="mx-auto max-w-6xl px-4 py-8 sm:px-6 sm:py-10">
         {rows.length === 0 && (makeRows ?? []).length === 0 ? (
           // Nothing approved at all — not a filter problem. Offer the
           // waitlist instead of a dead end.
-          <div className="mt-10 flex flex-col gap-6">
-            <div className="rounded-lg border border-dashed border-gray-200 bg-white p-8 text-center">
-              <p className="text-black">No cars are listed yet.</p>
-              <p className="mt-1 text-sm text-gray-500">
-                The first verified listings are on their way.
-              </p>
-            </div>
+          <div className="flex flex-col gap-6">
+            <EmptyState
+              title="No cars are listed yet."
+              body="The first verified listings are on their way."
+            />
             {isPrelaunch() ? <WaitlistForm source="browse" /> : null}
           </div>
         ) : rows.length === 0 ? (
-          <div className="mt-10 rounded-lg border border-dashed border-gray-200 bg-white p-12 text-center">
-            <p className="text-black">No vehicles match your filters yet.</p>
-            <p className="mt-1 text-sm text-gray-500">
-              Try widening the price range or clearing the make filter.
-            </p>
-          </div>
+          <EmptyState
+            title="No vehicles match your filters yet."
+            body="Try widening the price range or clearing the make filter."
+          >
+            <Link href="/browse" className={buttonClasses({ variant: "secondary", className: "mt-6" })}>
+              Clear filters
+            </Link>
+          </EmptyState>
         ) : (
-          <ul className="mt-8 grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3">
+          <ul className="grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-3">
             {rows.map((v) => (
               <li key={v.id}>
                 <VehicleCard
                   vehicle={v}
                   thumbnailUrl={thumbByVehicle.get(v.id) ?? null}
                   fx={fx}
+                  localCurrencies={localCurrencies}
                 />
               </li>
             ))}
@@ -169,6 +268,19 @@ export default async function BrowsePage({
         )}
         {rows.length > 0 ? <FxNote fx={fx} className="mt-4" /> : null}
       </main>
+    </div>
+  );
+}
+
+function EmptyState({ title, body, children }: { title: string; body: string; children?: React.ReactNode }) {
+  return (
+    <div className={cardClasses({ className: "flex flex-col items-center px-6 py-12 text-center" })}>
+      <span className="flex h-12 w-12 items-center justify-center rounded-full bg-band text-ink">
+        <CarIcon size={24} />
+      </span>
+      <p className="mt-4 font-display text-xl font-bold text-ink">{title}</p>
+      <p className="mt-1 max-w-sm text-sm text-muted">{body}</p>
+      {children}
     </div>
   );
 }

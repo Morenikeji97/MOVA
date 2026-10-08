@@ -52,10 +52,10 @@ test("signup lands on the user's own dashboard by role", () => {
   assert.equal(destinationAfterConfirm({ type: "magiclink", next: null, role: "admin" }), "/admin/dashboard");
 });
 
-test("a shipper goes to the shipper dashboard", () => {
+test("a shipper goes to the shipper portal", () => {
   assert.equal(
     destinationAfterConfirm({ type: "email", next: "/dashboard", role: "buyer", isShipper: true }),
-    "/shipper/dashboard",
+    "/shipper/portal",
   );
 });
 
