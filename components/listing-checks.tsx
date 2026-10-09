@@ -1,6 +1,14 @@
 import { AlertTriangle, CheckCircle2, CircleHelp, XCircle } from "lucide-react";
 import { cardClasses } from "@/components/ui/card";
-import { IMPORT_COUNTRY_NAME, importStatusAll, modelYearFrom, type ImportStatus } from "@/lib/import-rules";
+import {
+  IMPORT_COUNTRY_NAME,
+  IMPORT_RULE_SOURCES,
+  formatCheckedDate,
+  importStatusAll,
+  modelYearFrom,
+  type ImportCountry,
+  type ImportStatus,
+} from "@/lib/import-rules";
 import { fetchRecalls } from "@/lib/recalls";
 import { TITLE_HISTORY_LABEL, fetchTitleHistory } from "@/lib/vinaudit";
 import { cn } from "@/lib/utils";
@@ -16,6 +24,24 @@ const IMPORT_ICON: Record<ImportStatus["kind"], { Icon: typeof CheckCircle2; ton
   not_checked: { Icon: CircleHelp, tone: "text-muted" },
   unknown_year: { Icon: CircleHelp, tone: "text-muted" },
 };
+
+/** "Source · last checked 9 Oct 2026 · confirm with your clearing agent" under each country. */
+function SourceLine({ country }: { country: ImportCountry }) {
+  const src = IMPORT_RULE_SOURCES[country];
+  return (
+    <p className="mt-0.5 text-xs text-muted">
+      Source:{" "}
+      {src.url ? (
+        <a href={src.url} target="_blank" rel="noopener noreferrer" title={src.detail} className="underline underline-offset-2">
+          {src.short}
+        </a>
+      ) : (
+        <span title={src.detail}>{src.short}</span>
+      )}{" "}
+      · last checked {formatCheckedDate(src.lastChecked)} · confirm with your clearing agent
+    </p>
+  );
+}
 
 /**
  * Automatic checks on a listing (founder, 2026-10-08): import rules for each
@@ -74,6 +100,7 @@ export async function ListingChecks({
                     {n}.
                   </p>
                 ))}
+                <SourceLine country={s.country} />
               </div>
             </li>
           );

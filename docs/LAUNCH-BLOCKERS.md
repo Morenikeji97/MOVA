@@ -145,14 +145,33 @@ the copy can be changed instead if a feature is dropped.
       and seed data (test seller, buyer, approved listing, shipper rate).
       Then the e2e test seller and other test rows can leave production.
 
-- [ ] **Confirm Togo and Benin import rules with clearing agents.**
-      Listings show "not yet confirmed — ask your clearing agent" for both
-      (lib/import-rules.ts). Sources found 2026-10-09 disagree: Togo 5, 8
-      or no years for private cars; Benin no age limit (trade sites only, no
-      official source). Also re-confirm Nigeria (12 years) and Ghana (GSA
-      from 1 Oct 2026: over 15 years barred, flood/fire/structural damage
-      barred, Certificate of Conformity before shipping; Customs over-age
-      penalty above 10 years).
+- [ ] **Import rules for Pamz's clearing agents to confirm before launch**
+      (founder, 2026-10-09). Every listing shows these per country with
+      "Source · last checked 9 Oct 2026 · confirm with your clearing agent"
+      (`IMPORT_RULE_SOURCES` in lib/import-rules.ts). After the agents
+      confirm, update the rule and `IMPORT_RULES_LAST_CHECKED`.
+      - **Nigeria:** used vehicles more than 12 years from manufacture are
+        prohibited; a car at exactly 12 years by model year is shown as
+        borderline (customs go by the manufacture date on the door label).
+        Source: Federal Ministry of Finance 2023 Fiscal Policy Measures,
+        circular 20 Apr 2023, in force 1 Jun 2023 (Peoples Gazette);
+        Customs' VIN Valuation System, May 2022. **Conflict to resolve:** the
+        government's Trade Information Portal (tip.nsw.gov.ng, undated)
+        still says 15 years. Also ask: is personal use exempt?
+      - **Ghana:** from 1 Oct 2026, used vehicles more than 15 years old are
+        barred; flood-, fire- and structurally damaged cars, cars assembled
+        from parts and cars without a km/h speedometer are barred; every
+        used vehicle needs a Certificate of Conformity from a GSA-approved
+        inspector in the exporting country (which US inspectors?). Salvage
+        titles barred (Customs (Amendment) Act 2020, Act 1014); over-age
+        penalty above 10 years (current rates?). Source: Ghana Standards
+        Authority notice, Aug 2026 (Citi Newsroom, GhanaWeb) — no copy
+        found on gsa.gov.gh; ask the agents for the notice itself. ShipMova
+        flags Rebuilt titles and "Severe damage" as "check with your
+        clearing agent" — confirm.
+      - **Togo and Benin:** shown as "not yet confirmed". Sources disagree
+        (Togo 5, 8 or no years for private cars; Benin no limit, trade sites
+        only). Need the actual rules and their sources.
 
 - [ ] **VinAudit title history: API key + storage.** `lib/vinaudit.ts` is a
       stub; listings say "Not run yet". Needs: the founder's VINAUDIT_API_KEY

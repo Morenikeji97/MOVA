@@ -1,5 +1,6 @@
 import { test } from "node:test";
 import assert from "node:assert/strict";
+import { readFileSync } from "node:fs";
 import {
   importStatus,
   modelYearFrom,
@@ -125,4 +126,24 @@ test("invalid or missing code falls back to the listing year", () => {
 test("end to end: a 2012 Land Rover is too old for Nigeria in 2026", () => {
   const year = modelYearFrom(vinYearCode("SALAG2D47CA628413"), 2012, 2026);
   assert.equal(nigeriaImportStatus(year, 2026).kind, "too_old");
+});
+
+// Founder, 2026-10-09: every country line shows its source, when ShipMova
+// last checked it, and "confirm with your clearing agent".
+test("every country's rule has a source and a last-checked date", async () => {
+  const { IMPORT_RULE_SOURCES, formatCheckedDate } = await import("./import-rules.ts");
+  for (const c of ["NG", "GH", "TG", "BJ"] as const) {
+    const src = IMPORT_RULE_SOURCES[c];
+    assert.ok(src.short.length > 0, c);
+    assert.ok(src.detail.length > 0, c);
+    assert.match(src.lastChecked, /^\d{4}-\d{2}-\d{2}$/, c);
+  }
+  assert.match(IMPORT_RULE_SOURCES.GH.short, /in force 1 Oct 2026/);
+  assert.equal(formatCheckedDate("2026-10-09"), "9 Oct 2026");
+});
+
+test("each country line says to confirm with a clearing agent", () => {
+  const src = readFileSync("components/listing-checks.tsx", "utf8");
+  assert.match(src, /<SourceLine country=\{s\.country\} \/>/);
+  assert.match(src, /confirm with your clearing agent/);
 });
