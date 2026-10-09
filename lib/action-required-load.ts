@@ -36,6 +36,7 @@ export async function loadActionItems(): Promise<{ items: ActionItem[]; failed: 
     shippers,
     inspectorApps,
     disputes,
+    deletions,
     reviews,
   ] = await Promise.all([
     db
@@ -93,6 +94,12 @@ export async function loadActionItems(): Promise<{ items: ActionItem[]; failed: 
       .order("created_at", { ascending: true })
       .limit(LIMIT),
     db
+      .from("account_deletion_requests")
+      .select("id, user_id, requested_at")
+      .eq("status", "pending")
+      .order("requested_at", { ascending: true })
+      .limit(LIMIT),
+    db
       .from("reviews")
       .select("id, reviewer_id, status, created_at")
       .in("status", ["pending", "flagged"])
@@ -110,6 +117,7 @@ export async function loadActionItems(): Promise<{ items: ActionItem[]; failed: 
     ["shippers", shippers.error],
     ["inspector applications", inspectorApps.error],
     ["disputes", disputes.error],
+    ["account deletions", deletions.error],
     ["reviews", reviews.error],
   ].flatMap(([label, err]) => {
     if (!err) return [];
@@ -243,6 +251,9 @@ export async function loadActionItems(): Promise<{ items: ActionItem[]; failed: 
       since: x.created_at,
       test: testUsers.has(x.reporter_id),
     });
+  }
+  for (const d of deletions.data ?? []) {
+    items.push({ kind: "account_deletion", key: `ad-${d.id}`, title: "Delete an account (requested)", detail: null, href: "/admin/account-deletions", since: d.requested_at, test: testUsers.has(d.user_id) });
   }
   for (const r of reviews.data ?? []) {
     items.push({ kind: "review", key: `rv-${r.id}`, title: r.status === "flagged" ? "Check a flagged review" : "Moderate a review", detail: null, href: "/admin/reviews", since: r.created_at, test: testUsers.has(r.reviewer_id) });
