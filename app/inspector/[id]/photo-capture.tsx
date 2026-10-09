@@ -78,7 +78,7 @@ export function PhotoCapture({
 
   return (
     <div className="flex flex-col gap-1">
-      <label className="inline-flex h-11 w-full cursor-pointer items-center justify-center rounded bg-black px-4 text-white sm:w-auto">
+      <label className="inline-flex h-12 w-full cursor-pointer items-center justify-center rounded-lg bg-ink px-4 font-semibold text-white sm:w-auto">
         {busy ?? label}
         <input
           type="file"
@@ -89,7 +89,7 @@ export function PhotoCapture({
           onChange={(e) => void take(takeFiles(e.target))}
         />
       </label>
-      {error ? <p className="text-sm text-copper-700">{error}</p> : null}
+      {error ? <p role="alert" className="text-sm text-copper-700">{error}</p> : null}
     </div>
   );
 }

@@ -33,10 +33,10 @@ function StatusButton({
       disabled={active || pending}
       aria-pressed={active}
       className={cn(
-        "h-11 flex-1 min-w-[7.5rem] rounded border text-sm font-medium transition-colors disabled:opacity-100",
+        "h-11 w-full rounded-lg border px-2 text-sm font-semibold transition-colors disabled:opacity-100",
         active
-          ? "border-black bg-black text-white"
-          : "border-gray-200 bg-white text-black hover:border-black",
+          ? "border-ink bg-ink text-white"
+          : "border-line bg-white text-ink hover:border-ink",
         pending && !active && "opacity-50",
       )}
     >
@@ -57,7 +57,8 @@ export function ShippingStatusControl({
   current: ShipmentShippingStatus;
 }) {
   return (
-    <ActionForm action={updateShippingStatus} className="flex flex-wrap gap-2">
+    // Two per row on phones (each a half-width tap target), one row from sm.
+    <ActionForm action={updateShippingStatus} className="grid grid-cols-2 gap-2 sm:grid-cols-4">
       <input type="hidden" name="shipmentId" value={shipmentId} />
       {STEPS.map((step) => (
         <StatusButton

@@ -2,6 +2,16 @@ import { type ReactNode } from "react";
 import Link from "next/link";
 import { redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
+import {
+  DashboardHeader,
+  DashboardSection,
+  DashboardShell,
+  DashboardTile,
+  EmptyCard,
+  Notice,
+  StickyAction,
+} from "@/components/ui/dashboard";
+import { cardClasses } from "@/components/ui/card";
 import { buttonClasses } from "@/components/ui/button";
 import { SHIPPER_FEES_ENABLED, SHIPPER_NO_FEES_HEADLINE, countryName } from "@/lib/shipping";
 import type { ShipperPaymentStatus } from "@/types/database";
@@ -32,15 +42,10 @@ const STANDING: Record<
 
 function Shell({ children }: { children: ReactNode }) {
   return (
-    <main className="mx-auto max-w-3xl px-6 py-16">
-      <Link
-        href="/"
-        className="font-mono text-xs uppercase tracking-wider text-gray-500 hover:text-black"
-      >
-        &larr; ShipMova
-      </Link>
+    <DashboardShell narrow>
+      <p className="text-xs font-semibold uppercase tracking-[0.14em] text-muted">Shipper portal</p>
       {children}
-    </main>
+    </DashboardShell>
   );
 }
 
@@ -80,25 +85,22 @@ export default async function ShipperPortalPage({
 
     return (
       <Shell>
-        <h1 className="mt-4 text-2xl font-semibold text-black">
-          Shipper portal
-        </h1>
-        <p className="mt-1 text-sm text-gray-500">Signed in as {user.email}</p>
+        <DashboardHeader className="mt-1" title="Welcome" intro={`Signed in as ${user.email}`} />
 
         {claim === "failed" ? (
-          <p className="mt-4 rounded border border-copper-100 bg-copper-50 p-3 text-sm text-copper-700">
+          <Notice tone="warning" role="alert" className="mt-4">
             We couldn&rsquo;t link a shipper record to this account. Make sure
             you&rsquo;re signed in with the email address on your application.
-          </p>
+          </Notice>
         ) : null}
 
         {claimable ? (
-          <div className="mt-6 rounded-lg border border-gray-200 bg-white p-6">
-            <p className="text-black">
+          <div className={cardClasses({ className: "mt-6" })}>
+            <p className="text-ink">
               We found a shipper application for{" "}
               <strong>{claimable.company_name}</strong> under {user.email}.
             </p>
-            <p className="mt-1 text-sm text-gray-500">
+            <p className="mt-1 text-sm text-muted">
               Link it to this account to send your insurance certificate and manage your rates.
             </p>
             <div className="mt-4">
@@ -106,20 +108,18 @@ export default async function ShipperPortalPage({
             </div>
           </div>
         ) : (
-          <div className="mt-6 rounded-lg border border-dashed border-gray-200 bg-white p-6">
-            <p className="text-black">
-              No shipper record is linked to this account.
-            </p>
-            <p className="mt-1 text-sm text-gray-500">
-              If you&rsquo;ve applied, sign in with the email on your
-              application. Otherwise, apply to list your rates.
-            </p>
-            <Link
-              href="/shipper/signup"
-              className={buttonClasses({ size: "sm", className: "mt-4" })}
+          <div className="mt-6">
+            <EmptyCard
+              title="No shipper record is linked to this account"
+              action={
+                <Link href="/shipper/signup" className={buttonClasses({ className: "w-full sm:w-auto" })}>
+                  Apply as a shipper
+                </Link>
+              }
             >
-              Apply as a shipper
-            </Link>
+              If you&rsquo;ve applied, sign in with the email on your application. Otherwise, apply to
+              list your rates.
+            </EmptyCard>
           </div>
         )}
       </Shell>
@@ -130,24 +130,22 @@ export default async function ShipperPortalPage({
   if (linked.status !== "approved") {
     return (
       <Shell>
-        <h1 className="mt-4 text-2xl font-semibold text-black">
-          {linked.company_name}
-        </h1>
+        <DashboardHeader className="mt-1" title={linked.company_name} />
         {linked.status === "pending" ? (
           <>
-            <p className="mt-3 rounded border border-marine-100 bg-marine-50 p-3 text-sm text-marine-700">
+            <Notice tone="info" className="mt-4">
               Your application is under review. ShipMova approves it once your insurance
               certificate and FMC/OTI license are checked; then you can add rates here.
-            </p>
+            </Notice>
             <InsuranceSection userId={user.id} s={linked} />
           </>
         ) : (
-          <div className="mt-3 rounded border border-copper-100 bg-copper-50 p-3 text-sm text-copper-700">
+          <Notice tone="warning" className="mt-4">
             <p>Your application wasn&rsquo;t approved.</p>
             {linked.rejection_reason ? (
               <p className="mt-1">Reason: {linked.rejection_reason}</p>
             ) : null}
-          </div>
+          </Notice>
         )}
       </Shell>
     );
@@ -171,45 +169,59 @@ export default async function ShipperPortalPage({
   const rates = (rateRows ?? []) as ShipperRate[];
   const standing = STANDING[linked.payment_status];
 
+  const editProfile = (
+    <Link href="/shipper/profile" className={buttonClasses({ variant: "secondary", className: "w-full sm:w-auto" })}>
+      Edit profile
+    </Link>
+  );
+
   return (
     <Shell>
-      <div className="mt-4 flex flex-wrap items-start justify-between gap-3">
-        <div>
-          <h1 className="text-2xl font-semibold text-black">
-            {linked.company_name}
-          </h1>
-          <p className="mt-1 text-sm text-gray-500">Signed in as {user.email}</p>
-        </div>
-        <Link
-          href="/shipper/profile"
-          className={buttonClasses({ size: "sm", variant: "secondary" })}
-        >
-          Edit profile
-        </Link>
-      </div>
+      <DashboardHeader
+        className="mt-1"
+        title={linked.company_name}
+        intro={`Signed in as ${user.email}`}
+        action={editProfile}
+      />
 
       {claim === "ok" ? (
-        <p className="mt-4 rounded border border-verified-100 bg-verified-50 p-3 text-sm text-verified-600">
+        <Notice tone="success" role="status" className="mt-4">
           Account linked. You can manage your rates below.
-        </p>
+        </Notice>
       ) : null}
       {SHIPPER_FEES_ENABLED && card === "updated" ? (
-        <p className="mt-4 rounded border border-verified-100 bg-verified-50 p-3 text-sm text-verified-600">
+        <Notice tone="success" role="status" className="mt-4">
           Card updated — ShipMova will use it for future commission charges.
-        </p>
+        </Notice>
       ) : null}
       {SHIPPER_FEES_ENABLED && card === "error" ? (
-        <p className="mt-4 rounded border border-copper-100 bg-copper-50 p-3 text-sm text-copper-700">
+        <Notice tone="warning" role="alert" className="mt-4">
           We couldn&rsquo;t open Stripe just now. Please try again.
-        </p>
+        </Notice>
       ) : null}
+
+      {/* Shipments first: it's what a shipper opens the portal for. Full
+          list, one-tap status updates, proof photos and buyer contact live
+          on the dedicated dashboard. */}
+      <nav aria-label="Shipper areas" className="mt-6 grid gap-3 sm:grid-cols-2">
+        <DashboardTile
+          href="/shipper/dashboard"
+          title="Shipments"
+          body={
+            shipmentCount
+              ? `${shipmentCount} shipment${shipmentCount === 1 ? "" : "s"} · status, photos, buyer contact`
+              : "None yet — they appear when a buyer picks your rate"
+          }
+        />
+        <DashboardTile href="/shipper/profile" title="Profile & reviews" body="What buyers see about you" />
+      </nav>
 
       <InsuranceSection userId={user.id} s={linked} />
 
       {/* Account standing. While shipper fees are off (lib/shipping.ts) there's
           no card, no charge and so nothing that can change standing. */}
       {SHIPPER_FEES_ENABLED ? (
-        <section className={`mt-6 rounded-lg border p-4 ${standing.cls}`}>
+        <section className={`mt-6 rounded-card border p-5 ${standing.cls}`}>
           <div className="flex flex-wrap items-center justify-between gap-3">
             <p className="font-semibold">Account standing: {standing.label}</p>
             <UpdateCardButton hasCard={linked.card_on_file} />
@@ -223,43 +235,28 @@ export default async function ShipperPortalPage({
           ) : null}
         </section>
       ) : (
-        <section className="mt-6 rounded-lg border border-verified-100 bg-verified-50 p-4 text-verified-600">
+        <Notice tone="success" className="mt-6 p-4">
           <p className="font-semibold">{SHIPPER_NO_FEES_HEADLINE}</p>
-          <p className="mt-1 text-sm">
+          <p className="mt-1">
             ShipMova charges you nothing: no commission and no card on file. Your
             active rates are shown to buyers.
           </p>
-        </section>
+        </Notice>
       )}
 
-      {/* Rates */}
-      <section className="mt-10">
-        <h2 className="font-mono text-xs uppercase tracking-wider text-gray-500">
-          Your rates ({rates.length}) · serving{" "}
-          {linked.service_countries.map(countryName).join(", ") || "—"}
-        </h2>
+      <DashboardSection title={`Your rates (${rates.length})`}>
+        <p className="text-sm text-muted">
+          Serving {linked.service_countries.map(countryName).join(", ") || "—"}
+        </p>
         <RateList rates={rates} />
         <AddRateForm />
-      </section>
+      </DashboardSection>
 
-      {/* Shipments — full list, one-tap status updates, proof photos and
-          buyer contact live on the dedicated dashboard now. */}
-      <section className="mt-10">
-        <h2 className="font-mono text-xs uppercase tracking-wider text-gray-500">
-          Shipments ({shipmentCount ?? 0})
-        </h2>
-        <p className="mt-1 text-sm text-gray-500">
-          {shipmentCount
-            ? "Update pickup/delivery status, upload proof photos and message buyers."
-            : "None yet. When a buyer selects one of your rates it appears here."}
-        </p>
-        <Link
-          href="/shipper/dashboard"
-          className={buttonClasses({ size: "sm", className: "mt-3" })}
-        >
+      <StickyAction>
+        <Link href="/shipper/dashboard" className={buttonClasses({ className: "w-full" })}>
           Manage shipments
         </Link>
-      </section>
+      </StickyAction>
     </Shell>
   );
 }

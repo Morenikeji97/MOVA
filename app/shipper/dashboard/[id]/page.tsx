@@ -2,6 +2,8 @@ import { type ReactNode } from "react";
 import Link from "next/link";
 import { notFound, redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
+import { BackLink, DashboardShell } from "@/components/ui/dashboard";
+import { cardClasses } from "@/components/ui/card";
 import { countryName } from "@/lib/shipping";
 import { ShippingStatusControl } from "../status-control";
 import { ShipmentProofUploader } from "@/components/ui/shipment-proof-uploader";
@@ -28,25 +30,20 @@ const money = (amount: number, currency: string) =>
 
 function Shell({ children }: { children: ReactNode }) {
   return (
-    <main className="mx-auto max-w-2xl px-6 py-16">
-      <Link
-        href="/shipper/dashboard"
-        className="font-mono text-xs uppercase tracking-wider text-gray-500 hover:text-black"
-      >
-        &larr; Your shipments
-      </Link>
+    <DashboardShell narrow>
+      <BackLink href="/shipper/dashboard">Your shipments</BackLink>
       {children}
-    </main>
+    </DashboardShell>
   );
 }
 
 function Detail({ label, children }: { label: string; children: ReactNode }) {
   return (
     <div>
-      <dt className="font-mono text-xs uppercase tracking-wider text-gray-500">
+      <dt className="text-xs font-semibold uppercase tracking-[0.14em] text-muted">
         {label}
       </dt>
-      <dd className="text-black">{children}</dd>
+      <dd className="min-w-0 break-words text-ink">{children}</dd>
     </div>
   );
 }
@@ -121,18 +118,19 @@ export default async function ShipmentDetailPage({
 
   return (
     <Shell>
-      <h1 className="mt-4 text-2xl font-semibold text-black">
+      <h1 className="mt-2 break-words font-display text-3xl font-extrabold tracking-tight text-ink">
         {vehicleLabel || "Vehicle details unavailable"}
         {shipment.vehicle_trim ? (
-          <span className="font-normal text-gray-500"> {shipment.vehicle_trim}</span>
+          <span className="font-normal text-muted"> {shipment.vehicle_trim}</span>
         ) : null}
       </h1>
 
-      <div className="mt-4">
+      <div className={cardClasses({ className: "mt-4" })}>
+        <p className="mb-2 text-xs font-semibold uppercase tracking-[0.14em] text-muted">Status</p>
         <ShippingStatusControl shipmentId={shipment.id} current={shipment.shipping_status} />
       </div>
 
-      <dl className="mt-6 grid grid-cols-2 gap-x-4 gap-y-3 rounded-lg border border-gray-200 bg-white p-5 text-sm">
+      <dl className="mt-4 grid grid-cols-2 gap-x-4 gap-y-3 rounded-card border border-line bg-white p-5 text-sm shadow-card">
         <Detail label="Pickup location">
           {[shipment.pickup_city, shipment.pickup_state].filter(Boolean).join(", ") || "—"}
         </Detail>
@@ -144,47 +142,68 @@ export default async function ShipmentDetailPage({
       </dl>
 
       {/* Buyer contact — always revealed once the shipment exists (see 0016). */}
-      <section className="mt-6 rounded-lg border border-verified-100 bg-verified-50 p-5">
-        <h2 className="font-mono text-xs uppercase tracking-wider text-gray-500">
+      <section className="mt-4 rounded-card border border-verified-600/20 bg-verified-50 p-5">
+        <h2 className="font-display text-lg font-bold text-ink">
           Buyer contact
         </h2>
-        <dl className="mt-3 grid grid-cols-2 gap-x-4 gap-y-3 text-sm sm:grid-cols-3">
+        <dl className="mt-3 grid grid-cols-1 gap-x-4 gap-y-3 text-sm min-[400px]:grid-cols-2 sm:grid-cols-3">
           {shipment.buyer_name ? <Detail label="Name">{shipment.buyer_name}</Detail> : null}
-          {shipment.buyer_email ? <Detail label="Email">{shipment.buyer_email}</Detail> : null}
-          {shipment.buyer_phone ? <Detail label="Phone">{shipment.buyer_phone}</Detail> : null}
+          {shipment.buyer_email ? (
+            <Detail label="Email">
+              <a href={`mailto:${shipment.buyer_email}`} className="break-all underline underline-offset-2">
+                {shipment.buyer_email}
+              </a>
+            </Detail>
+          ) : null}
+          {shipment.buyer_phone ? (
+            <Detail label="Phone">
+              <a href={`tel:${shipment.buyer_phone.replace(/[^\d+]/g, "")}`} className="underline underline-offset-2">
+                {shipment.buyer_phone}
+              </a>
+            </Detail>
+          ) : null}
           {shipment.buyer_whatsapp ? (
-            <Detail label="WhatsApp">{shipment.buyer_whatsapp}</Detail>
+            <Detail label="WhatsApp">
+              <a
+                href={`https://wa.me/${shipment.buyer_whatsapp.replace(/\D/g, "")}`}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="underline underline-offset-2"
+              >
+                {shipment.buyer_whatsapp}
+              </a>
+            </Detail>
           ) : null}
         </dl>
       </section>
 
       {/* Payment through Escrow.com (0062): two milestones. */}
-      <section className="mt-10 rounded-lg border border-gray-200 bg-white p-4">
-        <h2 className="font-mono text-xs uppercase tracking-wider text-gray-500">Payment through Escrow.com</h2>
+      <section className={cardClasses({ className: "mt-4" })}>
+        <h2 className="font-display text-lg font-bold text-ink">Payment through Escrow.com</h2>
         {shipment.escrow_transaction_id ? (
           <>
-            <p className="mt-1 text-sm text-gray-500">
+            <p className="mt-1 text-sm text-muted">
               Escrow.com transaction <span className="font-mono">{shipment.escrow_transaction_id}</span>. After you upload
               each proof below, mark that milestone done in Escrow.com; it&rsquo;s released to you{" "}
               {SHIPPING_MILESTONE_INSPECTION_DAYS} days later unless the buyer objects.
             </p>
             <dl className="mt-2 flex flex-col gap-1 text-sm">
               <div className="flex flex-wrap gap-x-2">
-                <dt className="text-gray-500">
+                <dt className="text-muted">
                   Inland {shipment.inland_usd != null ? `$${Number(shipment.inland_usd).toFixed(2)}` : ""} — released at pickup
                 </dt>
-                <dd className="text-black">{ITEM_STATE_LABEL[shipment.escrow_inland_state ?? "awaiting_payment"]}</dd>
+                <dd className="text-ink">{ITEM_STATE_LABEL[shipment.escrow_inland_state ?? "awaiting_payment"]}</dd>
               </div>
               <div className="flex flex-wrap gap-x-2">
-                <dt className="text-gray-500">
+                <dt className="text-muted">
                   Ocean {shipment.ocean_usd != null ? `$${Number(shipment.ocean_usd).toFixed(2)}` : ""} — released at bill of lading
                 </dt>
-                <dd className="text-black">{ITEM_STATE_LABEL[shipment.escrow_ocean_state ?? "awaiting_payment"]}</dd>
+                <dd className="text-ink">{ITEM_STATE_LABEL[shipment.escrow_ocean_state ?? "awaiting_payment"]}</dd>
               </div>
             </dl>
           </>
         ) : (
-          <p className="mt-1 text-sm text-gray-500">
+          <p className="mt-1 text-sm text-muted">
             The buyer pays shipping into Escrow.com, never to you directly. ShipMova opens the escrow;
             Escrow.com then emails you to agree.
           </p>
@@ -192,8 +211,8 @@ export default async function ShipmentDetailPage({
       </section>
 
       {/* Proof of pickup / delivery */}
-      <section className="mt-10">
-        <h2 className="font-mono text-xs uppercase tracking-wider text-gray-500">
+      <section className={cardClasses({ className: "mt-4" })}>
+        <h2 className="font-display text-lg font-bold text-ink">
           Proof of pickup
         </h2>
         <div className="mt-3 flex flex-col gap-3">
@@ -207,7 +226,7 @@ export default async function ShipmentDetailPage({
                     key={p.id}
                     src={url}
                     alt="Proof of pickup"
-                    className="aspect-square w-full rounded border border-gray-200 object-cover"
+                    className="aspect-square w-full rounded-lg border border-line object-cover"
                   />
                 ) : null;
               })}
@@ -217,11 +236,11 @@ export default async function ShipmentDetailPage({
         </div>
       </section>
 
-      <section className="mt-8">
-        <h2 className="font-mono text-xs uppercase tracking-wider text-gray-500">
+      <section className={cardClasses({ className: "mt-4" })}>
+        <h2 className="font-display text-lg font-bold text-ink">
           Bill of lading
         </h2>
-        <p className="mt-1 text-sm text-gray-500">
+        <p className="mt-1 text-sm text-muted">
           A clear photo of the bill of lading once the car is loaded. It releases the ocean freight payment.
         </p>
         <div className="mt-3 flex flex-col gap-3">
@@ -235,7 +254,7 @@ export default async function ShipmentDetailPage({
                     key={p.id}
                     src={url}
                     alt="Bill of lading"
-                    className="aspect-square w-full rounded border border-gray-200 object-cover"
+                    className="aspect-square w-full rounded-lg border border-line object-cover"
                   />
                 ) : null;
               })}
@@ -245,8 +264,8 @@ export default async function ShipmentDetailPage({
         </div>
       </section>
 
-      <section className="mt-8">
-        <h2 className="font-mono text-xs uppercase tracking-wider text-gray-500">
+      <section className={cardClasses({ className: "mt-4" })}>
+        <h2 className="font-display text-lg font-bold text-ink">
           Proof of delivery
         </h2>
         <div className="mt-3 flex flex-col gap-3">
@@ -260,7 +279,7 @@ export default async function ShipmentDetailPage({
                     key={p.id}
                     src={url}
                     alt="Proof of delivery"
-                    className="aspect-square w-full rounded border border-gray-200 object-cover"
+                    className="aspect-square w-full rounded-lg border border-line object-cover"
                   />
                 ) : null;
               })}
@@ -275,8 +294,8 @@ export default async function ShipmentDetailPage({
       </section>
 
       {/* Buyer-visible notes */}
-      <section className="mt-10">
-        <h2 className="font-mono text-xs uppercase tracking-wider text-gray-500">
+      <section className={cardClasses({ className: "mt-4" })}>
+        <h2 className="font-display text-lg font-bold text-ink">
           Updates ({(updateRows ?? []).length})
         </h2>
         <div className="mt-3">
@@ -287,10 +306,10 @@ export default async function ShipmentDetailPage({
             {(updateRows ?? []).map((u) => (
               <li
                 key={u.id}
-                className="rounded border border-gray-200 bg-white p-3 text-sm"
+                className="rounded-lg border border-line bg-band p-3 text-sm"
               >
-                <p className="text-black">{u.note}</p>
-                <p className="mt-1 font-mono text-xs text-gray-500">
+                <p className="text-ink">{u.note}</p>
+                <p className="mt-1 font-mono text-xs text-muted">
                   {fmtDateTime.format(new Date(u.created_at))}
                 </p>
               </li>

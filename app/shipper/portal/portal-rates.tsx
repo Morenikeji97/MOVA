@@ -20,6 +20,7 @@ import {
   updateShipperRate,
 } from "../actions";
 import { inputClasses } from "@/components/ui/input-classes";
+import { StatusPill } from "@/components/ui/dashboard";
 
 const inputClass = inputClasses();
 
@@ -156,14 +157,15 @@ export function AddRateForm() {
     <ActionForm
       action={addShipperRate}
       resetOnSaved
-      className="mt-4 grid grid-cols-1 gap-2 rounded-lg border border-gray-200 bg-white p-4 sm:grid-cols-2"
+      className="mt-4 grid grid-cols-1 gap-3 rounded-card border border-line bg-white p-5 shadow-card sm:grid-cols-2"
     >
-      <p className="font-mono text-xs uppercase tracking-wider text-gray-500 sm:col-span-2">
-        Add a rate — buyers see the price exactly as entered
-      </p>
+      <div className="sm:col-span-2">
+        <h3 className="font-display text-lg font-bold text-ink">Add a rate</h3>
+        <p className="text-sm text-muted">Buyers see the price exactly as entered.</p>
+      </div>
       <RateFields />
       <div className="sm:col-span-2">
-        <PendingButton variant="secondary" size="sm" pendingLabel="Adding…">
+        <PendingButton className="w-full sm:w-auto" pendingLabel="Adding…">
           Add rate
         </PendingButton>
       </div>
@@ -176,7 +178,7 @@ function RateRow({ rate }: { rate: ShipperRate }) {
 
   if (editing) {
     return (
-      <li className="rounded-lg border border-black bg-white p-4">
+      <li className="rounded-card border border-ink bg-white p-4 shadow-card">
         <ActionForm
           action={updateShipperRate}
           onSaved={() => setEditing(false)}
@@ -184,14 +186,14 @@ function RateRow({ rate }: { rate: ShipperRate }) {
         >
           <input type="hidden" name="id" value={rate.id} />
           <RateFields rate={rate} />
-          <div className="flex items-center gap-3 sm:col-span-2">
-            <PendingButton variant="primary" size="sm" pendingLabel="Saving…">
+          <div className="grid grid-cols-2 gap-2 sm:col-span-2 sm:flex">
+            <PendingButton variant="primary" className="w-full sm:w-auto" pendingLabel="Saving…">
               Save
             </PendingButton>
             <button
               type="button"
               onClick={() => setEditing(false)}
-              className="text-sm text-gray-500 hover:text-black"
+              className="h-11 rounded-lg px-4 text-sm font-semibold text-muted hover:text-ink"
             >
               Cancel
             </button>
@@ -202,59 +204,40 @@ function RateRow({ rate }: { rate: ShipperRate }) {
   }
 
   return (
-    <li className="flex flex-wrap items-center justify-between gap-3 rounded-lg border border-gray-200 bg-white p-4">
-      <div>
-        <p className="text-black">
+    <li className="rounded-card border border-line bg-white p-4 shadow-card">
+      <div className="flex flex-wrap items-start justify-between gap-2">
+        <p className="min-w-0 font-semibold text-ink">
           {rate.origin_region}
-          {rate.origin_port ? ` (${rate.origin_port})` : ""} &rarr;{" "}
-          {countryName(rate.destination_country)}
-          {" · "}
-          {vehicleSizeLabel(rate.vehicle_size_type)}
-          {" · "}
-          {shippingMethodLabel(rate.shipping_method)} ·{" "}
-          <strong>{money(Number(rate.price), rate.currency)}</strong>
-          {rate.inland_price != null ? (
-            <span className="text-gray-500">
-              {" "}(inland {money(Number(rate.inland_price), rate.currency)} at pickup + ocean{" "}
-              {money(Number(rate.price) - Number(rate.inland_price), rate.currency)} at bill of lading)
-            </span>
-          ) : (
-            <span className="text-copper-700"> · add the inland part so buyers can pay through escrow</span>
-          )}
-          {!rate.active ? (
-            <span className="ml-2 text-xs font-normal text-copper-700">
-              hidden from buyers
-            </span>
-          ) : null}
+          {rate.origin_port ? ` (${rate.origin_port})` : ""} &rarr; {countryName(rate.destination_country)}
         </p>
+        {!rate.active ? <StatusPill tone="warning">Hidden from buyers</StatusPill> : null}
       </div>
-      <div className="flex items-center gap-2">
-        <Button
-          type="button"
-          variant="ghost"
-          size="sm"
-          onClick={() => setEditing(true)}
-        >
+      <p className="mt-1 text-sm text-muted">
+        {vehicleSizeLabel(rate.vehicle_size_type)} · {shippingMethodLabel(rate.shipping_method)}
+      </p>
+      <p className="mt-2 text-lg font-bold tabular-nums text-ink">{money(Number(rate.price), rate.currency)}</p>
+      {rate.inland_price != null ? (
+        <p className="text-sm text-muted">
+          (inland {money(Number(rate.inland_price), rate.currency)} at pickup + ocean{" "}
+          {money(Number(rate.price) - Number(rate.inland_price), rate.currency)} at bill of lading)
+        </p>
+      ) : (
+        <p className="text-sm text-copper-700">· add the inland part so buyers can pay through escrow</p>
+      )}
+      <div className="mt-3 grid grid-cols-3 gap-2 sm:flex">
+        <Button type="button" variant="secondary" size="sm" className="w-full px-2 sm:w-auto sm:px-4" onClick={() => setEditing(true)}>
           Edit
         </Button>
         <ActionForm action={setShipperRateActive}>
           <input type="hidden" name="id" value={rate.id} />
-          <input
-            type="hidden"
-            name="active"
-            value={rate.active ? "false" : "true"}
-          />
-          <PendingButton
-            variant="ghost"
-            size="sm"
-            pendingLabel="Updating…"
-          >
+          <input type="hidden" name="active" value={rate.active ? "false" : "true"} />
+          <PendingButton variant="secondary" size="sm" className="w-full px-2 sm:w-auto sm:px-4" pendingLabel="Updating…">
             {rate.active ? "Hide" : "Show"}
           </PendingButton>
         </ActionForm>
         <ActionForm action={deleteShipperRate}>
           <input type="hidden" name="id" value={rate.id} />
-          <PendingButton variant="ghost" size="sm" pendingLabel="Removing…">
+          <PendingButton variant="secondary" size="sm" className="w-full px-2 sm:w-auto sm:px-4" pendingLabel="Removing…">
             Delete
           </PendingButton>
         </ActionForm>
@@ -266,14 +249,14 @@ function RateRow({ rate }: { rate: ShipperRate }) {
 export function RateList({ rates }: { rates: ShipperRate[] }) {
   if (rates.length === 0) {
     return (
-      <p className="mt-4 rounded-lg border border-dashed border-gray-200 bg-white p-6 text-sm text-gray-500">
+      <p className="mt-3 rounded-card border border-dashed border-line bg-white p-6 text-sm text-muted">
         No rates yet. Add one below — buyers shipping to a country you serve will
         see it at reservation time.
       </p>
     );
   }
   return (
-    <ul className="mt-4 flex flex-col gap-2">
+    <ul className="mt-3 flex flex-col gap-3">
       {rates.map((r) => (
         <RateRow key={r.id} rate={r} />
       ))}

@@ -12,7 +12,7 @@ import { inputClasses } from "@/components/ui/input-classes";
 function SubmitButton() {
   const pending = useActionPending();
   return (
-    <Button type="submit" disabled={pending}>
+    <Button type="submit" disabled={pending} className="w-full sm:w-auto">
       {pending ? "Saving…" : "Save changes"}
     </Button>
   );
@@ -35,19 +35,20 @@ export function ShipperProfileForm({
   return (
     <ActionForm action={updateShipperProfile} className="flex flex-col gap-4">
       <label className="flex flex-col gap-1">
-        <span className="text-sm text-gray-500">Company name</span>
+        <span className="text-sm text-muted">Company name</span>
         <input
           type="text"
           name="companyName"
           required
           defaultValue={companyName}
-          className="h-11 rounded border border-gray-200 px-3"
+          autoComplete="organization"
+          className={inputClasses()}
         />
       </label>
 
       <label className="flex flex-col gap-1">
-        <span className="text-sm text-gray-500">
-          Description <span className="text-gray-500">(shown on your public profile)</span>
+        <span className="text-sm text-muted">
+          Description <span className="text-muted">(shown on your public profile)</span>
         </span>
         <textarea
           name="description"
@@ -59,17 +60,17 @@ export function ShipperProfileForm({
       </label>
 
       <fieldset>
-        <legend className="text-sm text-gray-500">Countries you ship to</legend>
+        <legend className="text-sm text-muted">Countries you ship to</legend>
         <div className="mt-2 flex flex-wrap gap-2">
           {SERVICE_COUNTRIES.map((c) => {
             const checked = selected.has(c.code);
             return (
               <label
                 key={c.code}
-                className={`flex h-11 cursor-pointer items-center gap-2 rounded border px-4 text-sm font-medium ${
+                className={`flex h-11 cursor-pointer items-center gap-2 rounded-full border px-4 text-sm font-semibold ${
                   checked
-                    ? "border-black bg-gray-100 text-black"
-                    : "border-gray-200 text-gray-500"
+                    ? "border-ink bg-ink text-white"
+                    : "border-line bg-white text-ink"
                 }`}
               >
                 <input
@@ -93,18 +94,18 @@ export function ShipperProfileForm({
       </fieldset>
 
       <fieldset>
-        <legend className="text-sm text-gray-500">
+        <legend className="text-sm text-muted">
           US states you pick up vehicles from
         </legend>
-        <p className="mt-1 text-xs text-gray-500">
+        <p className="mt-1 text-xs text-muted">
           Buyers see you flagged as a local, likely-cheaper pickup option for
           vehicles located in these states.
         </p>
-        <div className="mt-2 grid max-h-56 grid-cols-2 gap-2 overflow-y-auto rounded border border-gray-200 p-3 sm:grid-cols-3">
+        <div className="mt-2 grid max-h-72 grid-cols-2 gap-x-3 overflow-y-auto rounded-lg border border-line p-3 sm:grid-cols-3">
           {US_STATES.map(([code, name]) => {
             const checked = selectedAreas.has(code);
             return (
-              <label key={code} className="inline-flex items-center gap-2 text-sm text-black">
+              <label key={code} className="flex h-11 items-center gap-2 text-sm text-ink">
                 <input
                   type="checkbox"
                   name="serviceAreas"
@@ -116,7 +117,7 @@ export function ShipperProfileForm({
                     else next.delete(code);
                     setSelectedAreas(next);
                   }}
-                  className="h-4 w-4"
+                  className="h-5 w-5 shrink-0 accent-ink"
                 />
                 {name}
               </label>

@@ -28,15 +28,15 @@ export function InsuranceSection({
   const showForm = s.coi_status !== "pending" && (!badge || expiringSoon);
 
   return (
-    <section className="mt-8 rounded-lg border border-gray-200 bg-white p-4">
-      <h2 className="font-mono text-xs uppercase tracking-wider text-gray-500">Verification</h2>
-      <p className="mt-1 text-sm text-gray-500">
+    <section className="mt-6 rounded-card border border-line bg-white p-5 shadow-card">
+      <h2 className="font-display text-xl font-bold text-ink">Verification</h2>
+      <p className="mt-1 text-sm text-muted">
         Buyers only see shippers with in-date marine cargo insurance and an FMC/OTI license
         ShipMova has checked.
       </p>
 
       <div className="mt-4">
-        <p className="font-medium text-black">Marine cargo insurance</p>
+        <p className="font-semibold text-ink">Marine cargo insurance</p>
         {badge ? (
           <p className="mt-1 text-sm text-verified-600">
             {badge}
@@ -69,8 +69,8 @@ export function InsuranceSection({
       </div>
 
       <div className="mt-6">
-        <p className="font-medium text-black">FMC/OTI license</p>
-        <p className={`mt-1 text-sm ${s.license_status === "active" ? "text-verified-600" : s.license_status === "not_found" ? "text-copper-700" : "text-gray-500"}`}>
+        <p className="font-semibold text-ink">FMC/OTI license</p>
+        <p className={`mt-1 text-sm ${s.license_status === "active" ? "text-verified-600" : s.license_status === "not_found" ? "text-copper-700" : "text-muted"}`}>
           {s.license_status === "active"
             ? "✓ Checked on the FMC's OTI list."
             : s.license_status === "not_found"
