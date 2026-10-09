@@ -1,18 +1,11 @@
 /**
  * ShipMova — can this car be imported to the buyer's country?
  *
- * Sources (verify with clearing agents; rules change):
- *   Nigeria — Customs 12-year rule (legit.ng, carawon.com, 2026).
- *   Ghana — Ghana Standards Authority, from 1 October 2026 (citinewsroom.com,
- *     2026-08): used vehicles more than 15 years old are barred, as are
- *     flood/water-, fire- and structurally damaged vehicles of any age; every
- *     used vehicle needs a Certificate of Conformity from a GSA-approved
- *     inspection in the exporting country. Customs (Amendment) Act 2020
- *     (Act 1014) also bars salvaged vehicles (damaged, without a clean
- *     title) and charges an over-age penalty above 10 years.
- *   Togo, Benin — sources disagree (2026-10-09: Togo 5, 8 or no years;
- *     Benin none, from trade sites only). Not encoded: "not yet confirmed",
- *     never a guess. docs/LAUNCH-BLOCKERS.md lists them to confirm.
+ * Every country's rule carries its source and the date ShipMova last
+ * checked it (IMPORT_RULE_SOURCES below), and every line buyers see says
+ * "confirm with your clearing agent": rules change, and ShipMova isn't the
+ * authority. docs/LAUNCH-BLOCKERS.md lists them for the partner clearing
+ * agents to confirm before launch.
  *
  * Age is checked by MODEL YEAR. A model year exactly at the cutoff is
  * borderline, because customs go by the manufacture date (on the driver's
@@ -37,7 +30,7 @@ export type ImportStatus = {
   notes?: string[];
 };
 
-export const NOT_CHECKED_LABEL = "Import rules not yet confirmed for this country — ask your clearing agent";
+export const NOT_CHECKED_LABEL = "Import rules not yet confirmed for this country";
 
 export const IMPORT_COUNTRY_NAME: Record<ImportCountry, string> = {
   NG: "Nigeria",
@@ -45,6 +38,53 @@ export const IMPORT_COUNTRY_NAME: Record<ImportCountry, string> = {
   TG: "Togo",
   BJ: "Benin",
 };
+
+/**
+ * Where each rule comes from, and when ShipMova last checked it. `short` is
+ * shown to buyers on every country line; `detail` is for staff and the
+ * clearing agents confirming it.
+ */
+export const IMPORT_RULES_LAST_CHECKED = "2026-10-09";
+
+export const IMPORT_RULE_SOURCES: Record<
+  ImportCountry,
+  { short: string; detail: string; url: string | null; lastChecked: string }
+> = {
+  NG: {
+    short: "Federal Ministry of Finance, 2023 Fiscal Policy Measures (in force 1 Jun 2023)",
+    detail:
+      "Circular dated 20 Apr 2023, in force 1 Jun 2023: used vehicles manufactured more than 12 years ago are on the import prohibition list; Nigeria Customs announced the 12-year limit with its VIN Valuation System in May 2022. The Nigeria Trade Information Portal (tip.nsw.gov.ng, undated) still says 15 years.",
+    url: "https://gazettengr.com/fg-bans-importation-of-vehicles-above-12-years-hikes-taxes-on-imported-wines-beers/",
+    lastChecked: IMPORT_RULES_LAST_CHECKED,
+  },
+  GH: {
+    short: "Ghana Standards Authority notice (in force 1 Oct 2026)",
+    detail:
+      "GSA public notice, Aug 2026, superseding its Jul 2026 notice (which said 10 years): from 1 Oct 2026 used vehicles more than 15 years old are barred, as are flood-, fire- and structurally damaged vehicles, vehicles assembled from parts and vehicles without a km/h speedometer; every used vehicle needs a Certificate of Conformity from a GSA-approved inspection in the exporting country. Reported by Citi Newsroom and GhanaWeb (no copy found on gsa.gov.gh). Customs (Amendment) Act 2020 (Act 1014) bars salvaged vehicles (damaged, without a clean title); Customs charges an over-age penalty above 10 years.",
+    url: "https://www.citinewsroom.com/2026/08/no-more-importation-of-used-vehicles-15-years-and-older-from-october-1/",
+    lastChecked: IMPORT_RULES_LAST_CHECKED,
+  },
+  TG: {
+    short: "No reliable source found",
+    detail:
+      "Sources disagree: 5, 8 or no years for private cars; a 2018 cabinet decree planned a limit but never published one (Togo First, 18 Jan 2018).",
+    url: null,
+    lastChecked: IMPORT_RULES_LAST_CHECKED,
+  },
+  BJ: {
+    short: "No official source found",
+    detail: "Trade sites report no age limit for used vehicles; no government source found.",
+    url: null,
+    lastChecked: IMPORT_RULES_LAST_CHECKED,
+  },
+};
+
+/** "9 Oct 2026" for a YYYY-MM-DD date. */
+export function formatCheckedDate(iso: string): string {
+  const [y, m, d] = iso.split("-").map(Number);
+  const months = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
+  return `${d} ${months[m - 1]} ${y}`;
+}
 
 /** Ghana: oldest age (years) allowed from 1 Oct 2026, and the age above which Customs charges a penalty. */
 export const GHANA_MAX_AGE_YEARS = 15;
@@ -86,7 +126,7 @@ export function ghanaImportStatus(
 ): ImportStatus {
   const title = (damage.titleStatus ?? "").trim().toLowerCase();
   const accident = (damage.accidentHistory ?? "").trim().toLowerCase();
-  const coc = "Needs a Certificate of Conformity from a Ghana Standards Authority-approved inspection before it ships";
+  const coc = "Needs a Certificate of Conformity from a Ghana Standards Authority-approved inspection before it ships, and a speedometer that shows km/h";
   if (title === "flood") {
     return { kind: "not_allowed", country: "GH", label: "Can't be imported to Ghana: flood-damaged title" };
   }
@@ -102,7 +142,7 @@ export function ghanaImportStatus(
   }
   const notes = [coc];
   if (asOfYear - modelYear > GHANA_PENALTY_ABOVE_YEARS) {
-    notes.push(`Over ${GHANA_PENALTY_ABOVE_YEARS} years old: Ghana Customs charges an over-age penalty`);
+    notes.push(`Over ${GHANA_PENALTY_ABOVE_YEARS} years old: Ghana Customs may charge an over-age penalty`);
   }
   if (title === "rebuilt" || accident === "severe damage") {
     return {
