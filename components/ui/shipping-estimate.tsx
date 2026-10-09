@@ -3,7 +3,8 @@
 import { useEffect, useState } from "react";
 import { inputClasses } from "@/components/ui/input-classes";
 import { cn } from "@/lib/utils";
-import { importStatus } from "@/lib/import-rules";
+import { formatCheckedDate, importStatus } from "@/lib/import-rules";
+import { landedEstimate, type LandedCostRates, type LandedCountry } from "@/lib/landed-cost";
 import {
   EXPORT_PAPERWORK,
   initialEstimateCountry,
@@ -52,11 +53,19 @@ function saveLastChoice(code: EstimateCountry) {
 export function ShippingEstimate({
   profileCountry,
   modelYear,
+  landed,
   className,
 }: {
   profileCountry: string | null;
   /** From lib/import-rules.ts modelYearFrom — for the per-country import line. */
   modelYear: number | null;
+  /** For the delivered-cost estimate (lib/landed-cost.ts); omitted = shipping only. */
+  landed?: {
+    vehiclePrice: number;
+    /** Car + ShipMova fee + Escrow.com fee — what's paid on ShipMova before shipping. */
+    totalBeforeShipping: number;
+    rates: Record<LandedCountry, LandedCostRates>;
+  };
   className?: string;
 }) {
   const [country, setCountry] = useState<EstimateCountry | null>(() =>
@@ -129,6 +138,16 @@ export function ShippingEstimate({
             published 2026 rates — you&rsquo;ll get a firm quote from your shipper after
             you reserve.
           </p>
+          {landed ? (
+            ["too_old", "not_allowed"].includes(importStatus(estimate.code, modelYear).kind) ? (
+              // No delivered cost for a car that can't be imported there.
+              <p className="mt-4 border-t border-line pt-4 text-sm text-muted">
+                No delivered-cost estimate for {estimate.name}: this car can&rsquo;t be imported there (see above).
+              </p>
+            ) : (
+              <Delivered estimate={estimate} landed={landed} />
+            )
+          ) : null}
         </>
       ) : null}
     </section>
@@ -143,3 +162,67 @@ function Line({ label, value }: { label: string; value: string }) {
     </div>
   );
 }
+
+/**
+ * Estimated delivered cost at the port: ShipMova total + shipping + duties
+ * and taxes + fixed fees + port & clearing, each country's figures with
+ * their source and last-checked date.
+ */
+function Delivered({
+  estimate,
+  landed,
+}: {
+  estimate: ReturnType<typeof shippingEstimateFor>;
+  landed: NonNullable<Parameters<typeof ShippingEstimate>[0]["landed"]>;
+}) {
+  const rates = landed.rates[estimate.code];
+  const e = landedEstimate({
+    vehiclePrice: landed.vehiclePrice,
+    totalBeforeShipping: landed.totalBeforeShipping,
+    freight: estimate.freight,
+    usPickup: US_PICKUP_TO_PORT,
+    exportPaperwork: EXPORT_PAPERWORK,
+    trackingFee: estimate.trackingNote?.fee ?? 0,
+    rates,
+  });
+  return (
+    <div className="mt-4 border-t border-line pt-4">
+      <p className="font-semibold text-ink">Estimated delivered cost at {estimate.port}</p>
+      <p className="mt-1 font-display text-2xl font-extrabold tabular-nums text-ink">{range(e.landed)}</p>
+      <dl className="mt-3 flex flex-col gap-1">
+        <Line label="On ShipMova (car, fee, Escrow.com fee)" value={usd.format(landed.totalBeforeShipping)} />
+        <Line label="Shipping to the port (all of the above)" value={range(e.shipping)} />
+        <Line
+          label={`Import duties & taxes (${pct(rates.dutiesPct.min)}–${pct(rates.dutiesPct.max)} of CIF)`}
+          value={range(e.duties)}
+        />
+        {e.fixedFees > 0 ? <Line label="Fixed customs fees" value={usd.format(e.fixedFees)} /> : null}
+        {e.portClearing ? (
+          <Line label={`Port & clearing at ${estimate.port}`} value={range(e.portClearing)} />
+        ) : (
+          <div className="flex items-baseline justify-between gap-4 text-muted">
+            <dt>Port &amp; clearing at {estimate.port}</dt>
+            <dd className="shrink-0 text-right">not included</dd>
+          </div>
+        )}
+      </dl>
+      <p className="mt-3 text-xs text-muted">
+        An estimate, not a quote: customs value the car at their own reference price, not what you pay.
+        ShipMova doesn&rsquo;t clear customs.
+      </p>
+      <p className="mt-1 text-xs text-muted">
+        Source:{" "}
+        {rates.sourceUrl ? (
+          <a href={rates.sourceUrl} target="_blank" rel="noopener noreferrer" className="underline underline-offset-2">
+            {rates.sourceNote}
+          </a>
+        ) : (
+          rates.sourceNote
+        )}{" "}
+        · last checked {formatCheckedDate(rates.lastCheckedOn)} · confirm with your clearing agent
+      </p>
+    </div>
+  );
+}
+
+const pct = (n: number) => `${Math.round(n * 10) / 10}%`;

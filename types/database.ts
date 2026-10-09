@@ -394,6 +394,51 @@ export interface Database {
         }>;
         Relationships: [];
       };
+      landed_cost_rates: {
+        Row: {
+          country: "NG" | "GH" | "TG" | "BJ";
+          duties_min_pct: number;
+          duties_max_pct: number;
+          insurance_pct: number;
+          fixed_fees_usd: number;
+          port_clearing_min_usd: number | null;
+          port_clearing_max_usd: number | null;
+          source_note: string;
+          source_url: string | null;
+          last_checked_on: string;
+          updated_by: string | null;
+          updated_at: string;
+        };
+        Insert: {
+          country?: "NG" | "GH" | "TG" | "BJ";
+          duties_min_pct?: number;
+          duties_max_pct?: number;
+          insurance_pct?: number;
+          fixed_fees_usd?: number;
+          port_clearing_min_usd?: number | null;
+          port_clearing_max_usd?: number | null;
+          source_note?: string;
+          source_url?: string | null;
+          last_checked_on?: string;
+          updated_by?: string | null;
+          updated_at?: string;
+        };
+        Update: Partial<{
+          country: "NG" | "GH" | "TG" | "BJ";
+          duties_min_pct: number;
+          duties_max_pct: number;
+          insurance_pct: number;
+          fixed_fees_usd: number;
+          port_clearing_min_usd: number | null;
+          port_clearing_max_usd: number | null;
+          source_note: string;
+          source_url: string | null;
+          last_checked_on: string;
+          updated_by: string | null;
+          updated_at: string;
+        }>;
+        Relationships: [];
+      };
       fx_rates: {
         Row: {
           currency: string;
