@@ -7,6 +7,8 @@ import { VEHICLE_DETAIL_COLUMNS } from "@/lib/listings";
 import { fetchVerifiedSellerName } from "@/lib/stripe-identity";
 import { cn } from "@/lib/utils";
 import { ReviewActions } from "./review-actions";
+import { Suspense } from "react";
+import { ListingChecks, ListingChecksFallback } from "@/components/listing-checks";
 import { ImportBadge } from "@/components/ui/import-badge";
 import { mediaUrl } from "@/lib/media-url";
 import { requireAdminMfa } from "@/lib/admin-mfa";
@@ -361,6 +363,11 @@ export default async function AdminListingReviewPage() {
                     </div>
                   ) : null}
                 </div>
+
+                {/* Import rules, NHTSA recalls, title history — before deciding. */}
+                <Suspense fallback={<ListingChecksFallback className="mt-4 shadow-none" />}>
+                  <ListingChecks vehicle={v} vin={privateById.get(v.id)?.vin ?? null} className="mt-4 shadow-none" />
+                </Suspense>
 
                 <ReviewActions
                   vehicleId={v.id}

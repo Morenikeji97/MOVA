@@ -145,6 +145,21 @@ the copy can be changed instead if a feature is dropped.
       and seed data (test seller, buyer, approved listing, shipper rate).
       Then the e2e test seller and other test rows can leave production.
 
+- [ ] **Confirm Togo and Benin import rules with clearing agents.**
+      Listings show "not yet confirmed — ask your clearing agent" for both
+      (lib/import-rules.ts). Sources found 2026-10-09 disagree: Togo 5, 8
+      or no years for private cars; Benin no age limit (trade sites only, no
+      official source). Also re-confirm Nigeria (12 years) and Ghana (GSA
+      from 1 Oct 2026: over 15 years barred, flood/fire/structural damage
+      barred, Certificate of Conformity before shipping; Customs over-age
+      penalty above 10 years).
+
+- [ ] **VinAudit title history: API key + storage.** `lib/vinaudit.ts` is a
+      stub; listings say "Not run yet". Needs: the founder's VINAUDIT_API_KEY
+      (hidden input), the real lookup, a table for results (migration +
+      "approve"), and showing stolen/salvage/junk/odometer brands to admin
+      and buyers.
+
 ## Also true today, but worth re-checking at launch
 
 - Import rules exist for **Nigeria only**. Copy says "Nigeria (more
