@@ -442,7 +442,34 @@ const PAYMENT_RES: RegExp[] = [
   // cash in hand
   new RegExp(String.raw`\b${PAY_VERB}\s*(?:${PERSON}\s*)?(?:in|with)\s*cash\b`),
   /\bcash\s*(?:on|at|upon)\s*(?:pick\s*up|pickup|delivery|collection)\b/,
+
+  // --- West Africa (founder, 2026-10-09: "block 'pay me directly' messages") ---
+  // Nigerian banking apps, mobile money and remittance services ShipMova never
+  // uses for the car. "wave" only as a payment ("par wave", "wave money").
+  /\b(?:opay|o-pay|palm\s*pay|palmpay|kuda|monie\s*point|moniepoint|chipper\s*cash|lemfi|taptap\s*send|send\s*wave|sendwave|mobile\s*money|momo|mtn\s*money|airtel\s*money|orange\s*money|moov\s*money|flooz|t-?money|m-?pesa|skrill|payoneer|binance|usdc|ethereum)\b/,
+  /\b(?:par|via|sur|on|by|with|through|use)\s*wave\b|\bwave\s*(?:money|transfer|app)\b/,
+  // money going "to my account / wallet": "do transfer to my account", "send am to my account"
+  /\b(?:send|sent|sending|transfer\w*|pay\w*|deposit\w*|wire\w*|credit|remit\w*)\b[^.?!]{0,30}\b(?:to|into|in)\s*my\s*(?:own\s*)?(?:account|acct|acc|bank|wallet|number|opay|palmpay|kuda)\b/,
+  // Pidgin: "make you send the money give me", "na me you go pay"
+  new RegExp(String.raw`\bsend\s*(?:the\s*)?${MONEY}\s*(?:give|for)\s*me\b`),
+  /\bna\s*me\s*(?:you|u)\s*(?:go|will|wan)?\s*pay\b/,
+  // French: "payez-moi directement", "envoyez l'argent sur mon compte", "virement sur mon compte"
+  /\b(?:payez|payer|paye|payes|r[ée]glez|r[ée]gler|virez|virer|envoyez|envoie|envoyer|transf[ée]rez|transf[ée]rer|versez|verser)\b[^.?!]{0,30}(?:\bdirectement\b|\ben\s*main\s*propre\b|[àa]\s*moi\b|\bsur\s*mon\s*(?:compte|num[ée]ro|rib|t[ée]l[ée]phone)\b)/,
+  /\bvirement\b[^.?!]{0,30}\b(?:sur|[àa]|vers)\s*(?:mon|ma|moi)\b/,
+  /\b(?:rib|iban|relev[ée]\s*d'?\s*identit[ée]\s*bancaire|num[ée]ro\s*de\s*compte|coordonn[ée]es\s*bancaires)\b/,
+  /\b(?:en\s*esp[èe]ces|en\s*liquide|cash\s*en\s*main)\b/,
+  /\b(?:[ée]vit\w*|sans|contourn\w*|hors|pas\s*(?:besoin\s*)?(?:de|d'|par|via))\s*(?:l'|le\s*|la\s*)?(?:escrow|s[ée]questre|plateforme)\b/,
+  // "pay half now outside", "pay me outside the site" (not "outside business hours")
+  /\b(?:pay|paid|paying|send|sending|deposit\w*)\b[^.?!]{0,25}\boutside\b(?!\s*(?:of\s*)?(?:business|office|working)\s*hours)/,
 ];
+
+/** A money word plus "send it to me" in the same message: "deposit to hold it, send to me". */
+function moneyThenSendToMe(text: string): boolean {
+  return (
+    /\b(?:deposit|money|payment|balance|price|funds?|cash|naira|cedis?|cfa|dollars?)\b|\$\s*\d/.test(text) &&
+    /\bsend\s*(?:it\s*|that\s*|am\s*|the\s*rest\s*)?to\s*me\b/.test(text)
+  );
+}
 
 /**
  * "z e l l e", "p.a.y m.e", "e-s-c-r-o-w" -> joined, so letter-spacing can't
@@ -453,7 +480,7 @@ function collapseSpacedLetters(s: string): string {
 }
 
 function hasPaymentCircumvention(text: string): boolean {
-  return PAYMENT_RES.some((re) => re.test(text));
+  return PAYMENT_RES.some((re) => re.test(text)) || moneyThenSendToMe(text);
 }
 
 function blockMessageFor(categories: ContactInfoCategory[]): string | null {
