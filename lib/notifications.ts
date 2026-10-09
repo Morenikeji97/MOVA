@@ -1,3 +1,4 @@
+import { formatDay } from "@/lib/shipper-verification";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { sendEmail, renderEmailShell, escapeHtml } from "@/lib/email";
 import { checkRateLimit } from "@/lib/rate-limit";
@@ -435,4 +436,111 @@ export async function notifyBuyerIdDecision(buyerId: string, approved: boolean, 
       ctaHref: `${origin}${approved ? "/browse" : "/buyer/verify-id"}`,
     }),
   });
+}
+
+// ── Shipper verification (0060) ──────────────────────────────────────────
+
+async function adminEmails(): Promise<string[]> {
+  const { data } = await createAdminClient().from("users").select("email").eq("role", "admin");
+  return (data ?? []).map((a) => a.email).filter(Boolean);
+}
+
+/** A shipper sent an insurance certificate to check. */
+export async function notifyShipperCoiSubmitted(shipperId: string): Promise<void> {
+  const { data: s } = await createAdminClient().from("shippers").select("company_name").eq("id", shipperId).maybeSingle();
+  const origin = await appUrl();
+  for (const to of await adminEmails()) {
+    await sendEmail({
+      to,
+      subject: "A shipper's insurance certificate needs checking",
+      html: renderEmailShell({
+        heading: "Insurance certificate to check",
+        bodyHtml: `<p style="margin:0;">${escapeHtml(s?.company_name ?? "A shipper")} uploaded a marine cargo insurance certificate. They stay hidden from buyers until you approve it.</p>`,
+        ctaLabel: "Review shippers",
+        ctaHref: `${origin}/admin/shippers`,
+      }),
+    });
+  }
+}
+
+/** Tells a shipper the outcome of a certificate or license check. */
+export async function notifyShipperVerificationDecision(
+  shipperId: string,
+  what: "coi" | "license",
+  ok: boolean,
+  note: string | null,
+): Promise<boolean> {
+  const { data: s } = await createAdminClient()
+    .from("shippers")
+    .select("contact_email, company_name")
+    .eq("id", shipperId)
+    .maybeSingle();
+  if (!s?.contact_email) return false;
+  const origin = await appUrl();
+  const subject =
+    what === "coi"
+      ? ok ? "Your insurance certificate is approved" : "We couldn't accept your insurance certificate"
+      : ok ? "Your FMC/OTI license is checked" : "We couldn't find your FMC/OTI license";
+  const body =
+    what === "coi"
+      ? ok
+        ? "Your marine cargo insurance certificate is approved. Buyers see an \"Insured ✓\" badge on your rates while it's in date."
+        : `Your insurance certificate wasn't accepted${note ? `: ${escapeHtml(note)}` : ""}. Please upload a new one in your shipper portal.`
+      : ok
+        ? "We found your license on the FMC's OTI list."
+        : `We couldn't find your license on the FMC's OTI list${note ? `: ${escapeHtml(note)}` : ""}. Reply to this email with your correct license number.`;
+  return sendEmail({
+    to: s.contact_email,
+    subject,
+    html: renderEmailShell({
+      heading: subject,
+      bodyHtml: `<p style="margin:0;">${body}</p>`,
+      ctaLabel: "Open your shipper portal",
+      ctaHref: `${origin}/shipper/portal`,
+    }),
+  });
+}
+
+/** Insurance expiry reminder to the shipper (and admins on expiry). */
+export async function notifyShipperCoiReminder(
+  shipperId: string,
+  stage: "30d" | "7d" | "expired",
+  expiresOn: string,
+): Promise<boolean> {
+  const { data: s } = await createAdminClient()
+    .from("shippers")
+    .select("contact_email, company_name")
+    .eq("id", shipperId)
+    .maybeSingle();
+  if (!s?.contact_email) return false;
+  const origin = await appUrl();
+  const when = escapeHtml(formatDay(expiresOn));
+  const subject =
+    stage === "expired"
+      ? "Your insurance has expired — you're hidden from buyers"
+      : `Your insurance certificate expires in ${stage === "30d" ? "30" : "7"} days`;
+  const body =
+    stage === "expired"
+      ? `Your marine cargo insurance certificate expired on ${when}. Buyers can't see or book you until you upload your renewed certificate.`
+      : `Your marine cargo insurance certificate expires on ${when}. Upload your renewed certificate before then to stay visible to buyers.`;
+  const sent = await sendEmail({
+    to: s.contact_email,
+    subject,
+    html: renderEmailShell({ heading: subject, bodyHtml: `<p style="margin:0;">${body}</p>`, ctaLabel: "Upload certificate", ctaHref: `${origin}/shipper/portal` }),
+  });
+  if (stage === "expired") {
+    for (const to of await adminEmails()) {
+      await sendEmail({
+        to,
+        subject: `${s.company_name}: insurance expired`,
+        html: renderEmailShell({
+          heading: "Shipper insurance expired",
+          bodyHtml: `<p style="margin:0;">${escapeHtml(s.company_name)}'s certificate expired on ${when}. They're hidden from buyers automatically until a new one is approved.</p>`,
+          ctaLabel: "Review shippers",
+          ctaHref: `${origin}/admin/shippers`,
+        }),
+      });
+    }
+  }
+  return sent;
 }

@@ -8,6 +8,7 @@ import { Button } from "@/components/ui/button";
 import { SERVICE_COUNTRIES, countryName, shippingMethodLabel, isLocalPickup } from "@/lib/shipping";
 import type { ShippingMethod, VehicleSizeType } from "@/types/database";
 import { selectShippingRate } from "./shipping-actions";
+import { InsuredBadge } from "@/components/insured-badge";
 
 export interface PublicRate {
   rate_id: string;
@@ -22,6 +23,8 @@ export interface PublicRate {
   price: number;
   currency: string;
   payment_status: "good_standing" | "past_due" | "suspended";
+  /** The "Insured ✓" line; every listed shipper is insured (0060). */
+  insured: string | null;
 }
 
 function money(amount: number, currency: string) {
@@ -149,6 +152,7 @@ export function ShippingRates({
                         </span>
                       ) : null}
                     </p>
+                    <InsuredBadge text={r.insured} />
                     <p className="mt-0.5 tabular-nums text-sm text-muted">
                       {r.origin_region}
                       {r.origin_port ? ` (${r.origin_port})` : ""} ·{" "}
