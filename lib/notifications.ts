@@ -562,3 +562,55 @@ export async function notifyInspectorApplication(name: string): Promise<void> {
     });
   }
 }
+
+// ── Account deletion (0069) ──────────────────────────────────────────────
+
+/** A person asked to delete their account: confirm to them, alert staff. */
+export async function notifyAccountDeletionRequested(requestId: string): Promise<void> {
+  try {
+    const admin = createAdminClient();
+    const { data: r } = await admin.from("account_deletion_requests").select("user_id").eq("id", requestId).maybeSingle();
+    if (!r) return;
+    const [{ data: u }, { data: admins }] = await Promise.all([
+      admin.from("users").select("email").eq("id", r.user_id).maybeSingle(),
+      admin.from("users").select("email").eq("role", "admin"),
+    ]);
+    const origin = await appUrl();
+    if (u?.email) {
+      await sendEmail({
+        to: u.email,
+        subject: "We received your request to delete your ShipMova account",
+        html: renderEmailShell({
+          heading: "Account deletion requested",
+          bodyHtml: `<p style="margin:0;">ShipMova has your request to delete your account. We'll email you when it's done, usually within 3 days. If you didn't ask for this, reply to this email or message us on WhatsApp straight away.</p>`,
+        }),
+      });
+    }
+    for (const a of admins ?? []) {
+      await sendEmail({
+        to: a.email,
+        subject: "Account deletion request",
+        html: renderEmailShell({
+          heading: "Account deletion request",
+          bodyHtml: `<p style="margin:0;">Someone asked to delete their account. It's in Action required.</p>`,
+          ctaLabel: "Open account deletions",
+          ctaHref: `${origin}/admin/account-deletions`,
+        }),
+      });
+    }
+  } catch (err) {
+    console.error("notifyAccountDeletionRequested failed:", err);
+  }
+}
+
+/** Sent to the person's ORIGINAL address — call before it's anonymised. */
+export async function notifyAccountDeleted(email: string): Promise<boolean> {
+  return sendEmail({
+    to: email,
+    subject: "Your ShipMova account has been deleted",
+    html: renderEmailShell({
+      heading: "Your account has been deleted",
+      bodyHtml: `<p style="margin:0;">Your ShipMova account and the personal details on it have been deleted, as you asked. Records of completed deals and the policies you accepted are kept, no longer linked to your name or contact details. Thank you for using ShipMova.</p>`,
+    }),
+  });
+}

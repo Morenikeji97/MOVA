@@ -25,6 +25,8 @@ const ID_EXEMPT_PATHS = [
   "/shipper",
   // Anyone may apply to be an inspector without a buyer ID either (0063).
   "/inspector",
+  // Deleting your account must never wait on an ID check (Privacy Policy §9).
+  "/account",
 ];
 
 export function isIdExempt(path: string): boolean {

@@ -394,6 +394,39 @@ export interface Database {
         }>;
         Relationships: [];
       };
+      account_deletion_requests: {
+        Row: {
+          id: string;
+          user_id: string;
+          reason: string | null;
+          status: "pending" | "completed" | "refused";
+          requested_at: string;
+          processed_by: string | null;
+          processed_at: string | null;
+          note: string | null;
+        };
+        Insert: {
+          id?: string;
+          user_id?: string;
+          reason?: string | null;
+          status?: "pending" | "completed" | "refused";
+          requested_at?: string;
+          processed_by?: string | null;
+          processed_at?: string | null;
+          note?: string | null;
+        };
+        Update: Partial<{
+          id: string;
+          user_id: string;
+          reason: string | null;
+          status: "pending" | "completed" | "refused";
+          requested_at: string;
+          processed_by: string | null;
+          processed_at: string | null;
+          note: string | null;
+        }>;
+        Relationships: [];
+      };
       fx_rates: {
         Row: {
           currency: string;
@@ -1596,6 +1629,10 @@ export interface Database {
       };
     };
     Functions: {
+      anonymize_account: {
+        Args: { p_user: string };
+        Returns: Record<string, number>;
+      };
       /** The inspection badge/status for a deal's buyer, seller or an admin (0063); null otherwise. */
       inspection_summary: {
         Args: { p_purchase_request_id: string };

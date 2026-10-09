@@ -217,6 +217,7 @@ export default async function AdminDashboard() {
       <div className="mt-3 grid gap-3 sm:grid-cols-2">
         <DashboardTile href="/admin/audit" title="Audit log" body="Who did what" />
         <DashboardTile href="/admin/security" title="Two-step sign-in" body="Manage authenticator apps" />
+        <DashboardTile href="/admin/account-deletions" title="Account deletions" body="Requests to delete an account" />
       </div>
     </DashboardShell>
   );
