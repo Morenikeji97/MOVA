@@ -4,6 +4,7 @@ import { revalidatePath } from "next/cache";
 import { createClient } from "@/lib/supabase/server";
 import type { ShipmentProofKind, ShipmentShippingStatus } from "@/types/database";
 import { SESSION_ENDED, checkWrite, notSaved, saved, type ActionResult } from "@/lib/action-result";
+import { notifyDealEvent } from "@/lib/notifications";
 
 const SHIPPING_STATUSES: ShipmentShippingStatus[] = [
   "awaiting_pickup",
@@ -42,6 +43,11 @@ export async function updateShippingStatus(_prev: ActionResult, formData: FormDa
 
   // The guard trigger (shipment_requests_guard_shipping_status) keeps the
   // old status for a move it doesn't allow, so compare what was saved.
+  const { data: before } = await supabase
+    .from("shipment_requests")
+    .select("shipping_status")
+    .eq("id", shipmentId)
+    .maybeSingle();
   const res = await supabase
     .from("shipment_requests")
     .update({ shipping_status: shippingStatus })
@@ -53,8 +59,11 @@ export async function updateShippingStatus(_prev: ActionResult, formData: FormDa
     return notSaved("that status change isn't allowed from the current status.");
   }
 
+  if (before?.shipping_status !== shippingStatus && shippingStatus !== "awaiting_pickup") {
+    await notifyDealEvent(shippingStatus, { shipmentId });
+  }
   revalidate(shipmentId);
-  return saved("Status updated — the buyer sees it now.");
+  return saved("Status updated — the buyer sees it now (and gets an email).");
 }
 
 /** Records an uploaded proof-of-pickup/delivery photo. The file itself is

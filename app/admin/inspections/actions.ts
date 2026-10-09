@@ -5,6 +5,7 @@ import { requireAdmin } from "@/lib/admin-auth";
 import { logAdminAction } from "@/lib/admin-audit";
 import { assignInspection, decideInspection } from "@/lib/inspection-server";
 import { SESSION_ENDED, checkWrite, notSaved, savedWithAudit, type ActionResult } from "@/lib/action-result";
+import { notifyDealEvent, notifyInspectorDecision } from "@/lib/notifications";
 
 /** Admin actions for inspectors and inspections (0063). All audit-logged. */
 
@@ -37,6 +38,7 @@ export async function decideInspectorApplication(_prev: ActionResult, formData: 
   if (bad) return bad;
   if (res.data?.[0]?.status !== status) return notSaved("the change didn't stick. Reload and try again.");
   const audit = await logAdminAction(ctx.supabase, `inspector.${decision}`, { table: "inspectors", id }, decision === "approve" ? {} : { reason });
+  await notifyInspectorDecision(id, status, decision === "approve" ? null : reason);
   revalidateAll();
   return savedWithAudit(`Inspector ${status}.`, audit);
 }
@@ -83,6 +85,7 @@ export async function markInspectorPaidAction(_prev: ActionResult, formData: For
   const bad = checkWrite(res, "this pay isn't marked as owed — reload to see it.");
   if (bad) return bad;
   const audit = await logAdminAction(ctx.supabase, "inspection.mark_paid", { table: "inspections", id }, { pay_usd: res.data?.[0]?.pay_usd ?? null });
+  await notifyDealEvent("inspector_paid", { inspectionId: id });
   revalidatePath(`/admin/inspections/${id}`);
   return savedWithAudit("Marked as paid.", audit);
 }

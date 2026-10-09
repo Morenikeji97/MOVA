@@ -12,6 +12,7 @@ import {
   savedWithAudit,
   type ActionResult,
 } from "@/lib/action-result";
+import { notifyListingDecision } from "@/lib/notifications";
 
 const VIN_VERIFICATION_STATUSES: VinVerificationStatus[] = [
   "unverified",
@@ -72,6 +73,7 @@ export async function approveListing(_prev: ActionResult, formData: FormData): P
   if (bad) return bad;
 
   const audit = await logAdminAction(supabase, "listing.approve", { table: "vehicles", id });
+  await notifyListingDecision(id, true, null);
   revalidatePath("/admin/listings");
   return savedWithAudit("Approved — the listing is live.", audit);
 }
@@ -97,6 +99,7 @@ export async function rejectListing(_prev: ActionResult, formData: FormData): Pr
   if (bad) return bad;
 
   const audit = await logAdminAction(ctx.supabase, "listing.reject", { table: "vehicles", id }, { reason });
+  await notifyListingDecision(id, false, reason);
   revalidatePath("/admin/listings");
   return savedWithAudit("Rejected — the seller sees your reason.", audit);
 }

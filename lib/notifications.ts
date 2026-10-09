@@ -3,6 +3,7 @@ import { createAdminClient } from "@/lib/supabase/admin";
 import { sendEmail, renderEmailShell, escapeHtml } from "@/lib/email";
 import { checkRateLimit } from "@/lib/rate-limit";
 import { appUrl } from "@/lib/app-url";
+import { dealEmails, type DealEvent, type DealRole } from "@/lib/deal-emails";
 
 /**
  * Email notifications for the moments buyers/sellers/shippers need to know
@@ -91,6 +92,8 @@ export async function notifyNewChatMessage(
  * on the exact same event: mova_fee_payment_status = 'paid'.
  */
 export async function notifyFeePaymentConfirmed(purchaseRequestId: string): Promise<void> {
+  // The seller hears too (both paths — card webhook and bank transfer — land here).
+  await notifyDealEvent("fee_paid", { purchaseRequestId });
   const admin = createAdminClient();
   const { data: pr } = await admin
     .from("purchase_requests")
@@ -560,5 +563,183 @@ export async function notifyInspectorApplication(name: string): Promise<void> {
         ctaHref: `${origin}/admin/inspectors`,
       }),
     });
+  }
+}
+
+// ── Deal stages (lib/deal-emails.ts) ─────────────────────────────────────
+
+/**
+ * Emails everyone a deal event concerns (lib/deal-emails.ts has who and
+ * what). Give it whichever ids the caller has; the rest is looked up with
+ * the service role. Never throws: a missing row or address means that
+ * person isn't emailed, never that the caller's action fails. Call it only
+ * after the stage change is confirmed, and only when the stage actually
+ * changed, so nobody is emailed twice.
+ */
+export async function notifyDealEvent(
+  event: DealEvent,
+  ids: { purchaseRequestId?: string | null; shipmentId?: string | null; inspectionId?: string | null },
+): Promise<void> {
+  try {
+    const admin = createAdminClient();
+    let prId = ids.purchaseRequestId ?? null;
+    let inspectorUserId: string | null = null;
+    let payUsd: number | null = null;
+
+    if (ids.inspectionId) {
+      const { data: x } = await admin
+        .from("inspections")
+        .select("purchase_request_id, inspector_id, pay_usd")
+        .eq("id", ids.inspectionId)
+        .maybeSingle();
+      if (x) {
+        prId = prId ?? x.purchase_request_id;
+        payUsd = x.pay_usd != null ? Number(x.pay_usd) : null;
+        const { data: who } = await admin.from("inspectors").select("user_id").eq("id", x.inspector_id).maybeSingle();
+        inspectorUserId = who?.user_id ?? null;
+      }
+    }
+
+    type Shipment = { id: string; shipper_id: string; buyer_id: string; purchase_request_id: string | null; shipper_company_name: string | null; vehicle_year: number | null; vehicle_make: string | null; vehicle_model: string | null };
+    const shipmentCols = "id, shipper_id, buyer_id, purchase_request_id, shipper_company_name, vehicle_year, vehicle_make, vehicle_model";
+    let shipment: Shipment | null = null;
+    if (ids.shipmentId) {
+      const { data } = await admin.from("shipment_requests").select(shipmentCols).eq("id", ids.shipmentId).maybeSingle();
+      shipment = (data as Shipment | null) ?? null;
+      prId = prId ?? shipment?.purchase_request_id ?? null;
+    } else if (prId) {
+      const { data } = await admin
+        .from("shipment_requests")
+        .select(shipmentCols)
+        .eq("purchase_request_id", prId)
+        .order("created_at", { ascending: false })
+        .limit(1)
+        .maybeSingle();
+      shipment = (data as Shipment | null) ?? null;
+    }
+
+    let reference = "";
+    let car = "";
+    let buyerId: string | null = shipment?.buyer_id ?? null;
+    let sellerId: string | null = null;
+    if (prId) {
+      const { data: pr } = await admin.from("purchase_requests").select("reference, buyer_id, vehicle_id").eq("id", prId).maybeSingle();
+      if (pr) {
+        reference = pr.reference ?? "";
+        buyerId = pr.buyer_id;
+        const { data: v } = await admin.from("vehicles").select("year, make, model, trim, seller_id").eq("id", pr.vehicle_id).maybeSingle();
+        if (v) {
+          car = vehicleTitle(v);
+          sellerId = v.seller_id;
+        }
+      }
+    }
+    if (!car && shipment) {
+      car = [shipment.vehicle_year, shipment.vehicle_make, shipment.vehicle_model].filter(Boolean).join(" ");
+    }
+    if (!car) car = "your car";
+
+    let shipperUserId: string | null = null;
+    let shipperContact: string | null = null;
+    if (shipment) {
+      const { data: s } = await admin.from("shippers").select("user_id, contact_email").eq("id", shipment.shipper_id).maybeSingle();
+      shipperUserId = s?.user_id ?? null;
+      shipperContact = s?.contact_email ?? null;
+    }
+
+    const userIds = [buyerId, sellerId, shipperUserId, inspectorUserId].filter((x): x is string => !!x);
+    const { data: users } = userIds.length
+      ? await admin.from("users").select("id, email").in("id", userIds)
+      : { data: [] as { id: string; email: string | null }[] };
+    const emailOf = (id: string | null) => (id ? (users ?? []).find((u) => u.id === id)?.email ?? null : null);
+    const address: Record<DealRole, string | null> = {
+      buyer: emailOf(buyerId),
+      seller: emailOf(sellerId),
+      shipper: emailOf(shipperUserId) ?? shipperContact,
+      inspector: emailOf(inspectorUserId),
+    };
+
+    const origin = await appUrl();
+    const emails = dealEmails(event, { reference, car, shipper: shipment?.shipper_company_name ?? null, payUsd });
+    await Promise.all(
+      emails.map((m) => {
+        const to = address[m.to];
+        if (!to) return Promise.resolve(false);
+        return sendEmail({
+          to,
+          subject: m.subject,
+          html: renderEmailShell({
+            heading: escapeHtml(m.heading),
+            bodyHtml: m.lines.map((l) => `<p style="margin:0 0 8px;">${escapeHtml(l)}</p>`).join(""),
+            ctaLabel: escapeHtml(m.cta.label),
+            ctaHref: `${origin}${m.cta.path}`,
+          }),
+        });
+      }),
+    );
+  } catch (err) {
+    console.error(`notifyDealEvent(${event}) failed:`, err);
+  }
+}
+
+// ── Listing and inspector decisions ──────────────────────────────────────
+
+/** A listing was approved (now live) or rejected (with the admin's reason). */
+export async function notifyListingDecision(vehicleId: string, approved: boolean, reason: string | null): Promise<void> {
+  try {
+    const admin = createAdminClient();
+    const { data: v } = await admin.from("vehicles").select("seller_id, year, make, model, trim").eq("id", vehicleId).maybeSingle();
+    if (!v) return;
+    const { data: seller } = await admin.from("users").select("email").eq("id", v.seller_id).maybeSingle();
+    if (!seller?.email) return;
+    const origin = await appUrl();
+    const car = escapeHtml(vehicleTitle(v));
+    await sendEmail({
+      to: seller.email,
+      subject: approved ? `Your ${vehicleTitle(v)} is live on ShipMova` : `Your ${vehicleTitle(v)} listing needs changes`,
+      html: renderEmailShell({
+        heading: approved ? "Your listing is live" : "Your listing wasn't approved",
+        bodyHtml: approved
+          ? `<p style="margin:0;">ShipMova approved your ${car}. Buyers can see and reserve it now.</p>`
+          : `<p style="margin:0 0 8px;">ShipMova couldn't approve your ${car}.</p><p style="margin:0;">Reason: ${escapeHtml(reason ?? "")}</p>`,
+        ctaLabel: approved ? "View your listing" : "Open My listings",
+        ctaHref: approved ? `${origin}/browse/${vehicleId}` : `${origin}/seller/listings`,
+      }),
+    });
+  } catch (err) {
+    console.error("notifyListingDecision failed:", err);
+  }
+}
+
+/** An inspector application was approved, rejected or the inspector suspended. */
+export async function notifyInspectorDecision(
+  inspectorId: string,
+  status: "approved" | "rejected" | "suspended",
+  reason: string | null,
+): Promise<void> {
+  try {
+    const admin = createAdminClient();
+    const { data: i } = await admin.from("inspectors").select("user_id").eq("id", inspectorId).maybeSingle();
+    if (!i?.user_id) return;
+    const { data: u } = await admin.from("users").select("email").eq("id", i.user_id).maybeSingle();
+    if (!u?.email) return;
+    const origin = await appUrl();
+    const copy = {
+      approved: ["You're a ShipMova inspector", "Your application is approved. ShipMova assigns inspections at random; new jobs appear in your inspections and by email."],
+      rejected: ["Your inspector application", "ShipMova couldn't approve your application."],
+      suspended: ["Your inspector account is paused", "ShipMova has paused your inspector account."],
+    }[status];
+    await sendEmail({
+      to: u.email,
+      subject: copy[0],
+      html: renderEmailShell({
+        heading: copy[0],
+        bodyHtml: `<p style="margin:0 0 8px;">${escapeHtml(copy[1])}</p>${reason ? `<p style="margin:0;">Reason: ${escapeHtml(reason)}</p>` : ""}`,
+        ctaLabel: "Open your inspections",
+        ctaHref: `${origin}/inspector`,
+      }),
+    });
+  } catch (err) {
+    console.error("notifyInspectorDecision failed:", err);
   }
 }

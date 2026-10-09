@@ -10,6 +10,8 @@ import {
   type EscrowApiConfig,
 } from "@/lib/escrow-com";
 import { ESCROW_STAGES } from "@/lib/escrow";
+import { ESCROW_STAGE_EVENT } from "@/lib/deal-emails";
+import { notifyDealEvent } from "@/lib/notifications";
 
 /**
  * Server-only Escrow.com operations (service role). Escrow.com is the source
@@ -77,6 +79,10 @@ export async function syncEscrowTransaction(transactionId: string, admin: Admin 
       .select("escrow_car_state");
     if (res.error || res.data?.[0]?.escrow_car_state !== state) {
       return { ok: false, message: `car escrow state not saved: ${res.error?.message ?? "no row"}` };
+    }
+    // Stages only move forward, so a changed stage is a new one: email it once.
+    if (stage && stage !== deal.escrow_stage && ESCROW_STAGE_EVENT[stage]) {
+      await notifyDealEvent(ESCROW_STAGE_EVENT[stage], { purchaseRequestId: deal.id });
     }
     return { ok: true, message: `car: ${state}` };
   }
@@ -157,6 +163,7 @@ export async function openCarEscrow(purchaseRequestId: string, admin: Admin = cr
   if (saved.error || saved.data?.[0]?.escrow_reference !== String(id)) {
     return { ok: false, message: `Escrow.com transaction ${id} was created but not saved here — record it by hand. ${saved.error?.message ?? ""}` };
   }
+  await notifyDealEvent("escrow_opened", { purchaseRequestId: pr.id });
   const synced = await syncEscrowTransaction(String(id), admin);
   return { ok: true, message: `Car escrow opened at Escrow.com (${id}). Escrow.com emails the buyer and seller to agree.${synced.ok ? "" : ` Refresh failed: ${synced.message}`}` };
 }
@@ -213,6 +220,7 @@ export async function openShippingEscrow(shipmentId: string, admin: Admin = crea
   if (saved.error || saved.data?.[0]?.escrow_transaction_id !== String(id)) {
     return { ok: false, message: `Escrow.com transaction ${id} was created but not saved here — tell the developer. ${saved.error?.message ?? ""}` };
   }
+  await notifyDealEvent("shipping_escrow_opened", { shipmentId: s.id });
   const synced = await syncEscrowTransaction(String(id), admin);
   return { ok: true, message: `Shipping escrow opened at Escrow.com (${id}). Escrow.com emails the buyer and shipper to agree.${synced.ok ? "" : ` Refresh failed: ${synced.message}`}` };
 }
