@@ -213,10 +213,11 @@ export default async function AdminDashboard() {
         ))}
       </nav>
 
-      <h2 className="mt-8 font-display text-xl font-bold text-ink">Records &amp; security</h2>
+      <h2 className="mt-8 font-display text-xl font-bold text-ink">Records &amp; settings</h2>
       <div className="mt-3 grid gap-3 sm:grid-cols-2">
         <DashboardTile href="/admin/audit" title="Audit log" body="Who did what" />
         <DashboardTile href="/admin/security" title="Two-step sign-in" body="Manage authenticator apps" />
+        <DashboardTile href="/admin/landed-cost" title="Landed-cost rates" body="Duties & port charges per country" />
       </div>
     </DashboardShell>
   );
