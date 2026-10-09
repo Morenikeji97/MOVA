@@ -1,6 +1,8 @@
 import { insuredBadge, isoDay } from "@/lib/shipper-verification";
 import { type ReactNode } from "react";
 import { displayPlace } from "@/lib/place";
+import { Suspense } from "react";
+import { ListingChecks, ListingChecksFallback } from "@/components/listing-checks";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
@@ -473,6 +475,12 @@ export default async function VehicleDetailPage({
                 </Spec>
               </dl>
             </section>
+
+            {/* Import rules per country, NHTSA recalls, title history.
+                Streams in after the page so a slow lookup never holds it up. */}
+            <Suspense fallback={<ListingChecksFallback className="mt-4" />}>
+              <ListingChecks vehicle={v} vin={fullVin ?? null} className="mt-4" />
+            </Suspense>
 
             {v.description ? (
               <section className={cardClasses({ className: "mt-4" })}>

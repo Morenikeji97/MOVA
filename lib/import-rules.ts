@@ -1,14 +1,22 @@
 /**
  * ShipMova — can this car be imported to the buyer's country?
  *
- * Sources: Nigeria Customs 12-year rule (legit.ng, carawon.com, 2026). Verify with clearing agents.
+ * Sources (verify with clearing agents; rules change):
+ *   Nigeria — Customs 12-year rule (legit.ng, carawon.com, 2026).
+ *   Ghana — Ghana Standards Authority, from 1 October 2026 (citinewsroom.com,
+ *     2026-08): used vehicles more than 15 years old are barred, as are
+ *     flood/water-, fire- and structurally damaged vehicles of any age; every
+ *     used vehicle needs a Certificate of Conformity from a GSA-approved
+ *     inspection in the exporting country. Customs (Amendment) Act 2020
+ *     (Act 1014) also bars salvaged vehicles (damaged, without a clean
+ *     title) and charges an over-age penalty above 10 years.
+ *   Togo, Benin — sources disagree (2026-10-09: Togo 5, 8 or no years;
+ *     Benin none, from trade sites only). Not encoded: "not yet confirmed",
+ *     never a guess. docs/LAUNCH-BLOCKERS.md lists them to confirm.
  *
- *   Nigeria: a car may be at most 12 years old from its date of manufacture.
- *            Checked here by MODEL YEAR: model year > current year - 12 is
- *            importable; exactly current year - 12 is borderline, because
- *            Nigeria goes by the manufacture date (on the driver's door
- *            label), which can fall in the year before the model year.
- *   Ghana, Togo, Benin: no rule encoded yet — "not yet checked", never a guess.
+ * Age is checked by MODEL YEAR. A model year exactly at the cutoff is
+ * borderline, because customs go by the manufacture date (on the driver's
+ * door label), which can fall in the year before the model year.
  */
 
 export type ImportCountry = "NG" | "GH" | "TG" | "BJ";
@@ -21,14 +29,29 @@ export function nigeriaCutoffYear(asOfYear: number = new Date().getFullYear()): 
   return asOfYear - NIGERIA_MAX_AGE_YEARS;
 }
 
-export type ImportStatus =
-  | { kind: "importable"; country: ImportCountry; label: string }
-  | { kind: "borderline"; country: ImportCountry; label: string }
-  | { kind: "too_old"; country: ImportCountry; label: string }
-  | { kind: "not_checked"; country: ImportCountry; label: string }
-  | { kind: "unknown_year"; country: ImportCountry; label: string };
+export type ImportStatus = {
+  kind: "importable" | "borderline" | "too_old" | "not_allowed" | "not_checked" | "unknown_year";
+  country: ImportCountry;
+  label: string;
+  /** Extra things the buyer must know (a penalty, a required certificate). */
+  notes?: string[];
+};
 
-export const NOT_CHECKED_LABEL = "Import rules not yet checked for this country";
+export const NOT_CHECKED_LABEL = "Import rules not yet confirmed for this country — ask your clearing agent";
+
+export const IMPORT_COUNTRY_NAME: Record<ImportCountry, string> = {
+  NG: "Nigeria",
+  GH: "Ghana",
+  TG: "Togo",
+  BJ: "Benin",
+};
+
+/** Ghana: oldest age (years) allowed from 1 Oct 2026, and the age above which Customs charges a penalty. */
+export const GHANA_MAX_AGE_YEARS = 15;
+export const GHANA_PENALTY_ABOVE_YEARS = 10;
+
+/** What a listing says about damage (the seller's own answers). */
+export type DamageFacts = { titleStatus?: string | null; accidentHistory?: string | null };
 
 export function nigeriaImportStatus(
   modelYear: number | null,
@@ -56,13 +79,68 @@ export function nigeriaImportStatus(
   };
 }
 
+export function ghanaImportStatus(
+  modelYear: number | null,
+  damage: DamageFacts = {},
+  asOfYear: number = new Date().getFullYear(),
+): ImportStatus {
+  const title = (damage.titleStatus ?? "").trim().toLowerCase();
+  const accident = (damage.accidentHistory ?? "").trim().toLowerCase();
+  const coc = "Needs a Certificate of Conformity from a Ghana Standards Authority-approved inspection before it ships";
+  if (title === "flood") {
+    return { kind: "not_allowed", country: "GH", label: "Can't be imported to Ghana: flood-damaged title" };
+  }
+  if (title === "salvage") {
+    return { kind: "not_allowed", country: "GH", label: "Can't be imported to Ghana: salvage title" };
+  }
+  if (modelYear === null) {
+    return { kind: "unknown_year", country: "GH", label: "Ghana import: model year unknown" };
+  }
+  const cutoff = asOfYear - GHANA_MAX_AGE_YEARS;
+  if (modelYear < cutoff) {
+    return { kind: "too_old", country: "GH", label: `Too old to import to Ghana (${cutoff}+ only)` };
+  }
+  const notes = [coc];
+  if (asOfYear - modelYear > GHANA_PENALTY_ABOVE_YEARS) {
+    notes.push(`Over ${GHANA_PENALTY_ABOVE_YEARS} years old: Ghana Customs charges an over-age penalty`);
+  }
+  if (title === "rebuilt" || accident === "severe damage") {
+    return {
+      kind: "borderline",
+      country: "GH",
+      label: "Check with your clearing agent — Ghana refuses salvaged and structurally damaged cars",
+      notes,
+    };
+  }
+  if (modelYear === cutoff) {
+    return {
+      kind: "borderline",
+      country: "GH",
+      label: "Borderline for Ghana — it goes by manufacture date. Check the date on the driver's door label",
+      notes,
+    };
+  }
+  return { kind: "importable", country: "GH", label: "Importable to Ghana ✓", notes };
+}
+
 export function importStatus(
   country: ImportCountry,
   modelYear: number | null,
   asOfYear: number = new Date().getFullYear(),
+  damage: DamageFacts = {},
 ): ImportStatus {
   if (country === "NG") return nigeriaImportStatus(modelYear, asOfYear);
+  if (country === "GH") return ghanaImportStatus(modelYear, damage, asOfYear);
   return { kind: "not_checked", country, label: NOT_CHECKED_LABEL };
+}
+
+/** All four countries, in the order buyers see them. */
+export function importStatusAll(
+  modelYear: number | null,
+  damage: DamageFacts = {},
+  asOfYear: number = new Date().getFullYear(),
+): ImportStatus[] {
+  return (["NG", "GH", "TG", "BJ"] as const).map((c) => importStatus(c, modelYear, asOfYear, damage));
 }
 
 // ---------------------------------------------------------------------------

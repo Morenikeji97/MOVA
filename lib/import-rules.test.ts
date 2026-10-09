@@ -7,6 +7,8 @@ import {
   nigeriaImportStatus,
   NOT_CHECKED_LABEL,
   vinYearCode,
+  ghanaImportStatus,
+  importStatusAll,
 } from "./import-rules.ts";
 
 // ---------------------------------------------------------------------------
@@ -44,12 +46,45 @@ test("the cutoff moves with the year", () => {
   assert.equal(nigeriaImportStatus(2015, 2027).kind, "borderline");
 });
 
-test("Ghana, Togo and Benin are 'not yet checked', never guessed", () => {
-  for (const c of ["GH", "TG", "BJ"] as const) {
+test("Togo and Benin are 'not yet confirmed', never guessed", () => {
+  for (const c of ["TG", "BJ"] as const) {
     const s = importStatus(c, 2005, 2026);
     assert.equal(s.kind, "not_checked");
     assert.equal(s.label, NOT_CHECKED_LABEL);
   }
+});
+
+// Ghana Standards Authority, from 1 October 2026: over 15 years barred;
+// flood / salvage barred at any age; Certificate of Conformity required;
+// over 10 years pays a Customs over-age penalty.
+test("Ghana: 15-year cutoff, borderline at the cutoff year", () => {
+  assert.equal(ghanaImportStatus(2010, {}, 2026).kind, "too_old");
+  assert.equal(ghanaImportStatus(2011, {}, 2026).kind, "borderline");
+  assert.equal(ghanaImportStatus(2012, {}, 2026).kind, "importable");
+  assert.equal(ghanaImportStatus(null, {}, 2026).kind, "unknown_year");
+});
+
+test("Ghana: flood and salvage titles are refused at any age", () => {
+  assert.equal(ghanaImportStatus(2024, { titleStatus: "Flood" }, 2026).kind, "not_allowed");
+  assert.equal(ghanaImportStatus(2024, { titleStatus: "Salvage" }, 2026).kind, "not_allowed");
+  assert.equal(ghanaImportStatus(2024, { titleStatus: "Rebuilt" }, 2026).kind, "borderline");
+  assert.equal(ghanaImportStatus(2024, { accidentHistory: "Severe damage" }, 2026).kind, "borderline");
+  assert.equal(ghanaImportStatus(2024, { titleStatus: "Clean" }, 2026).kind, "importable");
+});
+
+test("Ghana: every importable car needs the certificate; over 10 years adds the penalty", () => {
+  const young = ghanaImportStatus(2020, {}, 2026);
+  assert.equal(young.notes?.length, 1);
+  assert.match(young.notes![0], /Certificate of Conformity/);
+  const older = ghanaImportStatus(2014, {}, 2026);
+  assert.ok(older.notes?.some((n) => /over-age penalty/.test(n)));
+});
+
+test("all four countries, Nigeria first", () => {
+  assert.deepEqual(
+    importStatusAll(2020, {}, 2026).map((s) => s.country),
+    ["NG", "GH", "TG", "BJ"],
+  );
 });
 
 test("unknown model year isn't reported as importable", () => {
