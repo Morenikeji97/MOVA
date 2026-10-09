@@ -62,7 +62,7 @@ export async function updateSession(request: NextRequest) {
   // Buyers only: their account isn't usable until their ID is verified
   // (lib/id-verification.ts, migration 0058).
   let needsIdVerification = false;
-  // Shippers (and, with #46, inspectors) sign in with buyer-role accounts
+  // Shippers and inspectors sign in with buyer-role accounts
   // but aren't buyers: no ID step, their own portal (lib/account-kind.ts).
   let accountKind: ServiceAccountKind | null = null;
   if (user) {

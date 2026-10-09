@@ -20,9 +20,11 @@ const ID_EXEMPT_PATHS = [
   "/policies",
   "/waitlist",
   // Anyone may apply to be a shipper without a buyer ID. A login already
-  // linked to a shipper skips this gate everywhere (lib/account-kind.ts);
+  // linked to a shipper or inspector skips this gate everywhere (lib/account-kind.ts);
   // nothing under /shipper is a buyer feature.
   "/shipper",
+  // Anyone may apply to be an inspector without a buyer ID either (0063).
+  "/inspector",
 ];
 
 export function isIdExempt(path: string): boolean {

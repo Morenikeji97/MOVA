@@ -10,6 +10,7 @@ import { isIdExempt } from "./id-gate-paths.ts";
 
 test("only what the database calls a shipper counts", () => {
   assert.equal(serviceAccountKind("shipper"), "shipper");
+  assert.equal(serviceAccountKind("inspector"), "inspector");
   for (const v of [null, undefined, "", "buyer", "SHIPPER", { kind: "shipper" }]) {
     assert.equal(serviceAccountKind(v), null, String(v));
   }
@@ -19,6 +20,15 @@ test("a shipper opening the buyer area or Verify your ID goes to the shipper por
   for (const p of ["/buyer", "/buyer/dashboard", "/buyer/verify-id"]) {
     assert.equal(serviceAccountRedirect("shipper", p), "/shipper/portal", p);
   }
+});
+
+test("an inspector lands on /inspector and is kept out of the buyer area too", () => {
+  assert.equal(landingAfterSignIn("inspector", null), "/inspector");
+  assert.equal(landingAfterSignIn("inspector", "/"), "/inspector");
+  assert.equal(serviceAccountRedirect("inspector", "/buyer/verify-id"), "/inspector");
+  assert.equal(serviceAccountRedirect("inspector", "/browse"), null);
+  assert.equal(serviceAccountRedirect("inspector", "/inspector/abc"), null);
+  assert.equal(isIdExempt("/inspector"), true);
 });
 
 test("a shipper can browse public pages and use the shipper pages", () => {

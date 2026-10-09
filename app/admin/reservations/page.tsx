@@ -12,6 +12,14 @@ import { EscrowForm } from "./escrow-form";
 import { EscrowApiPanel } from "@/components/escrow-api-panel";
 import { ITEM_STATE_LABEL, escrowApiConfig } from "@/lib/escrow-com";
 import { openCarEscrowAction, refreshEscrowAction } from "./actions";
+import { AssignInspectorForm } from "../inspections/forms";
+
+const INSPECTION_STATUS_LABEL: Record<string, string> = {
+  assigned: "Inspector assigned",
+  submitted: "Report in — needs your decision",
+  passed: "Passed",
+  failed: "Failed",
+};
 import { mediaUrl } from "@/lib/media-url";
 
 const usd = new Intl.NumberFormat("en-US", {
@@ -71,6 +79,19 @@ export default async function AdminReservationsPage() {
   const rows = requests ?? [];
   const buyerIds = [...new Set(rows.map((r) => r.buyer_id))];
   const vehicleIds = [...new Set(rows.map((r) => r.vehicle_id))];
+  // Latest inspection per deal (0063).
+  const { data: inspectionRows } = rows.length
+    ? await supabase
+        .from("inspections")
+        .select("id, purchase_request_id, status, created_at")
+        .in("purchase_request_id", rows.map((r) => r.id))
+        .neq("status", "cancelled")
+        .order("created_at", { ascending: false })
+    : { data: [] };
+  const inspectionByDeal = new Map<string, { id: string; status: string }>();
+  for (const x of inspectionRows ?? []) {
+    if (!inspectionByDeal.has(x.purchase_request_id)) inspectionByDeal.set(x.purchase_request_id, x);
+  }
 
   const [buyersRes, vehiclesRes] = await Promise.all([
     buyerIds.length
@@ -342,6 +363,21 @@ export default async function AdminReservationsPage() {
                         : null
                   }
                 />
+                <div className="mt-4 border-t border-gray-200 pt-4">
+                  <p className="font-mono text-xs uppercase tracking-wider text-gray-500">Inspection at pickup</p>
+                  {inspectionByDeal.get(r.id) ? (
+                    <Link
+                      href={`/admin/inspections/${inspectionByDeal.get(r.id)!.id}`}
+                      className="mt-1 inline-flex h-11 items-center text-sm text-black underline"
+                    >
+                      {INSPECTION_STATUS_LABEL[inspectionByDeal.get(r.id)!.status] ?? inspectionByDeal.get(r.id)!.status} — open report
+                    </Link>
+                  ) : r.mova_fee_payment_status === "paid" ? (
+                    <AssignInspectorForm purchaseRequestId={r.id} />
+                  ) : (
+                    <p className="mt-1 text-sm text-gray-500">Assigned once the buyer has paid ShipMova&rsquo;s fee.</p>
+                  )}
+                </div>
               </li>
             );
           })}

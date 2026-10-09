@@ -7,27 +7,28 @@
  * the database). No imports, so the middleware and node tests can use it.
  */
 
-// The database also returns "inspector" (0065 already refuses inspectors as
-// buyers); the inspector portal arrives with the inspector role (#46), which
-// adds it here.
-export type ServiceAccountKind = "shipper";
+export type ServiceAccountKind = "shipper" | "inspector";
 
 export const SERVICE_ACCOUNT_HOME: Record<ServiceAccountKind, string> = {
   shipper: "/shipper/portal",
+  inspector: "/inspector",
 };
 
 export const SERVICE_ACCOUNT_LABEL: Record<ServiceAccountKind, string> = {
   shipper: "Shipper portal",
+  inspector: "Inspector jobs",
 };
 
 /** What the RPC returned, or null for anything else (including an error). */
 export function serviceAccountKind(value: unknown): ServiceAccountKind | null {
-  return value === "shipper" ? value : null;
+  return value === "shipper" || value === "inspector" ? value : null;
 }
 
 export const SERVICE_ACCOUNT_NOT_BUYER: Record<ServiceAccountKind, string> = {
   shipper:
     "Shipper accounts can't reserve cars or message sellers. To buy a car, sign up for a separate buyer account with another email.",
+  inspector:
+    "Inspector accounts can't reserve cars or message sellers. To buy a car, sign up for a separate buyer account with another email.",
 };
 
 /** The database's refusal (0065 triggers), as raised. */

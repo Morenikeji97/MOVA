@@ -3,6 +3,7 @@ import { createClient } from "@/lib/supabase/server";
 import { ReportIssuePanel } from "@/components/ui/report-issue-panel";
 import { DisputeStatusList, type DisputeSummary } from "@/components/ui/dispute-status";
 import { BuyerIdSummary } from "@/components/buyer-id-summary";
+import { InspectionBadge } from "@/components/inspection-badge";
 import { cardClasses } from "@/components/ui/card";
 import {
   BackLink,
@@ -93,6 +94,16 @@ export default async function SellerReservationsPage() {
 
   const reservations = reservationRows ?? [];
   const reservationIds = reservations.map((r) => r.id);
+
+  // Inspection badge per deal (0063; the function only answers the car's seller).
+  const inspections = new Map(
+    await Promise.all(
+      reservationIds.map(async (id) => {
+        const { data } = await supabase.rpc("inspection_summary", { p_purchase_request_id: id });
+        return [id, data ?? null] as const;
+      }),
+    ),
+  );
 
   // What was checked on each buyer's ID (never the ID itself).
   const buyerIds = [...new Set(reservations.map((r) => r.buyer_id))];
@@ -192,6 +203,7 @@ export default async function SellerReservationsPage() {
                   {RESERVATION_STATUS_COPY[r.status] ?? r.status}
                 </p>
                 <BuyerIdSummary summary={idSummaries.get(r.buyer_id) ?? null} />
+                <InspectionBadge summary={inspections.get(r.id) ?? null} />
                 {r.mova_fee_payment_status === "paid" ? (
                   <Notice tone="success" className="mt-3">
                     Buyer has paid ShipMova&rsquo;s fee. Next they pay the car price

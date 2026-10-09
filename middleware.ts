@@ -74,7 +74,7 @@ export async function middleware(request: NextRequest) {
     return NextResponse.redirect(url);
   }
 
-  // A shipper login isn't a buyer: the buyer dashboard and ID step send it
+  // A shipper or inspector login isn't a buyer: the buyer dashboard and ID step send it
   // to its own portal (lib/account-kind.ts). Public pages stay open to it.
   const serviceHome = user ? serviceAccountRedirect(accountKind, path) : null;
   if (serviceHome && !request.headers.has("next-action")) {

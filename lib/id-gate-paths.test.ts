@@ -20,3 +20,9 @@ test("shippers (who sign in with buyer-role accounts) reach the shipper pages", 
   }
   assert.equal(isIdExempt("/shippers-guide"), false);
 });
+
+test("inspectors reach their pages; the public /inspectors page isn't a prefix match", () => {
+  assert.equal(isIdExempt("/inspector"), true);
+  assert.equal(isIdExempt("/inspector/abc"), true);
+  assert.equal(isIdExempt("/inspectors"), false);
+});
