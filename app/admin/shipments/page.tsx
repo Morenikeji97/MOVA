@@ -8,6 +8,10 @@ import type {
 } from "@/types/database";
 import { CompleteShipmentButton } from "./shipment-actions";
 import { ReinstateShipperButton } from "../shippers/shipper-admin";
+import { EscrowApiPanel } from "@/components/escrow-api-panel";
+import { ITEM_STATE_LABEL, escrowApiConfig } from "@/lib/escrow-com";
+import { openShippingEscrowAction } from "./actions";
+import { refreshEscrowAction } from "../reservations/actions";
 
 const money = (amount: number, currency: string) =>
   new Intl.NumberFormat("en-US", {
@@ -60,11 +64,12 @@ interface ShipperTotals {
 
 export default async function AdminShipmentsPage() {
   const supabase = await createClient();
+  const escrowConnected = escrowApiConfig() !== null;
 
   const { data: requestRows } = await supabase
     .from("shipment_requests")
     .select(
-      "id, purchase_request_id, shipper_id, buyer_id, agreed_rate, currency, commission_pct, commission_owed, commission_charge_status, stripe_charge_id, status, created_at, shipping_rate_id",
+      "id, purchase_request_id, shipper_id, buyer_id, agreed_rate, currency, commission_pct, commission_owed, commission_charge_status, stripe_charge_id, status, created_at, shipping_rate_id, inland_usd, ocean_usd, escrow_transaction_id, escrow_inland_state, escrow_ocean_state, escrow_fee_usd, escrow_synced_at",
     )
     .order("created_at", { ascending: false });
 
@@ -317,6 +322,33 @@ export default async function AdminShipmentsPage() {
                       </>
                     ) : null}
                   </dl>
+
+                  <EscrowApiPanel
+                    title="Shipping escrow at Escrow.com"
+                    configured={escrowConnected}
+                    targetId={r.id}
+                    transactionId={r.escrow_transaction_id}
+                    lines={[
+                      {
+                        label: `Inland ${r.inland_usd != null ? money(Number(r.inland_usd), "USD") : "—"} (released at pickup)`,
+                        value: ITEM_STATE_LABEL[r.escrow_inland_state ?? "awaiting_payment"],
+                      },
+                      {
+                        label: `Ocean ${r.ocean_usd != null ? money(Number(r.ocean_usd), "USD") : "—"} (released at bill of lading)`,
+                        value: ITEM_STATE_LABEL[r.escrow_ocean_state ?? "awaiting_payment"],
+                      },
+                    ]}
+                    feeUsd={r.escrow_fee_usd != null ? Number(r.escrow_fee_usd) : null}
+                    syncedAt={r.escrow_synced_at}
+                    openAction={openShippingEscrowAction}
+                    openLabel="Open shipping escrow at Escrow.com"
+                    refreshAction={refreshEscrowAction}
+                    blockedReason={
+                      r.inland_usd == null || r.ocean_usd == null
+                        ? "No inland/ocean split on this shipment (the shipper's rate had no inland portion)."
+                        : null
+                    }
+                  />
 
                   {r.status === "pending" ? (
                     <div className="mt-4 border-t border-gray-200 pt-4">

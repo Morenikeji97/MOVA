@@ -102,8 +102,27 @@ the copy can be changed instead if a feature is dropped.
       shipper exists ("Test Shipping Co" is test and stops being shown once
       0060 runs).
 
-- [ ] **Decide shipping payments** (docs/proposals/shipping-payments-through-escrow.md).
-      Today buyers pay shippers directly, and the Terms and Privacy Policy say so.
+- [ ] **Escrow.com live for the car and shipping (build A, migration 0062).**
+      Founder's decisions 2026-10-06: second milestone transaction per
+      shipment, ShipMova as broker; inland released at pickup, ocean at bill
+      of lading; buyer pays both Escrow.com fees; 5-day inspection period.
+      1. Sandbox first: create a ShipMova account on escrow-sandbox.com, make
+         an API key, save both on the Chromebook with hidden input, set
+         `ESCROW_API_BASE=https://api.escrow-sandbox.com/2017-09-01`,
+         `ESCROW_API_EMAIL`, `ESCROW_API_KEY`, `ESCROW_WEBHOOK_KEY` (random,
+         long) in Netlify deploy previews, register the webhook
+         `…/api/escrow/webhook?key=…`, and run one car + one shipping
+         transaction end to end. The payload field values (milestone
+         category, fee placement) are only confirmed by that run.
+      2. Live: the same with an escrow.com account and
+         `ESCROW_API_BASE=https://api.escrow.com/2017-09-01` in production.
+      3. Ask Escrow.com about **partner** status: as a broker ShipMova can't
+         mark a shipping milestone done; the shipper does it in Escrow.com.
+         As a partner ShipMova could mark it when the proof is checked.
+      4. Every shipper rate needs an inland part (shipper portal) or the
+         shipment can't use escrow.
+      5. Terms v1.3 / Privacy v1.3 (shipping through escrow) go live the same
+         day — see the A2 PR.
 
 - [ ] **Re-verify every seller's ID in live mode.** Stripe Identity checks
       done so far ran in test mode, which doesn't verify a real document. At

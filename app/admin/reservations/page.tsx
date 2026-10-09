@@ -9,6 +9,9 @@ import { isPrelaunch } from "@/lib/prelaunch";
 import type { FeeResponsibility, PurchaseRequestStatus } from "@/types/database";
 import { ReservationActions } from "./reservation-actions";
 import { EscrowForm } from "./escrow-form";
+import { EscrowApiPanel } from "@/components/escrow-api-panel";
+import { ITEM_STATE_LABEL, escrowApiConfig } from "@/lib/escrow-com";
+import { openCarEscrowAction, refreshEscrowAction } from "./actions";
 import { mediaUrl } from "@/lib/media-url";
 
 const usd = new Intl.NumberFormat("en-US", {
@@ -53,12 +56,14 @@ function Detail({ label, children }: { label: string; children: ReactNode }) {
 
 export default async function AdminReservationsPage() {
   const supabase = await createClient();
+  // Only whether Escrow.com is connected goes to the page, never the credentials.
+  const escrowConnected = escrowApiConfig() !== null;
   const prelaunch = isPrelaunch();
 
   const { data: requests } = await supabase
     .from("purchase_requests")
     .select(
-      "id, reference, escrow_reference, escrow_stage, vehicle_id, buyer_id, status, created_at, vehicle_price_usd, mova_fee_usd, mova_fee_payment_status, mova_fee_checkout_url, shipping_rate_id, bank_transfer_proof_path, bank_transfer_proof_uploaded_at, fee_payment_requested_at, bank_transfer_reviewed_at",
+      "id, reference, escrow_reference, escrow_stage, escrow_car_state, escrow_fee_usd, escrow_synced_at, vehicle_id, buyer_id, status, created_at, vehicle_price_usd, mova_fee_usd, mova_fee_payment_status, mova_fee_checkout_url, shipping_rate_id, bank_transfer_proof_path, bank_transfer_proof_uploaded_at, fee_payment_requested_at, bank_transfer_reviewed_at",
     )
     .in("status", OPEN_STATUSES)
     .order("created_at", { ascending: true });
@@ -317,6 +322,25 @@ export default async function AdminReservationsPage() {
                   requestId={r.id}
                   escrowReference={r.escrow_reference}
                   escrowStage={r.escrow_stage}
+                />
+                <EscrowApiPanel
+                  title="Car escrow at Escrow.com"
+                  configured={escrowConnected}
+                  targetId={r.id}
+                  transactionId={r.escrow_reference && /^\d+$/.test(r.escrow_reference) ? r.escrow_reference : null}
+                  lines={[{ label: "Car price", value: ITEM_STATE_LABEL[r.escrow_car_state ?? "awaiting_payment"] }]}
+                  feeUsd={r.escrow_fee_usd != null ? Number(r.escrow_fee_usd) : null}
+                  syncedAt={r.escrow_synced_at}
+                  openAction={openCarEscrowAction}
+                  openLabel="Open car escrow at Escrow.com"
+                  refreshAction={refreshEscrowAction}
+                  blockedReason={
+                    r.escrow_reference
+                      ? "Escrow reference was entered by hand."
+                      : r.mova_fee_payment_status !== "paid"
+                        ? "Opens once the buyer has paid ShipMova's fee."
+                        : null
+                  }
                 />
               </li>
             );

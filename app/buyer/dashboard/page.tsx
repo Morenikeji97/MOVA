@@ -8,6 +8,7 @@ import { ReferralPanel } from "@/components/ui/referral-panel";
 import { AcceptPricePrompt } from "@/components/ui/accept-price-prompt";
 import { ReportIssuePanel } from "@/components/ui/report-issue-panel";
 import { DisputeStatusList, type DisputeSummary } from "@/components/ui/dispute-status";
+import { EscrowPayments } from "@/components/escrow-payments";
 import { PriceBreakdown } from "@/components/ui/price-breakdown";
 import { countryName, shippingMethodLabel } from "@/lib/shipping";
 import { FeePaymentOptions } from "@/components/ui/fee-payment-options";
@@ -85,7 +86,7 @@ export default async function BuyerDashboard({
     supabase
       .from("purchase_requests")
       .select(
-        "id, reference, vehicle_id, status, created_at, vehicle_price_usd, mova_fee_usd, mova_fee_payment_status, mova_fee_checkout_url, negotiated_price_usd, negotiated_price_status, shipping_rate_id, bank_transfer_rejection_reason",
+        "id, reference, vehicle_id, status, created_at, vehicle_price_usd, mova_fee_usd, mova_fee_payment_status, mova_fee_checkout_url, negotiated_price_usd, negotiated_price_status, shipping_rate_id, bank_transfer_rejection_reason, escrow_reference, escrow_car_state, escrow_fee_usd",
       )
       .eq("buyer_id", user!.id)
       .order("created_at", { ascending: false }),
@@ -134,6 +135,20 @@ export default async function BuyerDashboard({
         : Promise.resolve({ data: [] }),
     ]);
   const vehicleById = new Map((vehicleRows ?? []).map((v) => [v.id, v]));
+  // Shipping escrow per reservation (0062).
+  const { data: shipmentRows } = reservationIds.length
+    ? await supabase
+        .from("shipment_requests")
+        .select("purchase_request_id, inland_usd, ocean_usd, escrow_transaction_id, escrow_inland_state, escrow_ocean_state, escrow_fee_usd, created_at")
+        .in("purchase_request_id", reservationIds)
+        .order("created_at", { ascending: false })
+    : { data: [] };
+  const shipmentByReservation = new Map<string, NonNullable<typeof shipmentRows>[number]>();
+  for (const sr of shipmentRows ?? []) {
+    if (sr.purchase_request_id && !shipmentByReservation.has(sr.purchase_request_id)) {
+      shipmentByReservation.set(sr.purchase_request_id, sr);
+    }
+  }
   const shippingRateById = new Map(
     (shippingRateRows ?? []).map((r) => [r.rate_id as string, r]),
   );
@@ -390,6 +405,33 @@ export default async function BuyerDashboard({
                       </p>
                     </div>
                   ) : null}
+
+                  <EscrowPayments
+                    car={{
+                      open: Boolean(r.escrow_reference),
+                      priceUsd:
+                        r.negotiated_price_status === "accepted" && r.negotiated_price_usd != null
+                          ? Number(r.negotiated_price_usd)
+                          : r.vehicle_price_usd != null
+                            ? Number(r.vehicle_price_usd)
+                            : null,
+                      state: r.escrow_car_state,
+                      feeUsd: r.escrow_fee_usd != null ? Number(r.escrow_fee_usd) : null,
+                    }}
+                    shipping={(() => {
+                      const sr = shipmentByReservation.get(r.id);
+                      return sr
+                        ? {
+                            open: Boolean(sr.escrow_transaction_id),
+                            inlandUsd: sr.inland_usd != null ? Number(sr.inland_usd) : null,
+                            oceanUsd: sr.ocean_usd != null ? Number(sr.ocean_usd) : null,
+                            inlandState: sr.escrow_inland_state,
+                            oceanState: sr.escrow_ocean_state,
+                            feeUsd: sr.escrow_fee_usd != null ? Number(sr.escrow_fee_usd) : null,
+                          }
+                        : null;
+                    })()}
+                  />
 
                   <DisputeStatusList disputes={disputes} currentUserId={user!.id} />
                   {!hasOwnOpenDispute ? (

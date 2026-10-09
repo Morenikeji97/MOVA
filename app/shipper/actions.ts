@@ -104,6 +104,7 @@ interface RateFields {
   shipping_method: ShippingMethod;
   price: number;
   currency: string;
+  inland_price: number | null;
 }
 
 /** Parse + validate the shared rate form fields; the reason if anything is invalid. */
@@ -120,6 +121,13 @@ function readRateFields(formData: FormData): RateFields | string {
   if (!isVehicleSizeType(vehicleSizeType)) return "choose a vehicle size.";
   if (!isShippingMethod(shippingMethod)) return "choose a shipping method.";
   if (!Number.isFinite(price) || price < 0) return "the price must be a number, 0 or more.";
+  // Inland part (pickup to port), paid at pickup through escrow; optional
+  // for now, but a shipment can't use escrow without it.
+  const inlandRaw = str(formData.get("inland_price"));
+  const inland = inlandRaw === "" ? null : Number(inlandRaw);
+  if (inland !== null && (!Number.isFinite(inland) || inland <= 0 || inland >= price)) {
+    return "the inland part must be more than 0 and less than the full price.";
+  }
 
   return {
     origin_region: originRegion,
@@ -129,6 +137,7 @@ function readRateFields(formData: FormData): RateFields | string {
     shipping_method: shippingMethod,
     price,
     currency,
+    inland_price: inland,
   };
 }
 

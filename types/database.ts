@@ -10,6 +10,14 @@ export type EscrowStage =
   | "escrow_released";
 export type IdCountry = "NG" | "GH" | "TG" | "BJ";
 export type IdMethod = "ng_nin" | "gh_card" | "document";
+export type EscrowItemState =
+  | "awaiting_payment"
+  | "funded"
+  | "marked_done"
+  | "released"
+  | "in_dispute"
+  | "rejected"
+  | "cancelled";
 export type VehicleStatus = "draft" | "pending_review" | "approved" | "rejected" | "sold" | "archived";
 export type VinVerificationStatus = "unverified" | "checking" | "verified" | "flagged";
 export type ShippingMethod = "roro" | "container";
@@ -67,7 +75,7 @@ export type ShipmentShippingStatus =
   | "picked_up"
   | "in_transit"
   | "delivered";
-export type ShipmentProofKind = "pickup" | "delivery";
+export type ShipmentProofKind = "pickup" | "delivery" | "bill_of_lading";
 export type ReferralRole = "buyer" | "seller";
 export type ReferralFlagStatus = "clear" | "flagged";
 export type ReferralPayoutStatus = "pending" | "processing" | "paid" | "failed";
@@ -614,6 +622,33 @@ export interface Database {
         }>;
         Relationships: [];
       };
+      escrow_webhook_events: {
+        Row: {
+          id: number;
+          received_at: string;
+          transaction_id: string | null;
+          event_type: string | null;
+          result: string | null;
+          processed_at: string | null;
+        };
+        Insert: {
+          id?: never;
+          received_at?: string;
+          transaction_id?: string | null;
+          event_type?: string | null;
+          result?: string | null;
+          processed_at?: string | null;
+        };
+        Update: {
+          id?: never;
+          received_at?: string;
+          transaction_id?: string | null;
+          event_type?: string | null;
+          result?: string | null;
+          processed_at?: string | null;
+        };
+        Relationships: [];
+      };
       admin_audit_log: {
         Row: {
           id: string;
@@ -675,6 +710,9 @@ export interface Database {
           reference: string;
           escrow_reference: string | null;
           escrow_stage: EscrowStage | null;
+          escrow_car_state: EscrowItemState | null;
+          escrow_fee_usd: number | null;
+          escrow_synced_at: string | null;
           mova_fee_payment_method_fingerprint: string | null;
           created_at: string;
           updated_at: string;
@@ -707,6 +745,9 @@ export interface Database {
           reference?: string;
           escrow_reference?: string | null;
           escrow_stage?: EscrowStage | null;
+          escrow_car_state?: EscrowItemState | null;
+          escrow_fee_usd?: number | null;
+          escrow_synced_at?: string | null;
           mova_fee_payment_method_fingerprint?: string | null;
           created_at?: string;
           updated_at?: string;
@@ -739,6 +780,9 @@ export interface Database {
           reference: string;
           escrow_reference: string | null;
           escrow_stage: EscrowStage | null;
+          escrow_car_state: EscrowItemState | null;
+          escrow_fee_usd: number | null;
+          escrow_synced_at: string | null;
           mova_fee_payment_method_fingerprint: string | null;
           created_at: string;
           updated_at: string;
@@ -871,6 +915,7 @@ export interface Database {
           price: number;
           currency: string;
           active: boolean;
+          inland_price: number | null;
           created_at: string;
         };
         Insert: {
@@ -884,6 +929,7 @@ export interface Database {
           origin_port?: string | null;
           currency?: string;
           active?: boolean;
+          inland_price?: number | null;
           created_at?: string;
         };
         Update: Partial<{
@@ -897,6 +943,7 @@ export interface Database {
           price: number;
           currency: string;
           active: boolean;
+          inland_price: number | null;
           created_at: string;
         }>;
         Relationships: [];
@@ -933,6 +980,13 @@ export interface Database {
           vehicle_trim: string | null;
           pickup_city: string | null;
           pickup_state: string | null;
+          inland_usd: number | null;
+          ocean_usd: number | null;
+          escrow_transaction_id: string | null;
+          escrow_inland_state: EscrowItemState | null;
+          escrow_ocean_state: EscrowItemState | null;
+          escrow_fee_usd: number | null;
+          escrow_synced_at: string | null;
           created_at: string;
         };
         Insert: {
@@ -966,6 +1020,13 @@ export interface Database {
           vehicle_trim?: string | null;
           pickup_city?: string | null;
           pickup_state?: string | null;
+          inland_usd?: number | null;
+          ocean_usd?: number | null;
+          escrow_transaction_id?: string | null;
+          escrow_inland_state?: EscrowItemState | null;
+          escrow_ocean_state?: EscrowItemState | null;
+          escrow_fee_usd?: number | null;
+          escrow_synced_at?: string | null;
           created_at?: string;
         };
         Update: Partial<{
@@ -999,6 +1060,13 @@ export interface Database {
           vehicle_trim: string | null;
           pickup_city: string | null;
           pickup_state: string | null;
+          inland_usd: number | null;
+          ocean_usd: number | null;
+          escrow_transaction_id: string | null;
+          escrow_inland_state: EscrowItemState | null;
+          escrow_ocean_state: EscrowItemState | null;
+          escrow_fee_usd: number | null;
+          escrow_synced_at: string | null;
           created_at: string;
         }>;
         Relationships: [];
@@ -1369,6 +1437,7 @@ export interface Database {
           payment_status: ShipperPaymentStatus | null;
           coi_cargo_limit_usd: number | null;
           coi_expires_on: string | null;
+          inland_price: number | null;
         };
         Relationships: [];
       };

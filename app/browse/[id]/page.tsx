@@ -180,6 +180,7 @@ export default async function VehicleDetailPage({
         price: Number(r.price ?? 0),
         currency: r.currency ?? "USD",
         payment_status: r.payment_status ?? "good_standing",
+        inland_price: r.inland_price != null ? Number(r.inland_price) : null,
         insured: insuredBadge(
           { coi_status: "approved", coi_expires_on: r.coi_expires_on, coi_cargo_limit_usd: r.coi_cargo_limit_usd },
           isoDay(new Date()),

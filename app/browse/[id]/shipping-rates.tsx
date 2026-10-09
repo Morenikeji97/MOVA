@@ -25,6 +25,8 @@ export interface PublicRate {
   payment_status: "good_standing" | "past_due" | "suspended";
   /** The "Insured ✓" line; every listed shipper is insured (0060). */
   insured: string | null;
+  /** Inland part (pickup to port), paid through escrow at pickup; the rest at bill of lading. */
+  inland_price: number | null;
 }
 
 function money(amount: number, currency: string) {
@@ -159,6 +161,12 @@ export function ShippingRates({
                       {shippingMethodLabel(r.shipping_method)} ·{" "}
                       <strong className="text-ink">{money(r.price, r.currency)}</strong>
                     </p>
+                    {r.inland_price != null ? (
+                      <p className="mt-0.5 text-sm text-gray-500">
+                        Paid through Escrow.com: inland {money(r.inland_price, r.currency)} at pickup + ocean{" "}
+                        {money(r.price - r.inland_price, r.currency)} at bill of lading
+                      </p>
+                    ) : null}
                   </div>
                   <ActionForm action={selectShippingRate}>
                     <input type="hidden" name="rateId" value={r.rate_id} />

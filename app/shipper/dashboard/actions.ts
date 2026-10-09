@@ -65,7 +65,7 @@ export async function addProofPhoto(formData: FormData): Promise<ActionResult> {
   const shipmentId = str(formData.get("shipmentId"));
   const kind = str(formData.get("kind")) as ShipmentProofKind;
   const storagePath = str(formData.get("storagePath"));
-  if (!shipmentId || !storagePath || (kind !== "pickup" && kind !== "delivery")) {
+  if (!shipmentId || !storagePath || (kind !== "pickup" && kind !== "delivery" && kind !== "bill_of_lading")) {
     return notSaved("the photo upload was incomplete. Try again.");
   }
 

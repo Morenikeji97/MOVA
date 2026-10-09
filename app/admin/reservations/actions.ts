@@ -21,6 +21,7 @@ import {
   savedWithAudit,
   type ActionResult,
 } from "@/lib/action-result";
+import { openCarEscrow, syncEscrowTransaction } from "@/lib/escrow-sync";
 
 /**
  * Admin actions for the reservation queue (purchase_requests). Bound to
@@ -398,4 +399,33 @@ export async function recordEscrow(
   }, { escrow_stage: stage, escrow_reference: reference });
   revalidatePath("/admin/reservations");
   return savedWithAudit("Saved — recorded in this deal's history.", audit);
+}
+
+/** Open the car's Escrow.com transaction (needs ESCROW_API_* set; see lib/escrow-sync.ts). */
+export async function openCarEscrowAction(_prev: ActionResult, formData: FormData): Promise<ActionResult> {
+  const id = idFrom(formData);
+  if (!id) return notSaved(MISSING_ID);
+  const ctx = await requireAdmin();
+  if (!ctx) return notSaved(SESSION_ENDED);
+  const result = await openCarEscrow(id);
+  if (!result.ok) return notSaved(result.message);
+  const audit = await logAdminAction(ctx.supabase, "escrow.open_car", { table: "purchase_requests", id }, { result: result.message });
+  revalidatePath("/admin/reservations");
+  revalidatePath("/buyer/dashboard");
+  return savedWithAudit(result.message, audit);
+}
+
+/** Re-fetch an Escrow.com transaction (car or shipping) and record what it reports. */
+export async function refreshEscrowAction(_prev: ActionResult, formData: FormData): Promise<ActionResult> {
+  const transactionId = typeof formData.get("transaction_id") === "string" ? String(formData.get("transaction_id")).trim() : "";
+  if (!/^\d{1,20}$/.test(transactionId)) return notSaved("this deal has no Escrow.com transaction number to refresh.");
+  const ctx = await requireAdmin();
+  if (!ctx) return notSaved(SESSION_ENDED);
+  const result = await syncEscrowTransaction(transactionId);
+  if (!result.ok) return notSaved(result.message);
+  const audit = await logAdminAction(ctx.supabase, "escrow.refresh", { table: "escrow", id: null }, { transaction_id: transactionId, result: result.message });
+  revalidatePath("/admin/reservations");
+  revalidatePath("/admin/shipments");
+  revalidatePath("/buyer/dashboard");
+  return savedWithAudit(`Refreshed from Escrow.com — ${result.message}.`, audit);
 }
