@@ -47,31 +47,31 @@ export function EscrowApiPanel({
   blockedReason?: string | null;
 }) {
   return (
-    <div className="mt-4 border-t border-gray-200 pt-4">
-      <p className="font-mono text-xs uppercase tracking-wider text-gray-500">{title}</p>
+    <div className="mt-4 border-t border-line pt-4">
+      <p className="text-xs font-semibold uppercase tracking-[0.14em] text-muted">{title}</p>
       {!configured ? (
-        <p className="mt-1 text-sm text-gray-500">Escrow.com isn&rsquo;t connected yet — use the reference form.</p>
+        <p className="mt-1 text-sm text-muted">Escrow.com isn&rsquo;t connected yet — use the reference form.</p>
       ) : transactionId ? (
         <>
           <dl className="mt-2 grid grid-cols-1 gap-1 text-sm">
             <div className="flex flex-wrap gap-x-2">
-              <dt className="text-gray-500">Escrow.com transaction</dt>
-              <dd className="font-mono text-black">{transactionId}</dd>
+              <dt className="text-muted">Escrow.com transaction</dt>
+              <dd className="font-mono text-ink">{transactionId}</dd>
             </div>
             {lines.map((l) => (
               <div key={l.label} className="flex flex-wrap gap-x-2">
-                <dt className="text-gray-500">{l.label}</dt>
-                <dd className="text-black">{l.value}</dd>
+                <dt className="text-muted">{l.label}</dt>
+                <dd className="text-ink">{l.value}</dd>
               </div>
             ))}
             <div className="flex flex-wrap gap-x-2">
-              <dt className="text-gray-500">Escrow.com fee (buyer pays)</dt>
-              <dd className="text-black">{feeUsd != null ? `$${feeUsd.toFixed(2)}` : "not reported yet"}</dd>
+              <dt className="text-muted">Escrow.com fee (buyer pays)</dt>
+              <dd className="text-ink">{feeUsd != null ? `$${feeUsd.toFixed(2)}` : "not reported yet"}</dd>
             </div>
             {syncedAt ? (
               <div className="flex flex-wrap gap-x-2">
-                <dt className="text-gray-500">Last checked</dt>
-                <dd className="text-black">{new Date(syncedAt).toUTCString().slice(5, 22)} UTC</dd>
+                <dt className="text-muted">Last checked</dt>
+                <dd className="text-ink">{new Date(syncedAt).toUTCString().slice(5, 22)} UTC</dd>
               </div>
             ) : null}
           </dl>
@@ -81,7 +81,7 @@ export function EscrowApiPanel({
           </ActionForm>
         </>
       ) : blockedReason ? (
-        <p className="mt-1 text-sm text-gray-500">{blockedReason}</p>
+        <p className="mt-1 text-sm text-muted">{blockedReason}</p>
       ) : (
         <ActionForm action={openAction} className="mt-2">
           <input type="hidden" name="id" value={targetId} />

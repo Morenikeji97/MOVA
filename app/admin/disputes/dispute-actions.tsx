@@ -33,12 +33,12 @@ export function DisputeActions({
 
   if (status === "approved_pending_refund") {
     return (
-      <ActionForm action={markRefundCompleted} className="mt-4 border-t border-gray-200 pt-4">
+      <ActionForm action={markRefundCompleted} className="mt-4 border-t border-line pt-4">
         <input type="hidden" name="id" value={disputeId} />
         <PendingButton variant="primary" size="sm" pendingLabel="Recording…">
           Mark refund completed
         </PendingButton>
-        <p className="mt-1 text-xs text-gray-500">
+        <p className="mt-1 text-xs text-muted">
           Only after you&rsquo;ve actually processed the refund manually (Stripe
           dashboard, or a manual bank transfer) — this just records that it&rsquo;s done.
         </p>
@@ -48,7 +48,7 @@ export function DisputeActions({
 
   if (mode === null) {
     return (
-      <div className="mt-4 flex items-center gap-3 border-t border-gray-200 pt-4">
+      <div className="mt-4 flex flex-wrap items-center gap-3 border-t border-line pt-4">
         <Button variant="primary" size="sm" onClick={() => setMode("approve")}>
           Approve for refund
         </Button>
@@ -62,11 +62,11 @@ export function DisputeActions({
   const action = mode === "approve" ? approveDisputeForRefund : denyDispute;
 
   return (
-    <ActionForm action={action} className="mt-4 flex flex-col gap-2 border-t border-gray-200 pt-4">
+    <ActionForm action={action} className="mt-4 flex flex-col gap-2 border-t border-line pt-4">
       <input type="hidden" name="id" value={disputeId} />
       {mode === "approve" ? (
         <label className="flex flex-col gap-1">
-          <span className="text-sm text-gray-500">Refund amount (USD, optional)</span>
+          <span className="text-sm text-muted">Refund amount (USD, optional)</span>
           <input
             type="number"
             name="decision_amount_usd"
@@ -78,10 +78,10 @@ export function DisputeActions({
         </label>
       ) : null}
       <label className="flex flex-col gap-1">
-        <span className="text-sm text-gray-500">
+        <span className="text-sm text-muted">
           {mode === "approve" ? "Reasoning" : "Reason"}{" "}
           <span className="text-copper-700">*</span>
-          <span className="ml-1 font-normal text-gray-500">
+          <span className="ml-1 font-normal text-muted">
             — shown to whoever filed this dispute
           </span>
         </span>
@@ -92,7 +92,7 @@ export function DisputeActions({
           className={inputClasses({ multiline: true })}
         />
       </label>
-      <div className="flex items-center gap-3">
+      <div className="flex flex-wrap items-center gap-3">
         <PendingButton
           variant={mode === "approve" ? "primary" : "secondary"}
           size="sm"
@@ -103,7 +103,7 @@ export function DisputeActions({
         <button
           type="button"
           onClick={() => setMode(null)}
-          className="text-sm text-gray-500 hover:text-black"
+          className="h-11 rounded-lg px-3 text-sm font-semibold text-muted hover:text-ink"
         >
           Cancel
         </button>

@@ -20,7 +20,7 @@ export function CoiDecisionForm({ shipperId }: { shipperId: string }) {
     <ActionForm action={decideShipperCoi} className="mt-3 flex flex-col gap-2">
       <input type="hidden" name="id" value={shipperId} />
       <label className="flex flex-col gap-1">
-        <span className="text-sm text-gray-500">Reason, if rejecting (the shipper sees this)</span>
+        <span className="text-sm text-muted">Reason, if rejecting (the shipper sees this)</span>
         <input name="note" maxLength={1000} autoComplete="off" className={inputClasses()} />
       </label>
       <div className="flex flex-col gap-2 sm:flex-row">
@@ -37,7 +37,7 @@ export function LicenseCheckForm({ shipperId }: { shipperId: string }) {
     <ActionForm action={recordShipperLicenseCheck} className="mt-3 flex flex-col gap-2">
       <input type="hidden" name="id" value={shipperId} />
       <label className="flex flex-col gap-1">
-        <span className="text-sm text-gray-500">Note (optional, e.g. the name listed)</span>
+        <span className="text-sm text-muted">Note (optional, e.g. the name listed)</span>
         <input name="note" maxLength={1000} autoComplete="off" className={inputClasses()} />
       </label>
       <div className="flex flex-col gap-2 sm:flex-row">

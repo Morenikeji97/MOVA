@@ -5,6 +5,7 @@ import { StarRating } from "@/components/ui/star-rating";
 import { REVIEW_TYPE_LABEL } from "@/lib/reviews";
 import type { ReviewStatus } from "@/types/database";
 import { ModerationActions } from "./moderation-actions";
+import { BackLink, DashboardShell } from "@/components/ui/dashboard";
 
 const fmtDate = new Intl.DateTimeFormat("en-US", {
   month: "short",
@@ -19,10 +20,10 @@ const QUEUE_STATUSES: ReviewStatus[] = ["pending", "flagged"];
 function Detail({ label, children }: { label: string; children: ReactNode }) {
   return (
     <div>
-      <dt className="font-mono text-xs uppercase tracking-wider text-gray-500">
+      <dt className="text-xs font-semibold uppercase tracking-[0.14em] text-muted">
         {label}
       </dt>
-      <dd className="text-black">{children}</dd>
+      <dd className="text-ink">{children}</dd>
     </div>
   );
 }
@@ -78,17 +79,12 @@ export default async function AdminReviewsPage() {
   }
 
   return (
-    <main className="mx-auto max-w-4xl px-6 py-16">
-      <Link
-        href="/admin/dashboard"
-        className="font-mono text-xs uppercase tracking-wider text-gray-500 hover:text-black"
-      >
-        &larr; Admin dashboard
-      </Link>
-      <h1 className="mt-4 text-2xl font-semibold text-black">
+    <DashboardShell>
+      <BackLink href="/admin/dashboard">Admin dashboard</BackLink>
+      <h1 className="mt-4 font-display text-2xl font-extrabold tracking-tight text-ink">
         Review moderation queue
       </h1>
-      <p className="mt-2 text-sm text-gray-500">
+      <p className="mt-2 text-sm text-muted">
         {reviews.length === 0
           ? "Nothing waiting for moderation."
           : `${reviews.length} review${reviews.length === 1 ? "" : "s"} awaiting a decision.`}{" "}
@@ -97,8 +93,8 @@ export default async function AdminReviewsPage() {
       </p>
 
       {reviews.length === 0 ? (
-        <div className="mt-10 rounded-lg border border-dashed border-gray-200 bg-white p-10 text-center">
-          <p className="text-black">The queue is clear.</p>
+        <div className="mt-10 rounded-lg border border-dashed border-line bg-white p-10 text-center">
+          <p className="text-ink">The queue is clear.</p>
         </div>
       ) : (
         <ul className="mt-8 flex flex-col gap-4">
@@ -115,17 +111,17 @@ export default async function AdminReviewsPage() {
             return (
               <li
                 key={r.id}
-                className="rounded-lg border border-gray-200 bg-white p-5"
+                className="rounded-card border border-line bg-white shadow-card p-5"
               >
                 <div className="flex flex-wrap items-start justify-between gap-3">
                   <div>
                     <div className="flex items-center gap-2">
                       <StarRating value={r.rating} size="sm" />
-                      <span className="text-sm font-semibold text-black">
+                      <span className="text-sm font-semibold text-ink">
                         {r.rating}/5
                       </span>
                     </div>
-                    <p className="mt-1 font-mono text-xs uppercase tracking-wider text-gray-500">
+                    <p className="mt-1 text-xs font-semibold uppercase tracking-[0.14em] text-muted">
                       {REVIEW_TYPE_LABEL[r.review_type]}
                     </p>
                   </div>
@@ -151,15 +147,15 @@ export default async function AdminReviewsPage() {
                 </dl>
 
                 {r.comment ? (
-                  <p className="mt-3 whitespace-pre-wrap break-words rounded border border-gray-200 bg-white p-3 text-sm text-gray-500">
+                  <p className="mt-3 whitespace-pre-wrap break-words rounded-lg border border-line bg-white p-3 text-sm text-muted">
                     {r.comment}
                   </p>
                 ) : (
-                  <p className="mt-3 text-sm text-gray-500">No comment.</p>
+                  <p className="mt-3 text-sm text-muted">No comment.</p>
                 )}
 
                 {reports.length > 0 ? (
-                  <div className="mt-3 rounded border border-copper-100 bg-copper-50 p-3">
+                  <div className="mt-3 rounded-lg border border-copper-100 bg-copper-50 p-3">
                     <p className="font-mono text-xs uppercase tracking-wider text-copper-700">
                       Reports
                     </p>
@@ -180,7 +176,7 @@ export default async function AdminReviewsPage() {
           })}
         </ul>
       )}
-    </main>
+    </DashboardShell>
   );
 }
 

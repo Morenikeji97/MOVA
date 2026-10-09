@@ -43,9 +43,9 @@ export function AuthenticatorList({
   return (
     <div className="mt-6 flex flex-col gap-6">
       {promptBackup && !adding && (
-        <div className="rounded-lg border border-black bg-white p-4">
-          <p className="font-medium text-black">Two-step sign-in is on.</p>
-          <p className="mt-1 text-sm text-gray-700">
+        <div className="rounded-lg border border-ink bg-white p-4">
+          <p className="font-medium text-ink">Two-step sign-in is on.</p>
+          <p className="mt-1 text-sm text-ink">
             Add a backup authenticator now — a second app or device. If you lose this phone,
             it&rsquo;s how you get back in.
           </p>
@@ -56,11 +56,11 @@ export function AuthenticatorList({
         {authenticators.map((a) => (
           <li
             key={a.id}
-            className="flex items-center justify-between gap-3 rounded-lg border border-gray-200 bg-white p-4"
+            className="flex items-center justify-between gap-3 rounded-card border border-line bg-white shadow-card p-4"
           >
             <div className="min-w-0">
-              <p className="truncate font-medium text-black">{a.name}</p>
-              <p className="text-sm text-gray-500">Added {dateFormat.format(new Date(a.createdAt))}</p>
+              <p className="truncate font-medium text-ink">{a.name}</p>
+              <p className="text-sm text-muted">Added {dateFormat.format(new Date(a.createdAt))}</p>
             </div>
             <Button
               type="button"
@@ -76,15 +76,15 @@ export function AuthenticatorList({
         ))}
       </ul>
       {onlyOne && (
-        <p className="text-sm text-gray-500">
+        <p className="text-sm text-muted">
           To replace your only authenticator, add the new one first, then remove the old one.
         </p>
       )}
       {error && <p className="text-sm text-copper-700">{error}</p>}
 
       {adding ? (
-        <div className="rounded-lg border border-gray-200 bg-white p-4">
-          <h2 className="mb-4 font-semibold text-black">Add a backup authenticator</h2>
+        <div className="rounded-card border border-line bg-white shadow-card p-4">
+          <h2 className="mb-4 font-semibold text-ink">Add a backup authenticator</h2>
           <TotpEnroll
             friendlyName="Backup authenticator"
             onVerified={() => {
@@ -100,7 +100,7 @@ export function AuthenticatorList({
         </Button>
       )}
 
-      <Link href="/admin/dashboard" className="text-sm text-black underline">
+      <Link href="/admin/dashboard" className="text-sm text-ink underline">
         Back to the admin dashboard
       </Link>
     </div>

@@ -6,6 +6,7 @@ import { loadFullVins } from "@/lib/listings";
 import type { DisputeStatus } from "@/types/database";
 import { DisputeActions } from "./dispute-actions";
 import { mediaUrl } from "@/lib/media-url";
+import { BackLink, DashboardShell } from "@/components/ui/dashboard";
 
 const usd = new Intl.NumberFormat("en-US", {
   style: "currency",
@@ -28,8 +29,8 @@ const ACTIVE_STATUSES: DisputeStatus[] = ["open", "approved_pending_refund"];
 function Detail({ label, children }: { label: string; children: ReactNode }) {
   return (
     <div>
-      <dt className="font-mono text-xs uppercase tracking-wider text-gray-500">{label}</dt>
-      <dd className="text-black">{children}</dd>
+      <dt className="text-xs font-semibold uppercase tracking-[0.14em] text-muted">{label}</dt>
+      <dd className="text-ink">{children}</dd>
     </div>
   );
 }
@@ -94,23 +95,18 @@ export default async function AdminDisputesPage() {
   const signedUrlByPath = new Map(evidenceEntries);
 
   return (
-    <main className="mx-auto max-w-4xl px-6 py-16">
-      <Link
-        href="/admin/dashboard"
-        className="font-mono text-xs uppercase tracking-wider text-gray-500 hover:text-black"
-      >
-        &larr; Admin dashboard
-      </Link>
-      <h1 className="mt-4 text-2xl font-semibold text-black">Disputes</h1>
-      <p className="mt-2 text-sm text-gray-500">
+    <DashboardShell>
+      <BackLink href="/admin/dashboard">Admin dashboard</BackLink>
+      <h1 className="mt-4 font-display text-2xl font-extrabold tracking-tight text-ink">Disputes</h1>
+      <p className="mt-2 text-sm text-muted">
         {disputes.length === 0
           ? "No open disputes."
           : `${disputes.length} dispute${disputes.length === 1 ? "" : "s"} needing attention.`}
       </p>
 
       {disputes.length === 0 ? (
-        <div className="mt-10 rounded-lg border border-dashed border-gray-200 bg-white p-10 text-center">
-          <p className="text-black">Nothing to review.</p>
+        <div className="mt-10 rounded-lg border border-dashed border-line bg-white p-10 text-center">
+          <p className="text-ink">Nothing to review.</p>
         </div>
       ) : (
         <ul className="mt-8 flex flex-col gap-4">
@@ -132,23 +128,23 @@ export default async function AdminDisputesPage() {
             return (
               <li
                 key={d.id}
-                className="rounded-lg border border-gray-200 bg-white p-5"
+                className="rounded-card border border-line bg-white shadow-card p-5"
               >
                 <div className="flex items-start justify-between gap-4">
                   <div>
-                    <h2 className="text-lg font-semibold text-black">
+                    <h2 className="font-display text-lg font-bold text-ink">
                       {DISPUTE_CATEGORY_LABEL[d.category]}
                     </h2>
                     {reservation ? (
                       <Link
                         href={`/browse/${reservation.vehicle_id}`}
-                        className="mt-1 block text-sm text-black hover:underline"
+                        className="mt-1 block text-sm text-ink hover:underline"
                       >
                         {title}
                         {vehicle ? ` — VIN ${fullVinById.get(vehicle.id) ?? vehicle.vin_masked}` : ""}
                       </Link>
                     ) : (
-                      <p className="mt-1 text-sm text-gray-500">Reservation unavailable</p>
+                      <p className="mt-1 text-sm text-muted">Reservation unavailable</p>
                     )}
                   </div>
                   <span className="inline-flex shrink-0 items-center rounded-full bg-marine-50 px-2.5 py-1 text-sm font-medium text-marine-700">
@@ -184,17 +180,17 @@ export default async function AdminDisputesPage() {
                 </dl>
 
                 <div className="mt-3">
-                  <p className="font-mono text-xs uppercase tracking-wider text-gray-500">
+                  <p className="text-xs font-semibold uppercase tracking-[0.14em] text-muted">
                     Description
                   </p>
-                  <p className="mt-1 whitespace-pre-wrap text-sm text-black">
+                  <p className="mt-1 whitespace-pre-wrap text-sm text-ink">
                     {d.description}
                   </p>
                 </div>
 
                 {d.evidence_paths.length > 0 ? (
                   <div className="mt-3">
-                    <p className="font-mono text-xs uppercase tracking-wider text-gray-500">
+                    <p className="text-xs font-semibold uppercase tracking-[0.14em] text-muted">
                       Evidence ({d.evidence_paths.length})
                     </p>
                     <div className="mt-2 flex flex-wrap gap-2">
@@ -215,7 +211,7 @@ export default async function AdminDisputesPage() {
                               href={url}
                               target="_blank"
                               rel="noopener noreferrer"
-                              className="text-sm text-black underline underline-offset-2"
+                              className="text-sm text-ink underline underline-offset-2"
                             >
                               View PDF &rarr;
                             </a>
@@ -227,7 +223,7 @@ export default async function AdminDisputesPage() {
                             <img
                               src={url}
                               alt="Dispute evidence"
-                              className="h-24 w-24 rounded border border-gray-200 object-cover"
+                              className="h-24 w-24 rounded-lg border border-line object-cover"
                             />
                           </a>
                         );
@@ -245,6 +241,6 @@ export default async function AdminDisputesPage() {
           })}
         </ul>
       )}
-    </main>
+    </DashboardShell>
   );
 }

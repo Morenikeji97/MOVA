@@ -17,7 +17,7 @@ function Submit({ label, variant }: { label: string; variant?: "secondary" }) {
 /** Approve or reject one buyer's ID. Either way the ID photo is deleted. */
 export function BuyerIdReviewForms({ buyerId }: { buyerId: string }) {
   return (
-    <div className="mt-4 flex flex-col gap-4 border-t border-gray-200 pt-4">
+    <div className="mt-4 flex flex-col gap-4 border-t border-line pt-4">
       <ActionForm action={approveBuyerId}>
         <input type="hidden" name="buyer_id" value={buyerId} />
         <Submit label="Approve ID" />
@@ -25,7 +25,7 @@ export function BuyerIdReviewForms({ buyerId }: { buyerId: string }) {
       <ActionForm action={rejectBuyerId} className="flex flex-col gap-2">
         <input type="hidden" name="buyer_id" value={buyerId} />
         <label className="flex flex-col gap-1">
-          <span className="text-sm text-gray-500">Reason (the buyer sees this)</span>
+          <span className="text-sm text-muted">Reason (the buyer sees this)</span>
           <input name="note" required maxLength={1000} autoComplete="off" className={inputClasses()} />
         </label>
         <Submit label="Reject ID" variant="secondary" />

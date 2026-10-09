@@ -10,6 +10,7 @@ import { ReviewActions } from "./review-actions";
 import { ImportBadge } from "@/components/ui/import-badge";
 import { mediaUrl } from "@/lib/media-url";
 import { requireAdminMfa } from "@/lib/admin-mfa";
+import { BackLink, DashboardShell } from "@/components/ui/dashboard";
 
 const usd = new Intl.NumberFormat("en-US", {
   style: "currency",
@@ -26,8 +27,8 @@ const submitted = new Intl.DateTimeFormat("en-US", {
 function Detail({ label, children }: { label: string; children: ReactNode }) {
   return (
     <div>
-      <dt className="font-mono text-xs uppercase tracking-wider text-gray-500">{label}</dt>
-      <dd className="text-black">{children}</dd>
+      <dt className="text-xs font-semibold uppercase tracking-[0.14em] text-muted">{label}</dt>
+      <dd className="text-ink">{children}</dd>
     </div>
   );
 }
@@ -57,7 +58,7 @@ function DocumentPreview({
         href={url}
         target="_blank"
         rel="noopener noreferrer"
-        className="mt-1 inline-block text-sm text-black underline underline-offset-2"
+        className="mt-1 inline-block text-sm text-ink underline underline-offset-2"
       >
         View document (PDF) &rarr;
       </a>
@@ -66,7 +67,7 @@ function DocumentPreview({
   return (
     <a href={url} target="_blank" rel="noopener noreferrer">
       {/* eslint-disable-next-line @next/next/no-img-element */}
-      <img src={url} alt={alt} className="mt-1 h-28 w-40 rounded border border-gray-200 object-cover" />
+      <img src={url} alt={alt} className="mt-1 h-28 w-40 rounded-lg border border-line object-cover" />
     </a>
   );
 }
@@ -197,24 +198,19 @@ export default async function AdminListingReviewPage() {
   const authDocUrlByVehicle = new Map(authDocUrlEntries);
 
   return (
-    <main className="mx-auto max-w-4xl px-6 py-16">
-      <Link
-        href="/admin/dashboard"
-        className="font-mono text-xs uppercase tracking-wider text-gray-500 hover:text-black"
-      >
-        &larr; Admin dashboard
-      </Link>
-      <h1 className="mt-4 text-2xl font-semibold text-black">Listing review queue</h1>
-      <p className="mt-2 text-sm text-gray-500">
+    <DashboardShell>
+      <BackLink href="/admin/dashboard">Admin dashboard</BackLink>
+      <h1 className="mt-4 font-display text-2xl font-extrabold tracking-tight text-ink">Listing review queue</h1>
+      <p className="mt-2 text-sm text-muted">
         {rows.length === 0
           ? "Nothing waiting for review right now."
           : `${rows.length} listing${rows.length === 1 ? "" : "s"} awaiting review.`}
       </p>
 
       {rows.length === 0 ? (
-        <div className="mt-10 rounded-lg border border-dashed border-gray-200 bg-white p-10 text-center">
-          <p className="text-black">The queue is clear.</p>
-          <p className="mt-1 text-sm text-gray-500">
+        <div className="mt-10 rounded-lg border border-dashed border-line bg-white p-10 text-center">
+          <p className="text-ink">The queue is clear.</p>
+          <p className="mt-1 text-sm text-muted">
             New submissions from sellers will show up here.
           </p>
         </div>
@@ -232,20 +228,20 @@ export default async function AdminListingReviewPage() {
             return (
               <li
                 key={v.id}
-                className="rounded-lg border border-gray-200 bg-white p-5"
+                className="rounded-card border border-line bg-white shadow-card p-5"
               >
                 <div className="flex items-start justify-between gap-4">
                   <div>
-                    <h2 className="text-lg font-semibold text-black">
+                    <h2 className="font-display text-lg font-bold text-ink">
                       {v.year} {v.make} {v.model}
                       {v.trim ? ` ${v.trim}` : ""}
                     </h2>
-                    <p className="mt-1 font-mono text-sm text-gray-500">
+                    <p className="mt-1 font-mono text-sm text-muted">
                       {usd.format(Number(v.price_usd))} ·{" "}
                       {v.mileage.toLocaleString("en-US")} mi · {v.location_city},{" "}
                       {v.location_state}
                     </p>
-                    <p className="mt-1 font-mono text-xs uppercase tracking-wider text-gray-500">
+                    <p className="mt-1 text-xs font-semibold uppercase tracking-[0.14em] text-muted">
                       VIN {privateById.get(v.id)?.vin ?? v.vin_masked}
                       {v.vin_decode_status === "mismatch"
                         ? " · VIN mismatch flagged"
@@ -289,7 +285,7 @@ export default async function AdminListingReviewPage() {
                 </dl>
 
                 {v.description ? (
-                  <p className="mt-3 whitespace-pre-line text-sm text-gray-500">
+                  <p className="mt-3 whitespace-pre-line text-sm text-muted">
                     {v.description}
                   </p>
                 ) : null}
@@ -305,8 +301,8 @@ export default async function AdminListingReviewPage() {
                         loading="lazy"
                         decoding="async"
                         className={cn(
-                          "h-28 w-40 shrink-0 rounded border object-cover",
-                          p.is_primary ? "border-black" : "border-gray-200"
+                          "h-28 w-40 shrink-0 rounded-lg border object-cover",
+                          p.is_primary ? "border-ink" : "border-line"
                         )}
                       />
                     ))}
@@ -315,8 +311,8 @@ export default async function AdminListingReviewPage() {
                   <p className="mt-4 text-sm text-copper-700">No photos uploaded.</p>
                 )}
 
-                <div className="mt-4 rounded border border-gray-200 p-4">
-                  <p className="font-mono text-xs uppercase tracking-wider text-gray-500">
+                <div className="mt-4 rounded-lg border border-line p-4">
+                  <p className="text-xs font-semibold uppercase tracking-[0.14em] text-muted">
                     Title-ownership review
                   </p>
                   {v.not_titled_owner ? (
@@ -328,10 +324,10 @@ export default async function AdminListingReviewPage() {
 
                   <div className="mt-3 grid grid-cols-1 gap-4 sm:grid-cols-2">
                     <div>
-                      <p className="text-xs text-gray-500">
+                      <p className="text-xs text-muted">
                         Seller&rsquo;s Stripe-Identity-verified legal name
                       </p>
-                      <p className="mt-1 text-black">
+                      <p className="mt-1 text-ink">
                         {sellerVerifiedName ?? (
                           <span className="text-copper-700">
                             Not captured — seller hasn&rsquo;t completed identity
@@ -341,7 +337,7 @@ export default async function AdminListingReviewPage() {
                       </p>
                     </div>
                     <div>
-                      <p className="text-xs text-gray-500">Title document</p>
+                      <p className="text-xs text-muted">Title document</p>
                       <DocumentPreview
                         url={titlePhotoUrl}
                         path={privateById.get(v.id)?.title_photo_path ?? null}
@@ -353,7 +349,7 @@ export default async function AdminListingReviewPage() {
 
                   {v.not_titled_owner ? (
                     <div className="mt-3">
-                      <p className="text-xs text-gray-500">
+                      <p className="text-xs text-muted">
                         Authorization document (letter / power of attorney)
                       </p>
                       <DocumentPreview
@@ -380,6 +376,6 @@ export default async function AdminListingReviewPage() {
           })}
         </ul>
       )}
-    </main>
+    </DashboardShell>
   );
 }

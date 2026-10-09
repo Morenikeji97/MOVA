@@ -4,6 +4,7 @@ import { requireAdmin } from "@/lib/admin-auth";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { BUYER_ID_BUCKET, idCountry } from "@/lib/id-verification";
 import { BuyerIdReviewForms } from "./review-forms";
+import { BackLink, DashboardShell } from "@/components/ui/dashboard";
 
 export const dynamic = "force-dynamic";
 
@@ -55,25 +56,20 @@ export default async function AdminBuyerIdsPage() {
   }
 
   return (
-    <main className="mx-auto max-w-3xl px-4 py-12 sm:px-6">
-      <Link
-        href="/admin/dashboard"
-        className="font-mono text-xs uppercase tracking-wider text-gray-500 hover:text-black"
-      >
-        &larr; Admin dashboard
-      </Link>
-      <h1 className="mt-4 text-2xl font-semibold text-black">Buyer IDs to review</h1>
-      <p className="mt-2 text-sm text-gray-500">
+    <DashboardShell narrow>
+      <BackLink href="/admin/dashboard">Admin dashboard</BackLink>
+      <h1 className="mt-4 font-display text-2xl font-extrabold tracking-tight text-ink">Buyer IDs to review</h1>
+      <p className="mt-2 text-sm text-muted">
         These buyers can&rsquo;t use their account until you decide. Approving or rejecting
         deletes the ID photo; the decision is kept in the audit log.
       </p>
 
       {error ? (
-        <p className="mt-6 rounded border border-copper-100 bg-copper-50 p-3 text-sm text-copper-700">
+        <p className="mt-6 rounded-lg border border-copper-100 bg-copper-50 p-3 text-sm text-copper-700">
           Couldn&rsquo;t load buyer IDs: {error.message}
         </p>
       ) : !rows || rows.length === 0 ? (
-        <p className="mt-6 rounded-lg border border-dashed border-gray-200 bg-white p-8 text-center text-sm text-gray-500">
+        <p className="mt-6 rounded-lg border border-dashed border-line bg-white p-8 text-center text-sm text-muted">
           Nothing to review.
         </p>
       ) : (
@@ -83,17 +79,17 @@ export default async function AdminBuyerIdsPage() {
             const country = idCountry(r.id_country);
             const photo = photos.get(r.user_id);
             return (
-              <li key={r.user_id} className="rounded-lg border border-gray-200 bg-white p-4">
+              <li key={r.user_id} className="rounded-card border border-line bg-white shadow-card p-4">
                 <div className="flex flex-wrap items-baseline justify-between gap-2">
-                  <p className="break-all font-medium text-black">
+                  <p className="break-all font-medium text-ink">
                     {u?.email ?? r.user_id}
                     {u?.is_test_account ? (
-                      <span className="ml-2 rounded bg-gray-100 px-1.5 py-0.5 font-mono text-xs text-gray-500">TEST</span>
+                      <span className="ml-2 rounded bg-band px-1.5 py-0.5 font-mono text-xs text-muted">TEST</span>
                     ) : null}
                   </p>
-                  <p className="font-mono text-xs text-gray-500">Signed up {when.format(new Date(r.created_at))}</p>
+                  <p className="font-mono text-xs text-muted">Signed up {when.format(new Date(r.created_at))}</p>
                 </div>
-                <p className="mt-1 text-sm text-gray-500">
+                <p className="mt-1 text-sm text-muted">
                   {country?.name ?? r.id_country} ·{" "}
                   {r.id_method === "document"
                     ? r.id_document_type === "passport"
@@ -103,13 +99,13 @@ export default async function AdminBuyerIdsPage() {
                 </p>
                 <dl className="mt-3 grid grid-cols-1 gap-2 text-sm sm:grid-cols-2">
                   <div>
-                    <dt className="text-gray-500">Name they typed</dt>
-                    <dd className="text-black">{r.id_legal_name}</dd>
+                    <dt className="text-muted">Name they typed</dt>
+                    <dd className="text-ink">{r.id_legal_name}</dd>
                   </div>
                   {r.id_record_name ? (
                     <div>
-                      <dt className="text-gray-500">Name on the government record</dt>
-                      <dd className="text-black">{r.id_record_name}</dd>
+                      <dt className="text-muted">Name on the government record</dt>
+                      <dd className="text-ink">{r.id_record_name}</dd>
                     </div>
                   ) : null}
                 </dl>
@@ -122,7 +118,7 @@ export default async function AdminBuyerIdsPage() {
                         alt="Buyer's ID"
                         loading="lazy"
                         referrerPolicy="no-referrer"
-                        className="max-h-80 w-full rounded border border-gray-200 object-contain"
+                        className="max-h-80 w-full rounded-lg border border-line object-contain"
                       />
                     </a>
                   ) : (
@@ -135,6 +131,6 @@ export default async function AdminBuyerIdsPage() {
           })}
         </ul>
       )}
-    </main>
+    </DashboardShell>
   );
 }

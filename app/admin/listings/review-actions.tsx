@@ -83,14 +83,14 @@ export function ReviewActions({
   });
 
   return (
-    <div className="mt-4 border-t border-gray-200 pt-4">
-      <p className="text-sm text-gray-500">
+    <div className="mt-4 border-t border-line pt-4">
+      <p className="text-sm text-muted">
         Check this VIN at{" "}
         <a
           href="https://www.nicb.org/vincheck"
           target="_blank"
           rel="noopener noreferrer"
-          className="text-black underline underline-offset-2"
+          className="text-ink underline underline-offset-2"
         >
           nicb.org/vincheck
         </a>{" "}
@@ -99,7 +99,7 @@ export function ReviewActions({
           href="https://vehiclehistory.gov"
           target="_blank"
           rel="noopener noreferrer"
-          className="text-black underline underline-offset-2"
+          className="text-ink underline underline-offset-2"
         >
           vehiclehistory.gov
         </a>{" "}
@@ -111,7 +111,7 @@ export function ReviewActions({
         className="mt-2 flex flex-wrap items-center gap-2"
       >
         <input type="hidden" name="id" value={vehicleId} />
-        <label className="flex items-center gap-2 text-sm text-gray-500">
+        <label className="flex items-center gap-2 text-sm text-muted">
           VIN check result
           <select
             name="vin_verification_status"
@@ -147,13 +147,13 @@ export function ReviewActions({
           name="title_identity_match_confirmed"
           value={(!titleIdentityMatchConfirmed).toString()}
         />
-        <label className="flex items-center gap-2 text-sm text-gray-500">
+        <label className="flex items-center gap-2 text-sm text-muted">
           <input
             type="checkbox"
             defaultChecked={titleIdentityMatchConfirmed}
             disabled={!documentsReady}
             onChange={() => identityFormRef.current?.requestSubmit()}
-            className="h-5 w-5 rounded border-gray-200"
+            className="h-5 w-5 rounded-lg border-line"
           />
           {notTitledOwner
             ? "Title and authorization document names match seller’s verified identity"
@@ -177,7 +177,7 @@ export function ReviewActions({
         <ActionForm action={rejectListing} className="flex flex-col gap-2">
           <input type="hidden" name="id" value={vehicleId} />
           <label className="flex flex-col gap-1">
-            <span className="text-sm text-gray-500">
+            <span className="text-sm text-muted">
               Reason for rejection <span className="text-copper-700">*</span>
             </span>
             <textarea
@@ -188,14 +188,14 @@ export function ReviewActions({
               className={inputClasses({ multiline: true })}
             />
           </label>
-          <div className="flex items-center gap-3">
+          <div className="flex flex-wrap items-center gap-3">
             <PendingButton variant="primary" size="sm" pendingLabel="Rejecting…">
               Confirm rejection
             </PendingButton>
             <button
               type="button"
               onClick={() => setRejecting(false)}
-              className="text-sm text-gray-500 hover:text-black"
+              className="h-11 rounded-lg px-3 text-sm font-semibold text-muted hover:text-ink"
             >
               Cancel
             </button>
