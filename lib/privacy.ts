@@ -14,6 +14,6 @@
  * user, on their next request" — see lib/terms.ts's doc comment for the
  * full mechanism, which this mirrors exactly.
  */
-export const CURRENT_PRIVACY_VERSION = "v1.2";
+export const CURRENT_PRIVACY_VERSION = "v1.3";
 
-export const PRIVACY_EFFECTIVE_DATE = "2026-09-30";
+export const PRIVACY_EFFECTIVE_DATE = "2026-10-31";

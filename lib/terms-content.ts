@@ -4,7 +4,7 @@
  * (headings, paragraphs, "*.../_..._" italic lines, "- " bullet lists,
  * "1. " numbered lists, and inline "**bold**" spans).
  *
- * Version v1.2, effective 2026-09-30 — matches CURRENT_TERMS_VERSION in
+ * Version v1.3, effective 2026-10-31 (launch day — confirm before merging) — matches CURRENT_TERMS_VERSION in
  * lib/terms.ts. Bump that constant (not this file's own text) whenever this
  * content changes in a way that requires re-acceptance; see lib/terms.ts's
  * doc comment for the mechanism.
@@ -17,7 +17,7 @@
 export const TERMS_AND_CONDITIONS_MARKDOWN = `
 # ShipMova Terms & Conditions
 
-*Last updated: 2026-09-30*
+*Last updated: 2026-10-31*
 
 ## 1. Acceptance of Terms & Scope
 
@@ -39,10 +39,10 @@ ShipMova is a technology platform that connects U.S.-based vehicle sellers with 
 - A party to any sale, purchase, or shipping agreement formed between users
 - A vehicle dealer, broker, or auctioneer
 - A shipping company, freight forwarder, or customs agent
-- The holder or recipient of any payment for a vehicle's purchase price (ShipMova collects only its own facilitation fee; the vehicle price is held by Escrow.com, a licensed escrow company, and shipping is paid directly between Buyer and Shipper)
+- The holder or recipient of any payment for a vehicle's purchase price or for shipping (ShipMova collects only its own facilitation fee; the vehicle price and the shipping price are each held by Escrow.com, a licensed escrow company)
 - A guarantor of any vehicle's condition, any seller's title, or any shipper's performance
 
-ShipMova's role is limited to identity and listing verification, coordinating the escrow payment described in Section 4, collecting its own fee, and the tools (chat, reviews, dispute reporting) that support a transaction. The vehicle price and condition are agreed between Buyer and Seller through the Platform, and the terms of shipping are negotiated and agreed entirely between Buyer and Shipper.
+ShipMova's role is limited to identity and listing verification, coordinating the escrow payment described in Section 4, collecting its own fee, and the tools (chat, reviews, dispute reporting) that support a transaction. The vehicle price and condition are agreed between Buyer and Seller through the Platform, and the terms of shipping are agreed between Buyer and Shipper, with the shipping price paid through Escrow.com as described in Section 4.
 
 ShipMova's facilitation fee (see Section 4) compensates ShipMova for verification, coordination, and platform services — it is never a commission, markup, or payment on the vehicle itself.
 
@@ -69,7 +69,7 @@ ShipMova charges a facilitation fee equal to 8% of a vehicle's price on each com
 1. **ShipMova's facilitation fee.** The Buyer pays ShipMova's facilitation fee through the Platform's payment processor (currently Stripe) or, where enabled, via bank transfer with uploaded proof subject to manual review. This fee is paid to ShipMova, not to the Seller.
 2. **The vehicle price, held in escrow.** The Buyer pays the vehicle price into an escrow transaction with Escrow.com, a licensed escrow company — never to the Seller or to ShipMova directly. Escrow.com's own fee is paid by the Buyer and shown separately, as an estimate, before payment.
 3. **Release to the Seller.** Escrow.com releases the vehicle price to the Seller only after the vehicle has passed an independent inspection and the Buyer's chosen Shipper has taken custody of the vehicle and its original title.
-4. **Shipping.** The Buyer and their chosen Shipper arrange and pay for shipping directly between themselves, outside the Platform. ShipMova is not a party to this payment and does not process, hold, or guarantee it.
+4. **Shipping, held in escrow.** The Buyer pays the shipping price into a separate escrow transaction with Escrow.com — never to the Shipper or to ShipMova directly. ShipMova arranges the transaction as a broker and does not hold, process, or guarantee the payment. The shipping price is split into two milestones: the inland portion (collection from the Seller and transport to the port), released to the Shipper at pickup, and the ocean freight, released to the Shipper at the bill of lading. When the Shipper marks a milestone complete with Escrow.com, the Buyer has five (5) days to raise a problem with Escrow.com; if the Buyer does not, Escrow.com releases that milestone to the Shipper. Escrow.com's fee for the shipping transaction is paid by the Buyer and shown separately. Disputes about a milestone are handled under Escrow.com's dispute process.
 
 Paying ShipMova's facilitation fee does not release either party's contact information. ShipMova will never ask a Buyer to pay a Seller or any individual directly, will never send payment instructions by WhatsApp, email, or text message, and will never change payment instructions after a purchase has started.
 
@@ -82,7 +82,7 @@ ShipMova's facilitation fee is refundable only as provided in ShipMova's Buyer P
 As a Buyer, you agree that:
 
 - You will independently review each listing, including photos, VIN status, and any disclosed history, before paying ShipMova's facilitation fee.
-- You will pay for the vehicle only into escrow as described in Section 4, never to the Seller directly, and you are solely responsible for negotiating, agreeing to, and paying your chosen Shipper for shipping.
+- You will pay for the vehicle only into escrow as described in Section 4, never to the Seller directly, and you will pay your chosen Shipper only through the shipping escrow described in Section 4, never directly. Within five (5) days of a Shipper marking a shipping milestone complete, you will raise any problem with Escrow.com, or that milestone is released.
 - You are solely responsible for complying with all import, customs, duty, tax, titling, and registration requirements of your destination country. ShipMova does not handle customs clearance, import duties, or destination-country registration, and makes no representation that any vehicle can be lawfully imported, registered, or driven in your destination country.
 - You will not attempt to transact with a Seller outside the Platform, or pay a Seller directly, to avoid ShipMova's facilitation fee or the escrow process.
 - You are not located in, and are not a national or resident of, any country or region subject to comprehensive U.S. sanctions, and you are not listed on any U.S. government denied-parties or sanctions list, including lists maintained by the U.S. Department of the Treasury's Office of Foreign Assets Control (OFAC) (see Section 12).
@@ -107,7 +107,7 @@ As a Shipper, you agree that:
 - The rates, destinations, vehicle-size categories, and methods you publish on the Platform are accurate and honored for any Buyer who books based on them.
 - You are solely responsible for the physical pickup, export documentation, ocean or air transport, customs handoff, and delivery of any vehicle you agree to ship, and for any loss or damage occurring during that process.
 - You will provide status updates and, where applicable, proof-of-pickup and proof-of-delivery photos through the Platform for each shipment you handle.
-- You are solely responsible for collecting payment for your services directly from the Buyer; ShipMova does not process, hold, or guarantee payment for shipping services.
+- You will accept payment for shipping only through the Escrow.com shipping transaction described in Section 4, never directly from a Buyer, and will not ask a Buyer to pay you outside it. You will mark a milestone complete with Escrow.com only after uploading its proof to the Platform — proof of pickup for the inland portion, and the bill of lading for the ocean freight — and you will keep your inland and ocean prices accurate on your rates. ShipMova does not process, hold, or guarantee payment for shipping services.
 - ShipMova's display of your company profile, rates, and reviews does not constitute an endorsement, guarantee, or warranty of your services by ShipMova.
 
 ## 8. Prohibited Conduct
@@ -183,7 +183,7 @@ ShipMova provides an in-Platform process for reporting a dispute over a transact
 - Whether Section 13 disputes should proceed in Nassau County, New York courts (as currently drafted) or be subject to mandatory arbitration with a class-action waiver.
 - Whether the liability cap in Section 11 is enforceable against consumer buyers domiciled in Nigeria, Ghana, Togo, and Benin, and what residual exposure ShipMova retains if a foreign court or regulator declines to honor it.
 - Whether the federal odometer disclosure requirement (49 CFR Part 580) is fully satisfied by the Seller certification flow elsewhere on the Platform, and whether these Terms should cross-reference it directly as a Seller obligation.
-- Confirmation that collecting ShipMova's own fee and coordinating Escrow.com transactions for the vehicle price does not constitute money transmission requiring licensure in any U.S. state, and review of the terms of ShipMova's arrangement with Escrow.com.
+- Confirmation that collecting ShipMova's own fee and coordinating Escrow.com transactions for the vehicle price and for shipping (as broker, never holding funds) does not constitute money transmission requiring licensure in any U.S. state, and review of the terms of ShipMova's arrangement with Escrow.com.
 - Whether the click-to-accept acceptance flow satisfies the U.S. ESIGN Act and UETA requirements for a valid electronic signature.
 - Whether a force majeure clause is needed to address shipping, customs, or port delays outside any party's control.
 - Whether Nigeria's NDPR, Ghana's Data Protection Act, or similar law in Togo or Benin requires disclosures beyond what is in ShipMova's Privacy Policy.
