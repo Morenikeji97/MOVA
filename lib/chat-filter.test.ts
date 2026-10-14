@@ -489,3 +489,35 @@ test("probes buried in friendly chatter are still blocked", () => {
     ),
   );
 });
+
+// Founder, 2026-10-09: block "pay me directly" messages — including how
+// buyers and sellers in Nigeria, Ghana, Togo and Benin actually say it.
+test("payment off ShipMova is blocked in English, Pidgin, French and local payment apps", () => {
+  const blocked = [
+    "pay me directly", "send the money to my account", "pay via zelle", "western union works", "pay in usdt",
+    "sendwave is cheaper", "pay to my opay", "send to my palmpay", "my kuda account", "moniepoint transfer",
+    "do transfer to my account", "make you send the money give me", "na me you go pay", "send am to my account",
+    "payez-moi directement", "envoyez l'argent sur mon compte", "faites un virement sur mon compte",
+    "paiement par mobile money", "envoie par MoMo", "orange money", "par wave", "moov money", "flooz",
+    "je vous donne mon RIB", "payer en espèces", "on évite l'escrow", "pay half now outside",
+    "deposit to hold it, send to me", "I can give you discount if you pay me outside the site",
+  ];
+  for (const m of blocked) {
+    const r = scanForContactInfo(m);
+    assert.equal(r.ok, false, m);
+    assert.ok(r.categories.includes("payment_circumvention"), `${m}: ${r.categories.join(",")}`);
+  }
+});
+
+test("ordinary chat in English, French and Pidgin still goes through", () => {
+  const normal = [
+    "Can you send me more photos of the engine?", "I'll send you the inspection time tomorrow",
+    "I'll log into my account and reserve it", "I want to pay into escrow today", "Is there any rust outside?",
+    "Can I see the car outside in daylight?", "My wallet is ready for the Escrow.com payment",
+    "Bonjour, la voiture est-elle toujours disponible ?", "Pouvez-vous envoyer d'autres photos ?",
+    "Je vais payer par Escrow.com", "Le prix est-il négociable ?", "Abeg the car still dey?",
+    "Make you send more pictures abeg", "Thanks, I will wave goodbye to my old car soon",
+    "Is the balance on the escrow fee shown before I pay?",
+  ];
+  for (const m of normal) assert.equal(scanForContactInfo(m).ok, true, m);
+});
