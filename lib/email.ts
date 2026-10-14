@@ -63,12 +63,12 @@ export function escapeHtml(text: string): string {
 }
 
 /**
- * Shared HTML shell for every notification email — same table-based layout,
- * colors, and inlined styles as supabase/email-templates/recovery.html (the
- * one existing email template in this codebase), so a ShipMova email looks like
- * a ShipMova email regardless of which system sent it. Table-based (not <div>)
- * for the same reason as that file: Outlook's Word-based HTML engine ignores
- * a lot of modern CSS.
+ * Shared HTML shell for every notification email — the same table-based
+ * layout as supabase/email-templates/recovery.html, in the redesign's
+ * black-and-white brand colours (ink #0A0A0B, band #F3F3F1). Table-based
+ * (not <div>) because Outlook's Word-based HTML engine ignores a lot of
+ * modern CSS. (The Supabase auth templates, set in the Supabase dashboard,
+ * still use the older navy/copper colours.)
  *
  * Kept deliberately short — one heading, one short paragraph, one optional
  * button — per the "keep emails short and actionable" requirement.
@@ -89,7 +89,7 @@ export function renderEmailShell({
       ? `
         <table role="presentation" cellpadding="0" cellspacing="0" style="margin:24px 0;">
           <tr>
-            <td style="border-radius:8px; background-color:#B8622A;">
+            <td style="border-radius:8px; background-color:#0A0A0B;">
               <a href="${ctaHref}" style="display:inline-block; padding:12px 28px; font-size:15px; font-weight:600; color:#FFFFFF; text-decoration:none; border-radius:8px;">
                 ${ctaLabel}
               </a>
@@ -105,25 +105,25 @@ export function renderEmailShell({
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>${heading}</title>
   </head>
-  <body style="margin:0; padding:0; background-color:#F3F4F1; font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Helvetica,Arial,sans-serif;">
-    <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="background-color:#F3F4F1; padding:32px 16px;">
+  <body style="margin:0; padding:0; background-color:#F3F3F1; font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Helvetica,Arial,sans-serif;">
+    <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="background-color:#F3F3F1; padding:32px 16px;">
       <tr>
         <td align="center">
-          <table role="presentation" width="480" cellpadding="0" cellspacing="0" style="max-width:480px; width:100%; background-color:#FFFFFF; border-radius:12px; overflow:hidden; border:1px solid #EBECE8;">
+          <table role="presentation" width="480" cellpadding="0" cellspacing="0" style="max-width:480px; width:100%; background-color:#FFFFFF; border-radius:12px; overflow:hidden; border:1px solid #E4E4E4;">
             <tr>
-              <td style="background-color:#0E1B2C; padding:24px 32px;">
-                <span style="font-family:'SFMono-Regular',ui-monospace,Menlo,monospace; font-size:13px; letter-spacing:0.08em; text-transform:uppercase; color:#FFFFFF;">ShipMova</span>
+              <td style="background-color:#0A0A0B; padding:24px 32px;">
+                <span style="font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Helvetica,Arial,sans-serif; font-size:18px; font-weight:800; letter-spacing:-0.01em; color:#FFFFFF;">ShipMova</span>
               </td>
             </tr>
             <tr>
               <td style="padding:32px;">
-                <h1 style="margin:0 0 16px; font-size:20px; line-height:28px; color:#0E1B2C;">${heading}</h1>
-                <div style="margin:0; font-size:15px; line-height:24px; color:#5B6472;">${bodyHtml}</div>
+                <h1 style="margin:0 0 16px; font-size:20px; line-height:28px; color:#0A0A0B;">${heading}</h1>
+                <div style="margin:0; font-size:15px; line-height:24px; color:#555555;">${bodyHtml}</div>
                 ${button}
               </td>
             </tr>
             <tr>
-              <td style="padding:20px 32px; background-color:#F3F4F1; border-top:1px solid #EBECE8;">
+              <td style="padding:20px 32px; background-color:#F3F3F1; border-top:1px solid #E4E4E4;">
                 <p style="margin:0; font-size:12px; line-height:18px; color:#5C7086;">
                   You&rsquo;re receiving this because of activity on your ShipMova account.
                 </p>

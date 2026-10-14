@@ -172,6 +172,24 @@ the copy can be changed instead if a feature is dropped.
       - **Togo and Benin:** shown as "not yet confirmed". Sources disagree
         (Togo 5, 8 or no years for private cars; Benin no limit, trade sites
         only). Need the actual rules and their sources.
+      - **Landed-cost figures** (every listing's "Estimated delivered cost";
+        `landed_cost_rates`, 0068, editable at /admin/landed-cost — saving
+        marks a country checked today): duties & taxes as % of CIF — Lagos
+        40–45%, Tema 31–49%, Lomé 44–53%, Cotonou 32–40% (+98,600 XOF fixed
+        levies); port & clearing — Lagos $500–1,000, Lomé 400–900 €,
+        Cotonou ~550,000 XOF, **Tema unknown (shown as "not included")**.
+        All from published guides, none confirmed by an agent.
+
+- [ ] **Seller Terms + Prohibited Vehicles Policy: attorney review, then publish.**
+      Drafts: `docs/legal/seller-terms-DRAFT.md` and
+      `docs/legal/prohibited-vehicles-DRAFT.md` (2026-10-09), each ending in
+      questions for the attorney and founder decisions (dealers; seller
+      exclusivity after the fee; salvage/rebuilt/flood allowed or not;
+      right-hand drive; "do not drive" recalls; split-fee mechanism).
+      After review: publish under /policies, add click-to-accept for sellers
+      (version + date + IP, like the Terms), and enforce what the policy
+      needs in the listing form (a "junk" title option refused, a lien
+      question, odometer status).
 
 - [ ] **VinAudit title history: API key + storage.** `lib/vinaudit.ts` is a
       stub; listings say "Not run yet". Needs: the founder's VINAUDIT_API_KEY

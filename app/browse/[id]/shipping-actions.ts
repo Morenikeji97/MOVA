@@ -4,6 +4,7 @@ import { revalidatePath } from "next/cache";
 import { createClient } from "@/lib/supabase/server";
 import { SHIPPER_COMMISSION_PCT, commissionOwed } from "@/lib/shipping";
 import { SESSION_ENDED, notSaved, saved, type ActionResult } from "@/lib/action-result";
+import { notifyDealEvent } from "@/lib/notifications";
 
 function str(v: FormDataEntryValue | null): string {
   return typeof v === "string" ? v.trim() : "";
@@ -113,7 +114,7 @@ export async function selectShippingRate(_prev: ActionResult, formData: FormData
   const owed = commissionOwed(agreedRate, SHIPPER_COMMISSION_PCT);
   const now = new Date().toISOString();
 
-  const { error } = await supabase.from("shipment_requests").insert({
+  const { data: createdShipment, error } = await supabase.from("shipment_requests").insert({
     shipper_id: rate.shipper_id,
     shipping_rate_id: rate.rate_id,
     buyer_id: user.id,
@@ -140,11 +141,12 @@ export async function selectShippingRate(_prev: ActionResult, formData: FormData
     vehicle_trim: vehicle?.trim ?? null,
     pickup_city: vehicle?.location_city ?? null,
     pickup_state: vehicle?.location_state ?? null,
-  });
+  }).select("id").single();
   if (error) {
     console.error("selectShippingRate insert failed:", error);
     return notSaved(error.message);
   }
+  if (createdShipment) await notifyDealEvent("shipment_created", { shipmentId: createdShipment.id });
 
   // Locks in the buyer's choice on the reservation itself — this is what
   // requestFeePayment (admin) requires before it will generate Invoice 1,

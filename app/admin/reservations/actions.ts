@@ -9,10 +9,12 @@ import { isPrelaunch } from "@/lib/prelaunch";
 import {
   notifyFeePaymentConfirmed,
   notifyBankTransferRejected,
+  notifyDealEvent,
 } from "@/lib/notifications";
 import { evaluateReferralQualification } from "@/lib/referral-credit";
 import { cleanEscrowReference, isEscrowStage } from "@/lib/escrow";
 import { requireAdmin } from "@/lib/admin-auth";
+import { ESCROW_STAGE_EVENT } from "@/lib/deal-emails";
 import { logAdminAction } from "@/lib/admin-audit";
 import {
   SESSION_ENDED,
@@ -63,6 +65,7 @@ export async function markReservationUnderReview(
     table: "purchase_requests",
     id,
   });
+  await notifyDealEvent("reservation_under_review", { purchaseRequestId: id });
   revalidatePath("/admin/reservations");
   return savedWithAudit("Moved to review.", audit);
 }
@@ -92,6 +95,7 @@ export async function releaseReservation(
     table: "purchase_requests",
     id,
   });
+  await notifyDealEvent("reservation_released", { purchaseRequestId: id });
   revalidatePath("/admin/reservations");
   return savedWithAudit("Reservation released.", audit);
 }
@@ -229,6 +233,8 @@ export async function requestFeePayment(
     table: "purchase_requests",
     id: pr.id,
   }, { amount_usd: buyerFee, stripe_session: session.id });
+  // Only the first link: a regenerated link isn't a new stage.
+  if (!pr.fee_payment_requested_at) await notifyDealEvent("fee_requested", { purchaseRequestId: pr.id });
   revalidatePath("/admin/reservations");
   revalidatePath("/buyer/dashboard");
   return savedWithAudit("Fee payment link created and shown to the buyer.", audit);
@@ -378,6 +384,7 @@ export async function recordEscrow(
   if (!ctx) return notSaved(SESSION_ENDED);
   const { supabase } = ctx;
 
+  const { data: before } = await supabase.from("purchase_requests").select("escrow_stage").eq("id", id).maybeSingle();
   const { data, error } = await supabase
     .from("purchase_requests")
     .update({ escrow_stage: stage, escrow_reference: reference })
@@ -397,6 +404,9 @@ export async function recordEscrow(
     table: "purchase_requests",
     id,
   }, { escrow_stage: stage, escrow_reference: reference });
+  if (stage && stage !== before?.escrow_stage && ESCROW_STAGE_EVENT[stage]) {
+    await notifyDealEvent(ESCROW_STAGE_EVENT[stage], { purchaseRequestId: id });
+  }
   revalidatePath("/admin/reservations");
   return savedWithAudit("Saved — recorded in this deal's history.", audit);
 }
