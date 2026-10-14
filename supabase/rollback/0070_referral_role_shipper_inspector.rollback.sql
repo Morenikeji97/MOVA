@@ -1,0 +1,9 @@
+-- Rollback for 0070. Postgres has no DROP VALUE for an enum — the only way
+-- to remove 'shipper'/'inspector' from referral_role is to recreate the
+-- type (rename the old one, create a new one without those values, cast
+-- every column over, drop the old one), and only if no row anywhere
+-- actually uses either value yet. Run 0071's rollback FIRST (it's the one
+-- that can create rows using these values), confirm with:
+--   select count(*) from public.referral_credits where role in ('shipper', 'inspector');
+--   select count(*) from public.referral_payout_batches where role in ('shipper', 'inspector');
+-- both zero, then recreate the type by hand if it's still needed.

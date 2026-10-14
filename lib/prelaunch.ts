@@ -60,6 +60,11 @@ export const WAITLIST_SOURCES = [
   "shipper",
   "inspectors",
   "clearing_agents",
+  // A buyer picked a country that isn't open yet (lib/country-access.ts) —
+  // signup itself (new), and the shipping-estimate country picker on a
+  // listing (which already has its own "listing" source — this one is only
+  // for the country-gate prompt specifically, so admin can tell them apart).
+  "signup",
 ] as const;
 export type WaitlistSource = (typeof WAITLIST_SOURCES)[number];
 

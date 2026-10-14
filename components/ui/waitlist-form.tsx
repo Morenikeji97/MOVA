@@ -43,6 +43,7 @@ export function WaitlistForm({
   intro,
   compact = false,
   className,
+  lockedCountry,
 }: {
   source: WaitlistSource;
   audience?: BuyerOrSeller;
@@ -52,6 +53,12 @@ export function WaitlistForm({
   /** One column even on wide screens (the listing page's side column). */
   compact?: boolean;
   className?: string;
+  /**
+   * The country was already chosen by the surrounding page (e.g. the
+   * signup country gate, or the listing's shipping-estimate picker) — shown
+   * as plain text instead of asking again, and sent as a hidden field.
+   */
+  lockedCountry?: { code: string; name: string };
 }) {
   const [state, action, pending] = useActionState(joinWaitlist, null);
   const copy = COPY[audience];
@@ -81,11 +88,16 @@ export function WaitlistForm({
     >
       <h2 className="font-display text-xl font-bold text-ink">{heading ?? copy.heading}</h2>
       <p className="mt-1 text-sm text-muted">{intro ?? copy.intro}</p>
+      {lockedCountry ? (
+        <p className="mt-1 text-xs font-semibold uppercase tracking-[0.1em] text-muted">
+          {lockedCountry.name}
+        </p>
+      ) : null}
       <input type="hidden" name="source" value={source} />
       <input type="hidden" name="audience" value={audience} />
       {vehicleId ? <input type="hidden" name="vehicleId" value={vehicleId} /> : null}
 
-      <div className={cn("mt-4 grid gap-3", !compact && "sm:grid-cols-3")}>
+      <div className={cn("mt-4 grid gap-3", !compact && (lockedCountry ? "sm:grid-cols-2" : "sm:grid-cols-3"))}>
         <label className="flex flex-col gap-1 text-sm text-muted">
           Email
           <input
@@ -108,24 +120,28 @@ export function WaitlistForm({
             With or without the country code — we&rsquo;ll add it from your country.
           </span>
         </label>
-        <label className="flex flex-col gap-1 text-sm text-muted">
-          Country
-          <select
-            name="country"
-            required
-            defaultValue=""
-            className={inputClasses()}
-          >
-            <option value="" disabled>
-              Choose your country
-            </option>
-            {WAITLIST_COUNTRIES.map((c) => (
-              <option key={c.code} value={c.code}>
-                {c.name}
+        {lockedCountry ? (
+          <input type="hidden" name="country" value={lockedCountry.code} />
+        ) : (
+          <label className="flex flex-col gap-1 text-sm text-muted">
+            Country
+            <select
+              name="country"
+              required
+              defaultValue=""
+              className={inputClasses()}
+            >
+              <option value="" disabled>
+                Choose your country
               </option>
-            ))}
-          </select>
-        </label>
+              {WAITLIST_COUNTRIES.map((c) => (
+                <option key={c.code} value={c.code}>
+                  {c.name}
+                </option>
+              ))}
+            </select>
+          </label>
+        )}
       </div>
 
       {state && !state.ok ? (

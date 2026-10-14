@@ -6,6 +6,8 @@ import { logAdminAction } from "@/lib/admin-audit";
 import { assignInspection, decideInspection } from "@/lib/inspection-server";
 import { SESSION_ENDED, checkWrite, notSaved, savedWithAudit, type ActionResult } from "@/lib/action-result";
 import { notifyDealEvent, notifyInspectorDecision } from "@/lib/notifications";
+import { createAdminClient } from "@/lib/supabase/admin";
+import { evaluateInspectorReferral } from "@/lib/referral-credit";
 
 /** Admin actions for inspectors and inspections (0063). All audit-logged. */
 
@@ -81,11 +83,25 @@ export async function markInspectorPaidAction(_prev: ActionResult, formData: For
     .update({ pay_status: "paid", paid_at: new Date().toISOString(), paid_by: ctx.adminId })
     .eq("id", id)
     .eq("pay_status", "owed")
-    .select("pay_status, pay_usd");
+    .select("pay_status, pay_usd, inspector_id");
   const bad = checkWrite(res, "this pay isn't marked as owed — reload to see it.");
   if (bad) return bad;
   const audit = await logAdminAction(ctx.supabase, "inspection.mark_paid", { table: "inspections", id }, { pay_usd: res.data?.[0]?.pay_usd ?? null });
   await notifyDealEvent("inspector_paid", { inspectionId: id });
+
+  // Referral program: this is the inspector's first-PAID (not merely
+  // passed) qualifying transaction — lib/referral-credit.ts re-resolves
+  // "first paid inspection" itself. Service role: referral_credits grants
+  // no insert policy to an admin's own authenticated session.
+  const inspectorId = res.data?.[0]?.inspector_id;
+  if (inspectorId) {
+    const admin = createAdminClient();
+    const { data: inspector } = await admin.from("inspectors").select("user_id").eq("id", inspectorId).maybeSingle();
+    if (inspector?.user_id) {
+      await evaluateInspectorReferral(admin, { referredUserId: inspector.user_id });
+    }
+  }
+
   revalidatePath(`/admin/inspections/${id}`);
   return savedWithAudit("Marked as paid.", audit);
 }

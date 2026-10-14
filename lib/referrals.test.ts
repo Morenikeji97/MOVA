@@ -185,3 +185,9 @@ test("determinePayoutMethod: no country on file falls back to the role default",
   assert.equal(determinePayoutMethod("seller", null), "stripe_transfer");
   assert.equal(determinePayoutMethod("buyer", null), "bank_transfer");
 });
+
+test("determinePayoutMethod: inspectors default to Stripe (US), shippers to bank transfer", () => {
+  assert.equal(determinePayoutMethod("inspector", null), "stripe_transfer");
+  assert.equal(determinePayoutMethod("shipper", null), "bank_transfer");
+  assert.equal(determinePayoutMethod("shipper", "Nigeria"), "bank_transfer");
+});

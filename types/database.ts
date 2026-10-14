@@ -35,7 +35,8 @@ export type WaitlistSourceColumn =
   | "sell"
   | "shipper"
   | "inspectors"
-  | "clearing_agents";
+  | "clearing_agents"
+  | "signup";
 export type PurchaseRequestStatus =
   | "submitted"
   | "under_review"
@@ -76,7 +77,7 @@ export type ShipmentShippingStatus =
   | "in_transit"
   | "delivered";
 export type ShipmentProofKind = "pickup" | "delivery" | "bill_of_lading";
-export type ReferralRole = "buyer" | "seller";
+export type ReferralRole = "buyer" | "seller" | "shipper" | "inspector";
 export type ReferralFlagStatus = "clear" | "flagged";
 export type ReferralPayoutStatus = "pending" | "processing" | "paid" | "failed";
 export type ReferralPayoutMethod = "stripe_transfer" | "bank_transfer";
@@ -1579,7 +1580,9 @@ export interface Database {
           referrer_id: string;
           referred_id: string;
           role: ReferralRole;
-          purchase_request_id: string;
+          purchase_request_id: string | null;
+          shipment_request_id: string | null;
+          inspection_id: string | null;
           email_pattern_match: boolean;
           phone_match: boolean;
           payment_fingerprint_match: boolean;
@@ -1595,7 +1598,9 @@ export interface Database {
           referrer_id: string;
           referred_id: string;
           role: ReferralRole;
-          purchase_request_id: string;
+          purchase_request_id?: string | null;
+          shipment_request_id?: string | null;
+          inspection_id?: string | null;
           id?: string;
           email_pattern_match?: boolean;
           phone_match?: boolean;

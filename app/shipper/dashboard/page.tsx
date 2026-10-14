@@ -14,6 +14,7 @@ import { cardClasses } from "@/components/ui/card";
 import { countryName } from "@/lib/shipping";
 import type { ShipmentShippingStatus } from "@/types/database";
 import { ShippingStatusControl } from "./status-control";
+import { ReferralPanel } from "@/components/ui/referral-panel";
 
 const URGENCY: Record<ShipmentShippingStatus, number> = {
   awaiting_pickup: 0,
@@ -94,6 +95,8 @@ export default async function ShipperDashboardPage() {
         title="Your shipments"
         intro="Most urgent first. Tap a status to update it."
       />
+
+      <ReferralPanel userId={user.id} />
 
       {shipments.length === 0 ? (
         <div className="mt-6">

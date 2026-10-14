@@ -3,6 +3,7 @@ import { BUYER_PROTECTION_POLICY_PATH } from "@/lib/policy";
 import { whatsappLink } from "@/lib/whatsapp";
 import { SERVICE_COUNTRIES } from "@/lib/shipping";
 import { Logo } from "@/components/ui/logo";
+import { isCountryOpenForBuyers } from "@/lib/country-access";
 
 const PLATFORM_LINKS = [
   { label: "Buy a vehicle", href: "/browse" },
@@ -86,6 +87,16 @@ export function Footer() {
                 Privacy Policy
               </Link>
             </li>
+            <li>
+              <Link href="/legal/seller-terms" className={LINK}>
+                Seller Terms (draft)
+              </Link>
+            </li>
+            <li>
+              <Link href="/legal/referral-terms" className={LINK}>
+                Referral Program Terms (draft)
+              </Link>
+            </li>
           </FooterColumn>
 
           <FooterColumn title="Contact">
@@ -101,7 +112,13 @@ export function Footer() {
 
         <div className="mt-10 flex flex-col gap-2 border-t border-white/10 pt-6 text-xs text-white/50 sm:flex-row sm:items-center sm:justify-between">
           <p>&copy; {new Date().getFullYear()} ShipMova. All rights reserved.</p>
-          <p>Serving {SERVICE_COUNTRIES.map((c) => c.name).join(", ")}</p>
+          <p>
+            Buying open in Nigeria.{" "}
+            {SERVICE_COUNTRIES.filter((c) => !isCountryOpenForBuyers(c.code))
+              .map((c) => c.name)
+              .join(", ")}
+            : coming soon.
+          </p>
         </div>
       </div>
     </footer>

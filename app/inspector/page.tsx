@@ -14,6 +14,7 @@ import {
   StatusPill,
   type PillTone,
 } from "@/components/ui/dashboard";
+import { ReferralPanel } from "@/components/ui/referral-panel";
 
 export const metadata: Metadata = { title: "Inspector — ShipMova", robots: { index: false } };
 export const dynamic = "force-dynamic";
@@ -96,6 +97,9 @@ export default async function InspectorPage() {
   return (
     <DashboardShell narrow>
       <DashboardHeader eyebrow="Inspector" title="Your inspections" intro={`Signed in as ${user.email}`} />
+
+      <ReferralPanel userId={user.id} />
+
       {!rows || rows.length === 0 ? (
         <div className="mt-6">
           <EmptyCard title="No inspections yet">
