@@ -4,6 +4,7 @@ import { chooseInspector, inspectorPayUsd, type InspectorCandidate } from "@/lib
 import { photoFlags, type PhotoKind } from "@/lib/inspection-checks";
 import { ESCROW_STAGES } from "@/lib/escrow";
 import type { EscrowStage } from "@/types/database";
+import { notifyDealEvent } from "@/lib/notifications";
 
 /**
  * Server-only inspection steps (service role; callers check who's asking).
@@ -121,6 +122,7 @@ export async function assignInspection(purchaseRequestId: string, adminId: strin
     .select("id")
     .single();
   if (res.error || !res.data) return { ok: false, message: res.error?.message ?? "the inspection wasn't saved" };
+  await notifyDealEvent("inspection_assigned", { inspectionId: res.data.id });
   return {
     ok: true,
     id: res.data.id,
@@ -252,6 +254,7 @@ export async function decideInspection(
   if (res.error || res.data?.[0]?.status !== (input.pass ? "passed" : "failed")) {
     return { ok: false, message: res.error?.message ?? "the decision wasn't saved" };
   }
+  await notifyDealEvent(input.pass ? "inspection_passed" : "inspection_failed", { inspectionId: x.id });
   if (input.pass) {
     const stage = laterStage(pr.escrow_stage, "inspection_passed");
     if (stage !== pr.escrow_stage) {

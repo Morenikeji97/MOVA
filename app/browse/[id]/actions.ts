@@ -1,6 +1,7 @@
 "use server";
 
 import { revalidatePath } from "next/cache";
+import { notifyDealEvent } from "@/lib/notifications";
 import { createClient } from "@/lib/supabase/server";
 import { feeBreakdown } from "@/lib/fees";
 import { checkRateLimit, RATE_LIMIT_MESSAGE } from "@/lib/rate-limit";
@@ -102,13 +103,17 @@ export async function reserveVehicle(
   const price = Number(vehicle.price_usd);
   const { fullFee } = feeBreakdown(price, vehicle.fee_responsibility);
 
-  const { error } = await supabase.from("purchase_requests").insert({
-    vehicle_id: vehicleId,
-    buyer_id: user.id,
-    status: "submitted",
-    vehicle_price_usd: price,
-    mova_fee_usd: fullFee,
-  });
+  const { data: created, error } = await supabase
+    .from("purchase_requests")
+    .insert({
+      vehicle_id: vehicleId,
+      buyer_id: user.id,
+      status: "submitted",
+      vehicle_price_usd: price,
+      mova_fee_usd: fullFee,
+    })
+    .select("id")
+    .single();
   if (error) {
     // Previously swallowed: a failed insert left the UI showing success.
     console.error("reserveVehicle: purchase_requests insert failed", error);
@@ -121,6 +126,7 @@ export async function reserveVehicle(
     };
   }
 
+  if (created) await notifyDealEvent("reservation_submitted", { purchaseRequestId: created.id });
   revalidatePath(`/browse/${vehicleId}`);
   revalidatePath("/admin/reservations");
   revalidatePath("/admin/dashboard");
