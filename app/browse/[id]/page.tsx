@@ -17,6 +17,7 @@ import { currenciesFor } from "@/lib/fx-format";
 import { detailCurrencies } from "@/lib/display-currency";
 import { getDisplayCurrency } from "@/lib/display-currency-server";
 import { feeBreakdown } from "@/lib/fees";
+import { loadLandedCostRates } from "@/lib/landed-cost-load";
 import { compareRatesForBuyer, countryName, shippingMethodLabel } from "@/lib/shipping";
 import { RatingSummary } from "@/components/ui/rating-summary";
 import { ReviewList, type PublicReview } from "@/components/ui/review-list";
@@ -271,6 +272,7 @@ export default async function VehicleDetailPage({
   const badges = listingBadges(facts, v.status);
   const { titleReviewed, verifiedListing } = badges;
 
+  const landedRates = await loadLandedCostRates(supabase);
   const priceLocal = localCurrencies.length && fx ? { fx, currencies: localCurrencies } : null;
   const whatsapp = whatsappLink(`Hi ShipMova, I have a question about the ${title} (listing ${id}).`);
 
@@ -391,6 +393,11 @@ export default async function VehicleDetailPage({
               <ShippingEstimate
                 profileCountry={profileCountry}
                 modelYear={modelYearFrom(v.vin_model_year_code, v.year)}
+                landed={{
+                  vehiclePrice: Number(v.price_usd),
+                  totalBeforeShipping: feeBreakdown(Number(v.price_usd), v.fee_responsibility).totalBeforeShipping,
+                  rates: landedRates,
+                }}
                 className="mt-4"
               />
             </div>
