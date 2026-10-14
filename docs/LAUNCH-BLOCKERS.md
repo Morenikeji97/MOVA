@@ -180,6 +180,17 @@ the copy can be changed instead if a feature is dropped.
         Cotonou ~550,000 XOF, **Tema unknown (shown as "not included")**.
         All from published guides, none confirmed by an agent.
 
+- [ ] **Seller Terms + Prohibited Vehicles Policy: attorney review, then publish.**
+      Drafts: `docs/legal/seller-terms-DRAFT.md` and
+      `docs/legal/prohibited-vehicles-DRAFT.md` (2026-10-09), each ending in
+      questions for the attorney and founder decisions (dealers; seller
+      exclusivity after the fee; salvage/rebuilt/flood allowed or not;
+      right-hand drive; "do not drive" recalls; split-fee mechanism).
+      After review: publish under /policies, add click-to-accept for sellers
+      (version + date + IP, like the Terms), and enforce what the policy
+      needs in the listing form (a "junk" title option refused, a lien
+      question, odometer status).
+
 - [ ] **VinAudit title history: API key + storage.** `lib/vinaudit.ts` is a
       stub; listings say "Not run yet". Needs: the founder's VINAUDIT_API_KEY
       (hidden input), the real lookup, a table for results (migration +
