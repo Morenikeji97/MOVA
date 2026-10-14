@@ -24,6 +24,7 @@ const POLICY_EXEMPT_PATHS = [
   "/reset-password",
   "/shipper/signup", // prefix — also covers /shipper/signup/success
   "/auth", // prefix — /auth/callback, /auth/confirm (emailed links), /auth/link-expired
+  "/account", // deleting your account never requires accepting new terms first
 ];
 
 function isPolicyExempt(path: string): boolean {

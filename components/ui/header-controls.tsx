@@ -188,6 +188,14 @@ function DesktopAccount({ account }: { account: Account }) {
                 </Link>
               ))
             : null}
+          <Link
+            href="/account"
+            role="menuitem"
+            onClick={() => setOpen(false)}
+            className="flex h-11 items-center px-4 text-ink hover:bg-band"
+          >
+            Account settings
+          </Link>
           <div className="my-1 border-t border-line" />
           <button
             type="button"
@@ -333,7 +341,10 @@ function PhoneMenu({
       </div>
 
       {signedIn ? (
-        <div className="mt-8 shrink-0 px-4">
+        <div className="mt-8 flex shrink-0 flex-col gap-2 px-4">
+          <Link href="/account" onClick={onClose} className="flex h-11 items-center justify-center text-sm font-semibold text-white/80 underline underline-offset-4">
+            Account settings
+          </Link>
           <button
             type="button"
             onClick={account.logOut}

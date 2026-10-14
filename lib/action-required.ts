@@ -28,6 +28,7 @@ export type ActionKind =
   | "shipper"
   | "shipper_coi"
   | "inspector_application"
+  | "account_deletion"
   | "review";
 
 export type ActionGroup = "money" | "inspections" | "shipping" | "deals" | "listings" | "people" | "trust";
@@ -58,6 +59,8 @@ export const ACTION_RULES: Record<ActionKind, { group: ActionGroup; targetHours:
   shipper: { group: "people", targetHours: 72 },
   shipper_coi: { group: "people", targetHours: 48 },
   inspector_application: { group: "people", targetHours: 72 },
+  // Privacy Policy §9; the request page promises "usually within 3 days".
+  account_deletion: { group: "people", targetHours: 72 },
   dispute: { group: "trust", targetHours: 48 },
   review: { group: "trust", targetHours: 72 },
 };
