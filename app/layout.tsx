@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import { Archivo, DM_Sans } from "next/font/google";
 import { Header } from "@/components/ui/header";
 import { WhatsAppButton } from "@/components/ui/whatsapp-button";
+import { ReferralFloatPill } from "@/components/ui/referral-float-pill";
 import { Footer } from "@/components/ui/footer";
 import { PrelaunchBanner } from "@/components/ui/prelaunch-banner";
 import "./globals.css";
@@ -53,6 +54,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
         {children}
         <Footer />
         <WhatsAppButton />
+        <ReferralFloatPill />
       </body>
     </html>
   );

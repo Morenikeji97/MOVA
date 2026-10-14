@@ -56,6 +56,7 @@ export async function GET(request: NextRequest) {
         next,
         role: profile?.role ?? null,
         isShipper: serviceAccountKind(kind) === "shipper",
+        isInspector: serviceAccountKind(kind) === "inspector",
       }),
     ),
   );

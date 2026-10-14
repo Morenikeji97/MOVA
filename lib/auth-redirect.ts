@@ -79,17 +79,23 @@ export function confirmRedirectLocation(destination: string): string {
  *   recovery / invite            -> set a (new) password: /reset-password
  *   next is a real path          -> that path
  *   next missing or "/dashboard" -> the user's own dashboard by role, a
- *                                   shipper's portal, else home
+ *                                   shipper or inspector's own portal, else
+ *                                   home (founder, 2026-10-15: an inspector
+ *                                   is a buyer-role login under the hood —
+ *                                   lib/account-kind.ts — so without this it
+ *                                   fell through to the buyer dashboard)
  */
 export function destinationAfterConfirm(opts: {
   type: EmailLinkType;
   next: string | null | undefined;
   role: string | null | undefined;
   isShipper?: boolean;
+  isInspector?: boolean;
 }): string {
   if (opts.type === "recovery" || opts.type === "invite") return "/reset-password";
   const next = safeNextPath(opts.next);
   if (next && next !== DASHBOARD_PLACEHOLDER) return next;
   if (opts.isShipper) return "/shipper/portal";
+  if (opts.isInspector) return "/inspector";
   return (opts.role && ROLE_HOME[opts.role]) || "/";
 }

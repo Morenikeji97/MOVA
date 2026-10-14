@@ -59,6 +59,13 @@ test("a shipper goes to the shipper portal", () => {
   );
 });
 
+test("an inspector goes to /inspector, not the buyer dashboard it would fall through to", () => {
+  assert.equal(
+    destinationAfterConfirm({ type: "email", next: "/dashboard", role: "buyer", isInspector: true }),
+    "/inspector",
+  );
+});
+
 test("recovery and invite always go to set a password", () => {
   assert.equal(destinationAfterConfirm({ type: "recovery", next: "/admin/dashboard", role: "buyer" }), "/reset-password");
   assert.equal(destinationAfterConfirm({ type: "invite", next: null, role: null }), "/reset-password");

@@ -29,6 +29,7 @@ import {
 import { cn } from "@/lib/utils";
 import { REFERRAL_BATCH_SIZE, REFERRAL_CREDIT_AMOUNT_USD, REFERRAL_PAYOUT_AMOUNT_USD } from "@/lib/referrals";
 import { BUYER_COUNTRY_STATUS } from "@/lib/country-access";
+import { heroButtonClasses } from "@/components/ui/page-hero";
 
 const TRUST_ROW = [
   { icon: ShieldCheckIcon, label: "Verified Sellers" },
@@ -293,66 +294,6 @@ export default async function Home() {
         </ul>
       </section>
 
-      {/* ---------------- Earn $1,000 with ShipMova (signed-out only) ---------------- */}
-      {signedOut ? (
-        <section id="refer" className="scroll-mt-4 border-b border-line bg-white">
-          <div className="mx-auto max-w-6xl px-4 py-14 sm:px-6 sm:py-20">
-            <p className="text-xs font-semibold uppercase tracking-[0.18em] text-muted">Referral program</p>
-            <h2 className="mt-2 font-display text-3xl font-extrabold tracking-tight text-ink sm:text-4xl">
-              Earn ${REFERRAL_PAYOUT_AMOUNT_USD.toLocaleString()} with ShipMova
-            </h2>
-            <p className="mt-3 max-w-2xl text-base font-semibold text-ink">
-              Refer {REFERRAL_BATCH_SIZE} people who complete a deal: buyers, sellers, shippers or inspectors. $
-              {REFERRAL_CREDIT_AMOUNT_USD} each, paid out at ${REFERRAL_PAYOUT_AMOUNT_USD.toLocaleString()}.
-            </p>
-
-            <ol className="mt-8 grid grid-cols-1 gap-4 sm:grid-cols-3">
-              {[
-                { title: "Share your link", body: "Create an account for your own referral link, code and QR code." },
-                { title: "They complete a deal", body: "A buyer, seller, shipper or inspector you referred finishes their first transaction." },
-                { title: "You get paid", body: `$${REFERRAL_CREDIT_AMOUNT_USD} each, paid out at $${REFERRAL_PAYOUT_AMOUNT_USD.toLocaleString()} every ${REFERRAL_BATCH_SIZE}.` },
-              ].map((step, i) => (
-                <li key={step.title} className={cardClasses()}>
-                  <span className="flex h-9 w-9 items-center justify-center rounded-full bg-ink font-display text-sm font-bold text-white">
-                    {i + 1}
-                  </span>
-                  <h3 className="mt-4 font-display text-lg font-bold text-ink">{step.title}</h3>
-                  <p className="mt-1 text-sm text-muted">{step.body}</p>
-                </li>
-              ))}
-            </ol>
-
-            <Link href="/signup" className={buttonClasses({ className: "mt-8 w-full sm:w-auto" })}>
-              Get your referral link
-            </Link>
-
-            <div className="mt-10 grid grid-cols-1 gap-5 sm:grid-cols-2">
-              <div className={cardClasses()}>
-                <h3 className="font-display text-lg font-bold text-ink">Ship cars with ShipMova</h3>
-                <p className="mt-2 text-sm text-muted">
-                  Get vehicle shipping jobs to West Africa. No fees for founding partners.
-                </p>
-                <Link href="/shipper" className={buttonClasses({ variant: "secondary", className: "mt-4 w-full sm:w-auto" })}>
-                  Join as a shipper
-                </Link>
-              </div>
-              <div className={cardClasses()}>
-                <h3 className="font-display text-lg font-bold text-ink">
-                  Become a ShipMova inspector (earn 2% per inspection)
-                </h3>
-                <p className="mt-2 text-sm text-muted">
-                  Inspect cars in person at pickup — the VIN, the odometer and the title — and get paid 2% of the
-                  car&rsquo;s price for each one.
-                </p>
-                <Link href="/inspectors" className={buttonClasses({ variant: "secondary", className: "mt-4 w-full sm:w-auto" })}>
-                  Join as an inspector
-                </Link>
-              </div>
-            </div>
-          </div>
-        </section>
-      ) : null}
-
       {/* ---------------- Where buying is open ---------------- */}
       <section className="border-b border-line bg-band">
         <div className="mx-auto max-w-6xl px-4 py-8 sm:px-6">
@@ -409,6 +350,69 @@ export default async function Home() {
           </ul>
         </div>
       </section>
+
+      {/* ---------------- Earn $1,000 with ShipMova (signed-out only) ----------------
+          Inverted black block (founder, 2026-10-15; moved here 2026-10-14
+          per the founder, directly after "How will you use ShipMova"):
+          styled to stand out against the plain white/band sections around it. */}
+      {signedOut ? (
+        <section id="refer" className="scroll-mt-4 border-b border-line bg-ink text-white">
+          <div className="mx-auto max-w-6xl px-4 py-14 sm:px-6 sm:py-20">
+            <p className="text-xs font-semibold uppercase tracking-[0.18em] text-white/60">Referral program</p>
+            <h2 className="mt-2 font-display text-3xl font-extrabold tracking-tight sm:text-4xl">
+              Earn ${REFERRAL_PAYOUT_AMOUNT_USD.toLocaleString()} with ShipMova
+            </h2>
+            <p className="mt-3 max-w-2xl text-base font-semibold text-white">
+              Refer {REFERRAL_BATCH_SIZE} people who complete a deal: buyers, sellers, shippers or inspectors. $
+              {REFERRAL_CREDIT_AMOUNT_USD} each, paid out at ${REFERRAL_PAYOUT_AMOUNT_USD.toLocaleString()}.
+            </p>
+
+            <ol className="mt-8 grid grid-cols-1 gap-4 sm:grid-cols-3">
+              {[
+                { title: "Share your link", body: "Create an account for your own referral link, code and QR code." },
+                { title: "They complete a deal", body: "A buyer, seller, shipper or inspector you referred finishes their first transaction." },
+                { title: "You get paid", body: `$${REFERRAL_CREDIT_AMOUNT_USD} each, paid out at $${REFERRAL_PAYOUT_AMOUNT_USD.toLocaleString()} every ${REFERRAL_BATCH_SIZE}.` },
+              ].map((step, i) => (
+                <li key={step.title} className={cardClasses()}>
+                  <span className="flex h-9 w-9 items-center justify-center rounded-full bg-ink font-display text-sm font-bold text-white">
+                    {i + 1}
+                  </span>
+                  <h3 className="mt-4 font-display text-lg font-bold text-ink">{step.title}</h3>
+                  <p className="mt-1 text-sm text-muted">{step.body}</p>
+                </li>
+              ))}
+            </ol>
+
+            <Link href="/signup" className={heroButtonClasses("solid", "mt-8 w-full sm:w-auto")}>
+              Get your referral link
+            </Link>
+
+            <div className="mt-10 grid grid-cols-1 gap-5 sm:grid-cols-2">
+              <div className={cardClasses()}>
+                <h3 className="font-display text-lg font-bold text-ink">Ship cars with ShipMova</h3>
+                <p className="mt-2 text-sm text-muted">
+                  Get vehicle shipping jobs to West Africa. No fees for founding partners.
+                </p>
+                <Link href="/shipper" className={buttonClasses({ variant: "secondary", className: "mt-4 w-full sm:w-auto" })}>
+                  Join as a shipper
+                </Link>
+              </div>
+              <div className={cardClasses()}>
+                <h3 className="font-display text-lg font-bold text-ink">
+                  Become a ShipMova inspector (earn 2% per inspection)
+                </h3>
+                <p className="mt-2 text-sm text-muted">
+                  Inspect cars in person at pickup — the VIN, the odometer and the title — and get paid 2% of the
+                  car&rsquo;s price for each one.
+                </p>
+                <Link href="/inspectors" className={buttonClasses({ variant: "secondary", className: "mt-4 w-full sm:w-auto" })}>
+                  Join as an inspector
+                </Link>
+              </div>
+            </div>
+          </div>
+        </section>
+      ) : null}
 
       {prelaunch ? (
         <section id="waitlist" className="scroll-mt-4 border-b border-line bg-white">

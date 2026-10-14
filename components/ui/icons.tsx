@@ -83,3 +83,13 @@ export function GlobeIcon(p: IconProps) {
 export function ChatIcon(p: IconProps) {
   return <Svg {...p}><path d="M20 12a7.5 7.5 0 0 1-11 6.6L4 20l1.4-4.6A7.5 7.5 0 1 1 20 12z" /></Svg>;
 }
+/** The referral program (a reward). */
+export function GiftIcon(p: IconProps) {
+  return (
+    <Svg {...p}>
+      <rect x="4" y="9" width="16" height="11" rx="1" />
+      <path d="M4 13h16M12 9v11" />
+      <path d="M12 9C9.5 9 8 7.8 8 6.2 8 5 8.9 4 10 4c1.7 0 2 2.3 2 5zM12 9c2.5 0 4-1.2 4-2.8C16 5 15.1 4 14 4c-1.7 0-2 2.3-2 5z" />
+    </Svg>
+  );
+}

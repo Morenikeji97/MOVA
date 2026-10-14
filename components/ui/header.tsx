@@ -12,7 +12,7 @@ const BASE_NAV_LINKS: NavLink[] = [
   { label: "Shipping", href: "/how-it-works#shipping" },
   { label: "Inspections", href: "/inspectors" },
   { label: "How It Works", href: "/how-it-works" },
-  { label: "Referrals", href: "/referrals" },
+  { label: "Refer & earn $1,000", href: "/referrals" },
 ];
 
 /**

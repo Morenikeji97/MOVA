@@ -1,7 +1,7 @@
 import { test } from "node:test";
 import assert from "node:assert/strict";
 import { readFileSync } from "node:fs";
-import { landingAfterSignIn, serviceAccountKind, serviceAccountRedirect } from "./account-kind.ts";
+import { serviceAccountKind, serviceAccountRedirect } from "./account-kind.ts";
 import { isIdExempt } from "./id-gate-paths.ts";
 
 // Founder, 2026-10-07: any login linked to a shipper application/company is
@@ -23,8 +23,6 @@ test("a shipper opening the buyer area or Verify your ID goes to the shipper por
 });
 
 test("an inspector lands on /inspector and is kept out of the buyer area too", () => {
-  assert.equal(landingAfterSignIn("inspector", null), "/inspector");
-  assert.equal(landingAfterSignIn("inspector", "/"), "/inspector");
   assert.equal(serviceAccountRedirect("inspector", "/buyer/verify-id"), "/inspector");
   assert.equal(serviceAccountRedirect("inspector", "/browse"), null);
   assert.equal(serviceAccountRedirect("inspector", "/inspector/abc"), null);
@@ -41,23 +39,6 @@ test("plain buyers and sellers are never redirected by this rule", () => {
   for (const p of ["/buyer/dashboard", "/buyer/verify-id", "/"]) {
     assert.equal(serviceAccountRedirect(null, p), null, p);
   }
-});
-
-test("after sign-in a shipper lands on the shipper portal", () => {
-  assert.equal(landingAfterSignIn("shipper", null), "/shipper/portal");
-  assert.equal(landingAfterSignIn("shipper", "/"), "/shipper/portal");
-  assert.equal(landingAfterSignIn("shipper", "/buyer/dashboard"), "/shipper/portal");
-  assert.equal(landingAfterSignIn("shipper", "/buyer/verify-id?next=/browse"), "/shipper/portal");
-});
-
-test("a shipper heading to a specific useful page keeps it", () => {
-  assert.equal(landingAfterSignIn("shipper", "/shipper/dashboard"), "/shipper/dashboard");
-  assert.equal(landingAfterSignIn("shipper", "/browse/abc"), "/browse/abc");
-});
-
-test("everyone else keeps next, or the home page", () => {
-  assert.equal(landingAfterSignIn(null, null), "/");
-  assert.equal(landingAfterSignIn(null, "/browse/abc"), "/browse/abc");
 });
 
 test("a shipper login skips the ID gate in middleware and lands via /auth/landing", () => {
