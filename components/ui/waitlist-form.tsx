@@ -75,7 +75,9 @@ export function WaitlistForm({
         <CheckCircle2 className="mt-0.5 h-5 w-5 shrink-0 text-verified-600" aria-hidden />
         <div>
           <p className="font-semibold text-ink">You&rsquo;re on the list.</p>
-          <p className="mt-1 text-sm text-muted">{copy.success}</p>
+          <p className="mt-1 text-sm text-muted">
+            {state.confirmed ? "Check your inbox (and spam) for a confirmation." : copy.success}
+          </p>
         </div>
       </div>
     );
