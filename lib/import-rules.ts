@@ -14,13 +14,16 @@
 
 export type ImportCountry = "NG" | "GH" | "TG" | "BJ";
 
-/** Nigeria's maximum age in years from manufacture. */
-export const NIGERIA_MAX_AGE_YEARS = 12;
-
-/** The oldest model year Nigeria accepts in `asOfYear` (2026 -> 2014). */
-export function nigeriaCutoffYear(asOfYear: number = new Date().getFullYear()): number {
-  return asOfYear - NIGERIA_MAX_AGE_YEARS;
-}
+/**
+ * Nigeria model year VehCAP applies to (Standards Organisation of Nigeria's
+ * vehicle compliance assessment). Flat per-model-year rule, not an age
+ * cutoff — it isn't expected to always be "this year", so it's a constant
+ * ShipMova updates, not a computed offset.
+ */
+export const NIGERIA_VEHCAP_MODEL_YEAR = 2026;
+// No trailing period: components/listing-checks.tsx appends one per note.
+export const NIGERIA_VEHCAP_NOTE =
+  "SON VehCAP certificate required (2026-model cars only): about ₦500,000+ per car, can be higher";
 
 export type ImportStatus = {
   kind: "importable" | "borderline" | "too_old" | "not_allowed" | "not_checked" | "unknown_year";
@@ -45,17 +48,19 @@ export const IMPORT_COUNTRY_NAME: Record<ImportCountry, string> = {
  * clearing agents confirming it.
  */
 export const IMPORT_RULES_LAST_CHECKED = "2026-10-09";
+/** Nigeria's line was refreshed separately, from the Lagos clearing-agent partner's own feedback. */
+export const NIGERIA_RULES_LAST_CHECKED = "2026-10-14";
 
 export const IMPORT_RULE_SOURCES: Record<
   ImportCountry,
   { short: string; detail: string; url: string | null; lastChecked: string }
 > = {
   NG: {
-    short: "Federal Ministry of Finance, 2023 Fiscal Policy Measures (in force 1 Jun 2023)",
+    short: "Confirmed with ShipMova's Lagos clearing-agent partner",
     detail:
-      "Circular dated 20 Apr 2023, in force 1 Jun 2023: used vehicles manufactured more than 12 years ago are on the import prohibition list; Nigeria Customs announced the 12-year limit with its VIN Valuation System in May 2022. The Nigeria Trade Information Portal (tip.nsw.gov.ng, undated) still says 15 years.",
+      "No vehicle-age limit or warning — our Lagos clearing-agent partner says Nigeria Customs is not enforcing one in practice, despite the Federal Ministry of Finance's 2023 Fiscal Policy Measures circular (used vehicles over 12 years on the import prohibition list; announced with the VIN Valuation System, May 2022). Rebuilt titles are allowed, with the title type shown on every listing. SON's VehCAP (Vehicle Compliance Assessment) applies to 2026-model cars: about ₦500,000+ per car, can be higher depending on the car.",
     url: "https://gazettengr.com/fg-bans-importation-of-vehicles-above-12-years-hikes-taxes-on-imported-wines-beers/",
-    lastChecked: IMPORT_RULES_LAST_CHECKED,
+    lastChecked: NIGERIA_RULES_LAST_CHECKED,
   },
   GH: {
     short: "Ghana Standards Authority notice (in force 1 Oct 2026)",
@@ -93,30 +98,23 @@ export const GHANA_PENALTY_ABOVE_YEARS = 10;
 /** What a listing says about damage (the seller's own answers). */
 export type DamageFacts = { titleStatus?: string | null; accidentHistory?: string | null };
 
+/**
+ * Nigeria, per ShipMova's Lagos clearing-agent partner (confirmed
+ * 2026-10-14): no age limit or warning, and a rebuilt title is allowed (the
+ * title type is shown on the listing regardless — see components showing
+ * `vehicle.title_status`, unrelated to this import check). The only thing
+ * flagged here is SON's VehCAP certificate, which 2026-model cars need.
+ */
 export function nigeriaImportStatus(
   modelYear: number | null,
   asOfYear: number = new Date().getFullYear(),
 ): ImportStatus {
+  void asOfYear; // kept for signature parity with the other per-country checks
   if (modelYear === null) {
     return { kind: "unknown_year", country: "NG", label: "Nigeria import: model year unknown" };
   }
-  const cutoff = nigeriaCutoffYear(asOfYear);
-  if (modelYear > cutoff) {
-    return { kind: "importable", country: "NG", label: "Importable to Nigeria ✓" };
-  }
-  if (modelYear === cutoff) {
-    return {
-      kind: "borderline",
-      country: "NG",
-      label:
-        "Borderline — Nigeria goes by manufacture date. Check the date on the driver's door label",
-    };
-  }
-  return {
-    kind: "too_old",
-    country: "NG",
-    label: `Too old to import to Nigeria (${cutoff}+ only)`,
-  };
+  const notes = modelYear === NIGERIA_VEHCAP_MODEL_YEAR ? [NIGERIA_VEHCAP_NOTE] : undefined;
+  return { kind: "importable", country: "NG", label: "Importable to Nigeria ✓", notes };
 }
 
 export function ghanaImportStatus(

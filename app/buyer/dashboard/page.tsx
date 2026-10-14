@@ -183,6 +183,9 @@ export default async function BuyerDashboard({
         intro={`Signed in as ${user?.email ?? ""}`}
         action={browse}
       />
+
+      <ReferralPanel userId={user!.id} />
+
       {/* Buyers reach this page only once their ID is verified (middleware.ts). */}
       <BuyerIdSummary summary={idSummary ?? null} />
 
@@ -456,8 +459,6 @@ export default async function BuyerDashboard({
       </DashboardSection>
 
       <BuyerReviewHub userId={user!.id} />
-
-      <ReferralPanel userId={user!.id} />
 
       <StickyAction>{browse}</StickyAction>
     </DashboardShell>

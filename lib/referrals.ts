@@ -3,10 +3,27 @@
  * DB-orchestration side (loading rows, inserting credits, creating payout
  * batches) lives in lib/referral-credit.ts, same split as
  * lib/shipping.ts (pure) vs lib/shipper-billing.ts (DB-touching).
+ *
+ * Everyone can refer, and cross-role: a buyer can refer a shipper, a
+ * seller can refer a buyer, and so on — the referrer's own role has no
+ * bearing on whether a credit lands (removed 2026-10-14; it used to require
+ * the referrer and referred to share a role). What matters is the REFERRED
+ * person's own qualifying action, one of:
+ *   buyer:      completes a car purchase through a finished escrow deal
+ *   seller:     sells a car through a finished escrow deal
+ *   shipper:    completes their first shipment
+ *   inspector:  completes their first PAID inspection
+ * Each referred person pays out once, ever (referral_credits.referred_id is
+ * unique) — whichever of those four they do first.
  */
 
 export const REFERRAL_BATCH_SIZE = 10;
 export const REFERRAL_PAYOUT_AMOUNT_USD = 1000;
+/** What one qualifying referral is worth toward the next payout. Simply
+ * REFERRAL_PAYOUT_AMOUNT_USD / REFERRAL_BATCH_SIZE, named for the homepage
+ * and dashboard copy ("$100 each, paid out at $1,000") so that copy and the
+ * actual payout math can never drift apart. */
+export const REFERRAL_CREDIT_AMOUNT_USD = REFERRAL_PAYOUT_AMOUNT_USD / REFERRAL_BATCH_SIZE;
 /** More than this many qualifying credits for one referrer within
  * REFERRAL_FLAG_WINDOW_HOURS gets rate-flagged for admin review (not
  * blocked). */
@@ -146,20 +163,26 @@ export function detectSelfReferralSignals(
   };
 }
 
-export type ReferralRole = "buyer" | "seller";
+/** The referred person's qualifying role — see the file doc comment above
+ * for what each one requires. This is NOT the referrer's own account role:
+ * referring is open to everyone regardless of role. */
+export type ReferralRole = "buyer" | "seller" | "shipper" | "inspector";
 export type ReferralPayoutMethod = "stripe_transfer" | "bank_transfer";
 
 /**
- * Which rail a referrer's payout goes out on. Sellers are US-based by this
- * platform's own business model (Terms & Conditions §2 — ShipMova connects
- * US-based sellers with Nigerian/Ghanaian/Togolese/Beninese buyers) and
- * seller_profiles.country has no edit UI yet (always null in practice
- * today), so an unset country falls back to that role default; an
- * explicitly-recorded country always wins once profile-country editing
- * exists.
+ * Which rail a REFERRER's payout goes out on — decided from the referrer's
+ * own role/profile, which is unrelated to the `role` on the credit they
+ * earned (that's the person THEY referred, not them). Sellers and
+ * inspectors are US-based by this platform's own business model (Terms &
+ * Conditions §2; lib/prelaunch.ts's inspector note) and seller_profiles /
+ * buyer_profiles.country has no edit UI yet (so it's rarely set in
+ * practice), so an unset country falls back to the referrer's own role
+ * default; an explicitly-recorded country always wins. Shippers have no
+ * country field at all (service_countries is where they ship TO, not where
+ * the company is), so they default to bank_transfer like an unset buyer.
  */
 export function determinePayoutMethod(
-  role: ReferralRole,
+  referrerRole: ReferralRole,
   country: string | null | undefined,
 ): ReferralPayoutMethod {
   const normalized = country?.trim().toUpperCase();
@@ -169,5 +192,5 @@ export function determinePayoutMethod(
   if (normalized) {
     return "bank_transfer";
   }
-  return role === "seller" ? "stripe_transfer" : "bank_transfer";
+  return referrerRole === "seller" || referrerRole === "inspector" ? "stripe_transfer" : "bank_transfer";
 }

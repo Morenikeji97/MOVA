@@ -4,6 +4,8 @@ import { useEffect, useState } from "react";
 import { inputClasses } from "@/components/ui/input-classes";
 import { cn } from "@/lib/utils";
 import { formatCheckedDate, importStatus } from "@/lib/import-rules";
+import { isCountryOpenForBuyers } from "@/lib/country-access";
+import { WaitlistForm } from "@/components/ui/waitlist-form";
 import { landedEstimate, type LandedCostRates, type LandedCountry } from "@/lib/landed-cost";
 import {
   EXPORT_PAPERWORK,
@@ -109,12 +111,28 @@ export function ShippingEstimate({
           {SHIPPING_ESTIMATES.map((e) => (
             <option key={e.code} value={e.code}>
               {e.name}
+              {isCountryOpenForBuyers(e.code) ? "" : " — Coming soon"}
             </option>
           ))}
         </select>
       </label>
 
-      {estimate ? (
+      {estimate && !isCountryOpenForBuyers(estimate.code) ? (
+        <div className="mt-3 border-t border-line pt-3">
+          <p className="text-sm text-ink">
+            ShipMova isn&rsquo;t open to buyers in {estimate.name} yet — Nigeria only, for now.
+          </p>
+          <WaitlistForm
+            source="listing"
+            audience="buyer"
+            heading={`Coming soon in ${estimate.name}`}
+            intro="Leave your email and we'll tell you the moment buying opens in your country."
+            lockedCountry={{ code: estimate.code, name: estimate.name }}
+            compact
+            className="mt-3 border-none bg-transparent p-0 shadow-none"
+          />
+        </div>
+      ) : estimate ? (
         <>
           <p className="mt-3 text-sm text-ink">
             {importStatus(estimate.code, modelYear).label}

@@ -69,6 +69,8 @@ export default async function SellerDashboard({
     <DashboardShell>
       <DashboardHeader eyebrow="Seller" title="Your dashboard" intro={`Signed in as ${user?.email ?? ""}`} />
 
+      <ReferralPanel userId={user!.id} />
+
       <nav aria-label="Seller areas" className="mt-6 grid gap-3 sm:grid-cols-3">
         <DashboardTile
           href="/seller/listings"
@@ -91,8 +93,6 @@ export default async function SellerDashboard({
       />
 
       <SellerReviewHub userId={user!.id} />
-
-      <ReferralPanel userId={user!.id} />
     </DashboardShell>
   );
 }

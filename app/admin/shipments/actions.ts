@@ -13,6 +13,7 @@ import { requireAdmin } from "@/lib/admin-auth";
 import { logAdminAction } from "@/lib/admin-audit";
 import { SESSION_ENDED, checkWrite, notSaved, savedWithAudit, type ActionResult } from "@/lib/action-result";
 import { openShippingEscrow } from "@/lib/escrow-sync";
+import { evaluateShipperReferral } from "@/lib/referral-credit";
 
 function str(v: FormDataEntryValue | null): string {
   return typeof v === "string" ? v.trim() : "";
@@ -33,6 +34,23 @@ function revalidate() {
   revalidatePath("/admin/shipments");
   revalidatePath("/admin/shippers");
   revalidatePath("/admin/dashboard");
+}
+
+/**
+ * Referral program: this shipment landing on 'completed' can be the
+ * shipper's own first qualifying referral (lib/referral-credit.ts
+ * re-resolves "first completed shipment" itself, so it doesn't matter
+ * which shipment triggered the check). No-op when the shipper has no
+ * user_id (signed up without a ShipMova login) or no referrer.
+ */
+async function creditShipperReferralIfAny(
+  admin: ReturnType<typeof createAdminClient>,
+  shipperId: string,
+): Promise<void> {
+  const { data: shipper } = await admin.from("shippers").select("user_id").eq("id", shipperId).maybeSingle();
+  if (shipper?.user_id) {
+    await evaluateShipperReferral(admin, { referredUserId: shipper.user_id });
+  }
 }
 
 /**
@@ -82,6 +100,7 @@ export async function completeShipment(
     const bad = checkWrite(res, "it's already completed — reload to see it.");
     if (bad) return bad;
     const audit = await logAdminAction(ctx.supabase, "shipment.complete", { table: "shipment_requests", id });
+    await creditShipperReferralIfAny(admin, sr.shipper_id);
     revalidate();
     return savedWithAudit("Shipment marked completed. No fee charged.", audit);
   }
@@ -109,6 +128,7 @@ export async function completeShipment(
   const audit = await logAdminAction(ctx.supabase, "shipment.complete", { table: "shipment_requests", id }, {
     commission_owed: owed,
   });
+  await creditShipperReferralIfAny(admin, sr.shipper_id);
 
   const currency = (sr.currency || "USD").toLowerCase();
   // Minor units. ShipMova's shipping lanes price in USD-like 2-decimal currencies.

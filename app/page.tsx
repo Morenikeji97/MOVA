@@ -27,6 +27,8 @@ import {
   ShipIcon,
 } from "@/components/ui/icons";
 import { cn } from "@/lib/utils";
+import { REFERRAL_BATCH_SIZE, REFERRAL_CREDIT_AMOUNT_USD, REFERRAL_PAYOUT_AMOUNT_USD } from "@/lib/referrals";
+import { BUYER_COUNTRY_STATUS } from "@/lib/country-access";
 
 const TRUST_ROW = [
   { icon: ShieldCheckIcon, label: "Verified Sellers" },
@@ -46,7 +48,7 @@ const ROLE_CARDS = [
   },
   {
     title: "Sell Your Vehicle",
-    body: "Reach ID-verified buyers in Nigeria, Ghana, Togo and Benin.",
+    body: "Reach ID-verified buyers in Nigeria (Ghana, Togo and Benin coming soon).",
     cta: "List Your Car",
     href: "/sell",
     image: HOME_IMAGES.roleSell,
@@ -136,17 +138,30 @@ function SectionHeading({ eyebrow, title, intro }: { eyebrow?: string; title: st
 
 export default async function Home() {
   const supabase = await createClient();
-  const [{ rows: listings, thumbByVehicle }, fx, { data: makeRows }, currency] = await Promise.all([
+  const [
+    { rows: listings, thumbByVehicle },
+    fx,
+    { data: makeRows },
+    currency,
+    {
+      data: { user },
+    },
+  ] = await Promise.all([
     loadRecentApprovedListings(supabase, 8),
     getFxRates(),
     // Makes in the approved inventory, for the search bar (same as /browse).
     supabase.from("vehicles").select("make").eq("status", "approved").order("make", { ascending: true }),
     getDisplayCurrency(),
+    supabase.auth.getUser(),
   ]);
   const listedMakes = [...new Set((makeRows ?? []).map((r) => r.make))];
   const makes = listedMakes.length > 0 ? listedMakes : COMMON_MAKES;
   const localCurrencies = cardCurrencies(currency);
   const prelaunch = isPrelaunch();
+  // The referral marketing block and country strip are for people deciding
+  // whether to sign up — a signed-in visitor already has both (their
+  // dashboard's ReferralPanel; they already chose their country at signup).
+  const signedOut = !user;
 
   // The hero photo is the largest thing on the page: fetch it first.
   preload(HOME_IMAGES.heroPhone.src, { as: "image", fetchPriority: "high", media: "(max-width: 767px)" });
@@ -241,6 +256,15 @@ export default async function Home() {
               </li>
             ))}
           </ul>
+
+          {signedOut ? (
+            <Link
+              href="#refer"
+              className="mt-6 flex h-11 w-fit items-center gap-2 rounded-full border border-white bg-white px-4 text-sm font-bold text-ink hover:bg-white/90"
+            >
+              Earn ${REFERRAL_PAYOUT_AMOUNT_USD.toLocaleString()} with ShipMova <ArrowRightIcon size={16} />
+            </Link>
+          ) : null}
         </div>
 
         <Link
@@ -267,6 +291,93 @@ export default async function Home() {
             </li>
           ))}
         </ul>
+      </section>
+
+      {/* ---------------- Earn $1,000 with ShipMova (signed-out only) ---------------- */}
+      {signedOut ? (
+        <section id="refer" className="scroll-mt-4 border-b border-line bg-white">
+          <div className="mx-auto max-w-6xl px-4 py-14 sm:px-6 sm:py-20">
+            <p className="text-xs font-semibold uppercase tracking-[0.18em] text-muted">Referral program</p>
+            <h2 className="mt-2 font-display text-3xl font-extrabold tracking-tight text-ink sm:text-4xl">
+              Earn ${REFERRAL_PAYOUT_AMOUNT_USD.toLocaleString()} with ShipMova
+            </h2>
+            <p className="mt-3 max-w-2xl text-base font-semibold text-ink">
+              Refer {REFERRAL_BATCH_SIZE} people who complete a deal: buyers, sellers, shippers or inspectors. $
+              {REFERRAL_CREDIT_AMOUNT_USD} each, paid out at ${REFERRAL_PAYOUT_AMOUNT_USD.toLocaleString()}.
+            </p>
+
+            <ol className="mt-8 grid grid-cols-1 gap-4 sm:grid-cols-3">
+              {[
+                { title: "Share your link", body: "Create an account for your own referral link, code and QR code." },
+                { title: "They complete a deal", body: "A buyer, seller, shipper or inspector you referred finishes their first transaction." },
+                { title: "You get paid", body: `$${REFERRAL_CREDIT_AMOUNT_USD} each, paid out at $${REFERRAL_PAYOUT_AMOUNT_USD.toLocaleString()} every ${REFERRAL_BATCH_SIZE}.` },
+              ].map((step, i) => (
+                <li key={step.title} className={cardClasses()}>
+                  <span className="flex h-9 w-9 items-center justify-center rounded-full bg-ink font-display text-sm font-bold text-white">
+                    {i + 1}
+                  </span>
+                  <h3 className="mt-4 font-display text-lg font-bold text-ink">{step.title}</h3>
+                  <p className="mt-1 text-sm text-muted">{step.body}</p>
+                </li>
+              ))}
+            </ol>
+
+            <Link href="/signup" className={buttonClasses({ className: "mt-8 w-full sm:w-auto" })}>
+              Get your referral link
+            </Link>
+
+            <div className="mt-10 grid grid-cols-1 gap-5 sm:grid-cols-2">
+              <div className={cardClasses()}>
+                <h3 className="font-display text-lg font-bold text-ink">Ship cars with ShipMova</h3>
+                <p className="mt-2 text-sm text-muted">
+                  Get vehicle shipping jobs to West Africa. No fees for founding partners.
+                </p>
+                <Link href="/shipper" className={buttonClasses({ variant: "secondary", className: "mt-4 w-full sm:w-auto" })}>
+                  Join as a shipper
+                </Link>
+              </div>
+              <div className={cardClasses()}>
+                <h3 className="font-display text-lg font-bold text-ink">
+                  Become a ShipMova inspector (earn 2% per inspection)
+                </h3>
+                <p className="mt-2 text-sm text-muted">
+                  Inspect cars in person at pickup — the VIN, the odometer and the title — and get paid 2% of the
+                  car&rsquo;s price for each one.
+                </p>
+                <Link href="/inspectors" className={buttonClasses({ variant: "secondary", className: "mt-4 w-full sm:w-auto" })}>
+                  Join as an inspector
+                </Link>
+              </div>
+            </div>
+          </div>
+        </section>
+      ) : null}
+
+      {/* ---------------- Where buying is open ---------------- */}
+      <section className="border-b border-line bg-band">
+        <div className="mx-auto max-w-6xl px-4 py-8 sm:px-6">
+          <ul className="flex flex-wrap gap-2">
+            {BUYER_COUNTRY_STATUS.map((c) => (
+              <li
+                key={c.code}
+                className={cn(
+                  "flex h-9 items-center rounded-full border px-3 text-sm font-semibold",
+                  c.status === "open" ? "border-ink bg-ink text-white" : "border-line text-muted",
+                )}
+              >
+                {c.name}
+                {c.status === "coming_soon" ? " — coming soon" : ""}
+              </li>
+            ))}
+          </ul>
+          <p className="mt-3 max-w-2xl text-sm text-muted">
+            Buying is open in Nigeria. Choose your country at sign-up — Ghana, Togo and Benin are coming soon, with a
+            &ldquo;Notify me&rdquo; sign-up if that&rsquo;s you.
+          </p>
+          <Link href="/signup" className={buttonClasses({ variant: "secondary", className: "mt-4 w-full sm:w-auto" })}>
+            Get started <ArrowRightIcon size={16} />
+          </Link>
+        </div>
       </section>
 
       {/* ---------------- Role cards ---------------- */}

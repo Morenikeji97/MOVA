@@ -1,11 +1,15 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { PageHero, SectionHeading, heroButtonClasses } from "@/components/ui/page-hero";
-import { REFERRAL_BATCH_SIZE, REFERRAL_PAYOUT_AMOUNT_USD } from "@/lib/referrals";
+import {
+  REFERRAL_BATCH_SIZE,
+  REFERRAL_CREDIT_AMOUNT_USD,
+  REFERRAL_PAYOUT_AMOUNT_USD,
+} from "@/lib/referrals";
 
 export const metadata: Metadata = {
   title: "Referral Program — ShipMova",
-  description: `Earn $${REFERRAL_PAYOUT_AMOUNT_USD} for every ${REFERRAL_BATCH_SIZE} people you refer to ShipMova who complete a transaction.`,
+  description: `Earn $${REFERRAL_CREDIT_AMOUNT_USD} per referral, paid out at $${REFERRAL_PAYOUT_AMOUNT_USD} every ${REFERRAL_BATCH_SIZE} — buyers, sellers, shippers and inspectors.`,
 };
 
 function Step({ n, title, children }: { n: number; title: string; children: React.ReactNode }) {
@@ -28,23 +32,19 @@ export default function ReferralsPage() {
       <PageHero
         narrow
         eyebrow="ShipMova Referral Program"
-        title={
-          <>
-            Earn ${REFERRAL_PAYOUT_AMOUNT_USD.toLocaleString()} for every {REFERRAL_BATCH_SIZE} people you bring
-            to ShipMova.
-          </>
-        }
+        title={<>Earn ${REFERRAL_PAYOUT_AMOUNT_USD.toLocaleString()} with ShipMova.</>}
         intro={
           <>
-            Every Buyer and every Seller account gets its own referral link. Once {REFERRAL_BATCH_SIZE} people
-            you referred complete a transaction on ShipMova, you get paid $
-            {REFERRAL_PAYOUT_AMOUNT_USD.toLocaleString()}. No cap — refer {REFERRAL_BATCH_SIZE * 2}, get paid
-            twice; refer {REFERRAL_BATCH_SIZE * 10}, get paid ten times.
+            Refer {REFERRAL_BATCH_SIZE} people who complete a deal: buyers, sellers, shippers or inspectors.
+            ${REFERRAL_CREDIT_AMOUNT_USD} each, paid out at ${REFERRAL_PAYOUT_AMOUNT_USD.toLocaleString()}. Anyone with
+            a ShipMova account can refer anyone — a Buyer can refer a Shipper, a Seller can refer a Buyer, and so on.
+            No cap: refer {REFERRAL_BATCH_SIZE * 2}, get paid twice; refer {REFERRAL_BATCH_SIZE * 10}, get paid ten
+            times.
           </>
         }
       >
         <Link href="/signup" className={heroButtonClasses("solid")}>
-          Create your account
+          Get your referral link
         </Link>
         <Link href="/login" className={heroButtonClasses("outline")}>
           I already have an account
@@ -54,37 +54,42 @@ export default function ReferralsPage() {
       <section className="mx-auto max-w-4xl px-4 py-14 sm:px-6 sm:py-20">
         <SectionHeading title="How it works" />
         <div className="mt-8 flex flex-col gap-8">
-          <Step n={1} title="Get your link">
-            Sign in to your Buyer or Seller dashboard for your unique referral
-            code, a shareable link, and a QR code you can post, text, or
-            print.
+          <Step n={1} title="Share your link">
+            Sign in to your Buyer, Seller, Shipper or Inspector dashboard for your own referral code, link and QR
+            code — copy it or share it straight to WhatsApp.
           </Step>
-          <Step n={2} title="Share it">
-            A Buyer&rsquo;s link only credits when the person they refer also
-            signs up as a Buyer; a Seller&rsquo;s link only credits for
-            another Seller. Referring across roles doesn&rsquo;t count.
+          <Step n={2} title="They complete a deal">
+            A Buyer buys a car through a completed escrow deal; a Seller sells one; a Shipper completes their first
+            shipment; an Inspector completes their first paid inspection.
           </Step>
-          <Step n={3} title="They complete a transaction">
-            A referral qualifies once the person you referred pays
-            ShipMova&rsquo;s service fee on their first transaction and passes
-            their own identity verification.
-          </Step>
-          <Step n={4} title={`Get paid every ${REFERRAL_BATCH_SIZE}`}>
-            Once you hit {REFERRAL_BATCH_SIZE} qualifying referrals, ShipMova
-            pays out ${REFERRAL_PAYOUT_AMOUNT_USD.toLocaleString()} — and the
-            count keeps going toward your next payout.
+          <Step n={3} title="You get paid at 10">
+            Each qualifying referral is worth ${REFERRAL_CREDIT_AMOUNT_USD}. Once {REFERRAL_BATCH_SIZE} of them land,
+            ShipMova pays out ${REFERRAL_PAYOUT_AMOUNT_USD.toLocaleString()} — and the count keeps going toward your
+            next payout. Below {REFERRAL_BATCH_SIZE}, it shows as pending in your dashboard.
           </Step>
         </div>
 
         <p className="mt-10 text-sm text-muted">
-          Track your progress, referral code, and lifetime earnings any time
-          from your{" "}
+          The full rules are in the{" "}
+          <Link href="/legal/referral-terms" className="text-ink underline underline-offset-2">
+            Referral Program Terms
+          </Link>
+          , including the anti-fraud checks ShipMova runs on every referral. Track your own progress, link and
+          lifetime earnings any time from your{" "}
           <Link href="/buyer/dashboard" className="text-ink underline underline-offset-2">
             Buyer
-          </Link>{" "}
-          or{" "}
+          </Link>
+          ,{" "}
           <Link href="/seller/dashboard" className="text-ink underline underline-offset-2">
             Seller
+          </Link>
+          ,{" "}
+          <Link href="/shipper/dashboard" className="text-ink underline underline-offset-2">
+            Shipper
+          </Link>{" "}
+          or{" "}
+          <Link href="/inspector" className="text-ink underline underline-offset-2">
+            Inspector
           </Link>{" "}
           dashboard.
         </p>

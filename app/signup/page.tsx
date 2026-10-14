@@ -11,6 +11,9 @@ import { CURRENT_POLICY_VERSION, BUYER_PROTECTION_POLICY_PATH } from "@/lib/poli
 import { collectDeviceFingerprint } from "@/lib/device-fingerprint";
 import type { UserRole } from "@/types/database";
 import { checkSignupRateLimit } from "./actions";
+import { BUYER_COUNTRY_STATUS, isCountryOpenForBuyers } from "@/lib/country-access";
+import type { ImportCountry } from "@/lib/import-rules";
+import { WaitlistForm } from "@/components/ui/waitlist-form";
 
 function SignupForm() {
   const searchParams = useSearchParams();
@@ -19,6 +22,9 @@ function SignupForm() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [role, setRole] = useState<UserRole>("buyer");
+  // Only asked for a Buyer — Sellers are US-based regardless of where they
+  // sign up from (lib/country-access.ts), so this stays null for them.
+  const [buyerCountry, setBuyerCountry] = useState<ImportCountry | "">("");
   const [policyAccepted, setPolicyAccepted] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [submitted, setSubmitted] = useState(false);
@@ -83,6 +89,13 @@ function SignupForm() {
     );
   }
 
+  // Nigeria only, at launch (lib/country-access.ts) — a Buyer from Ghana,
+  // Togo or Benin can't create an account yet; offer the waitlist instead.
+  const countryGated = role === "buyer" && buyerCountry !== "" && !isCountryOpenForBuyers(buyerCountry);
+  const gatedCountryName = countryGated
+    ? BUYER_COUNTRY_STATUS.find((c) => c.code === buyerCountry)?.name ?? buyerCountry
+    : null;
+
   return (
     <AuthShell>
       <h1 className="mb-6 font-display text-2xl font-extrabold tracking-tight text-ink">Create your ShipMova account</h1>
@@ -116,55 +129,99 @@ function SignupForm() {
             I&apos;m a shipper
           </Link>
         </fieldset>
-        <label className="flex flex-col gap-1">
-          <span className="text-sm text-muted">Email</span>
-          <input
-            type="email"
-            autoComplete="email"
-            required
-            value={email}
-            onChange={(e) => setEmail(e.target.value)}
-            className={inputClasses()}
-          />
-        </label>
-        <label className="flex flex-col gap-1">
-          <span className="text-sm text-muted">Password</span>
-          <input
-            type="password"
-            autoComplete="new-password"
-            required
-            minLength={8}
-            value={password}
-            onChange={(e) => setPassword(e.target.value)}
-            className={inputClasses()}
-          />
-        </label>
-        <label className="flex items-start gap-3 py-1 text-sm text-muted">
-          <input
-            type="checkbox"
-            checked={policyAccepted}
-            onChange={(e) => setPolicyAccepted(e.target.checked)}
-            required
-            className="mt-0.5 h-5 w-5 shrink-0 accent-ink"
-          />
-          <span>
-            I have read and agree to ShipMova&rsquo;s{" "}
-            <Link
-              href={BUYER_PROTECTION_POLICY_PATH}
-              target="_blank"
-              rel="noopener noreferrer"
-              className="text-ink underline underline-offset-2"
+
+        {role === "buyer" ? (
+          <label className="flex flex-col gap-1">
+            <span className="text-sm text-muted">Where are you buying from?</span>
+            <select
+              required
+              value={buyerCountry}
+              onChange={(e) => setBuyerCountry(e.target.value as ImportCountry)}
+              className={inputClasses()}
             >
-              Buyer Protection &amp; Refund Policy
-            </Link>
-            .
-          </span>
-        </label>
-        {error && <p className="text-sm text-copper-700">{error}</p>}
-        <Button type="submit" disabled={loading || !policyAccepted}>
-          {loading ? "Creating account…" : "Create account"}
-        </Button>
+              <option value="" disabled>
+                Choose your country
+              </option>
+              {BUYER_COUNTRY_STATUS.map((c) => (
+                <option key={c.code} value={c.code}>
+                  {c.name}
+                  {c.status === "coming_soon" ? " — coming soon" : ""}
+                </option>
+              ))}
+            </select>
+          </label>
+        ) : null}
+
+        {countryGated ? null : (
+          <>
+            <label className="flex flex-col gap-1">
+              <span className="text-sm text-muted">Email</span>
+              <input
+                type="email"
+                autoComplete="email"
+                required
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
+                className={inputClasses()}
+              />
+            </label>
+            <label className="flex flex-col gap-1">
+              <span className="text-sm text-muted">Password</span>
+              <input
+                type="password"
+                autoComplete="new-password"
+                required
+                minLength={8}
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
+                className={inputClasses()}
+              />
+            </label>
+            <label className="flex items-start gap-3 py-1 text-sm text-muted">
+              <input
+                type="checkbox"
+                checked={policyAccepted}
+                onChange={(e) => setPolicyAccepted(e.target.checked)}
+                required
+                className="mt-0.5 h-5 w-5 shrink-0 accent-ink"
+              />
+              <span>
+                I have read and agree to ShipMova&rsquo;s{" "}
+                <Link
+                  href={BUYER_PROTECTION_POLICY_PATH}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="text-ink underline underline-offset-2"
+                >
+                  Buyer Protection &amp; Refund Policy
+                </Link>
+                .
+              </span>
+            </label>
+            {error && <p className="text-sm text-copper-700">{error}</p>}
+            <Button type="submit" disabled={loading || !policyAccepted}>
+              {loading ? "Creating account…" : "Create account"}
+            </Button>
+          </>
+        )}
       </form>
+
+      {countryGated && gatedCountryName ? (
+        <div className="mt-6">
+          <p className="rounded-lg border border-line bg-band px-3 py-2 text-sm text-muted">
+            ShipMova isn&rsquo;t open to buyers in {gatedCountryName} yet — Nigeria only, for now.
+          </p>
+          <WaitlistForm
+            source="signup"
+            audience="buyer"
+            heading={`Coming soon in ${gatedCountryName}`}
+            intro="Leave your email and we'll tell you the moment buying opens in your country."
+            lockedCountry={{ code: buyerCountry, name: gatedCountryName }}
+            compact
+            className="mt-3"
+          />
+        </div>
+      ) : null}
     </AuthShell>
   );
 }
