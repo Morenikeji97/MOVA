@@ -49,4 +49,7 @@
   body:has([data-sticky-action]) .wa-float {
     bottom: calc(env(safe-area-inset-bottom) + 5.25rem);
   }
+  body:has([data-sticky-action]) .referral-float {
+    bottom: calc(env(safe-area-inset-bottom) + 5.25rem);
+  }
 }

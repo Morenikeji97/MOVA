@@ -29,6 +29,7 @@ import {
 import { cn } from "@/lib/utils";
 import { REFERRAL_BATCH_SIZE, REFERRAL_CREDIT_AMOUNT_USD, REFERRAL_PAYOUT_AMOUNT_USD } from "@/lib/referrals";
 import { BUYER_COUNTRY_STATUS } from "@/lib/country-access";
+import { heroButtonClasses } from "@/components/ui/page-hero";
 
 const TRUST_ROW = [
   { icon: ShieldCheckIcon, label: "Verified Sellers" },
@@ -293,15 +294,17 @@ export default async function Home() {
         </ul>
       </section>
 
-      {/* ---------------- Earn $1,000 with ShipMova (signed-out only) ---------------- */}
+      {/* ---------------- Earn $1,000 with ShipMova (signed-out only) ----------------
+          Inverted black block (founder, 2026-10-15): same position as always,
+          styled to stand out against the plain white sections around it. */}
       {signedOut ? (
-        <section id="refer" className="scroll-mt-4 border-b border-line bg-white">
+        <section id="refer" className="scroll-mt-4 border-b border-line bg-ink text-white">
           <div className="mx-auto max-w-6xl px-4 py-14 sm:px-6 sm:py-20">
-            <p className="text-xs font-semibold uppercase tracking-[0.18em] text-muted">Referral program</p>
-            <h2 className="mt-2 font-display text-3xl font-extrabold tracking-tight text-ink sm:text-4xl">
+            <p className="text-xs font-semibold uppercase tracking-[0.18em] text-white/60">Referral program</p>
+            <h2 className="mt-2 font-display text-3xl font-extrabold tracking-tight sm:text-4xl">
               Earn ${REFERRAL_PAYOUT_AMOUNT_USD.toLocaleString()} with ShipMova
             </h2>
-            <p className="mt-3 max-w-2xl text-base font-semibold text-ink">
+            <p className="mt-3 max-w-2xl text-base font-semibold text-white">
               Refer {REFERRAL_BATCH_SIZE} people who complete a deal: buyers, sellers, shippers or inspectors. $
               {REFERRAL_CREDIT_AMOUNT_USD} each, paid out at ${REFERRAL_PAYOUT_AMOUNT_USD.toLocaleString()}.
             </p>
@@ -322,7 +325,7 @@ export default async function Home() {
               ))}
             </ol>
 
-            <Link href="/signup" className={buttonClasses({ className: "mt-8 w-full sm:w-auto" })}>
+            <Link href="/signup" className={heroButtonClasses("solid", "mt-8 w-full sm:w-auto")}>
               Get your referral link
             </Link>
 

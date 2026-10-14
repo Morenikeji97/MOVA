@@ -47,17 +47,3 @@ export function serviceAccountRedirect(kind: ServiceAccountKind | null, path: st
   const buyerOnly = BUYER_ONLY_PATHS.some((p) => path === p || path.startsWith(`${p}/`));
   return buyerOnly ? SERVICE_ACCOUNT_HOME[kind] : null;
 }
-
-/**
- * Where a just-signed-in user goes. A service account goes to its portal
- * unless it was heading somewhere else that's useful to it (any page that
- * isn't the home page or a buyer-only area); everyone else keeps `next`,
- * defaulting to the home page. `next` must already be a safe same-site path.
- */
-export function landingAfterSignIn(kind: ServiceAccountKind | null, next: string | null): string {
-  if (!kind) return next ?? "/";
-  if (!next || next === "/" || serviceAccountRedirect(kind, next.split("?")[0])) {
-    return SERVICE_ACCOUNT_HOME[kind];
-  }
-  return next;
-}
