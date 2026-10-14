@@ -10,8 +10,13 @@ import {
   type WaitlistAudience,
   type WaitlistSource,
 } from "@/lib/prelaunch";
+import { notifyWaitlistSignup } from "@/lib/notifications";
 
-export type JoinWaitlistResult = { ok: true } | { ok: false; error: string };
+/** `confirmed`: whether a confirmation email was actually sent (false for a
+ * WhatsApp-only signup, or if Resend didn't accept it) — the form uses this
+ * to decide whether "check your inbox" is true, not just whether the signup
+ * itself succeeded, which it always did by the time `ok: true` comes back. */
+export type JoinWaitlistResult = { ok: true; confirmed: boolean } | { ok: false; error: string };
 
 const GENERIC_ERROR =
   "We couldn't add you just now. Please try again, or message us on WhatsApp.";
@@ -67,7 +72,8 @@ export async function joinWaitlist(
       console.error("joinWaitlist: insert failed", error);
       return { ok: false, error: GENERIC_ERROR };
     }
-    return { ok: true };
+    const confirmed = await notifyWaitlistSignup({ email: v.email, audience, country: v.country });
+    return { ok: true, confirmed };
   } catch (err) {
     console.error("joinWaitlist: unexpected failure", err);
     return { ok: false, error: GENERIC_ERROR };
@@ -116,7 +122,12 @@ export async function joinPartnerWaitlist(
       console.error("joinPartnerWaitlist: insert failed", error);
       return { ok: false, error: GENERIC_ERROR };
     }
-    return { ok: true };
+    const confirmed = await notifyWaitlistSignup({
+      email: v.row.email,
+      audience: v.row.audience,
+      country: v.row.country,
+    });
+    return { ok: true, confirmed };
   } catch (err) {
     console.error("joinPartnerWaitlist: unexpected failure", err);
     return { ok: false, error: GENERIC_ERROR };

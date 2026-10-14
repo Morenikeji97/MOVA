@@ -36,6 +36,7 @@ export function PartnerWaitlistForm({
           <p className="font-semibold text-ink">Thanks — you&rsquo;re registered.</p>
           <p className="mt-1 text-sm text-muted">
             We&rsquo;ll be in touch on WhatsApp or email as ShipMova gets ready to launch.
+            {state.confirmed ? " Check your inbox (and spam) for a confirmation." : ""}
           </p>
         </div>
       </div>

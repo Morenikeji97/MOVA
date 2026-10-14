@@ -4,6 +4,12 @@ import { sendEmail, renderEmailShell, escapeHtml } from "@/lib/email";
 import { checkRateLimit } from "@/lib/rate-limit";
 import { appUrl } from "@/lib/app-url";
 import { dealEmails, type DealEvent, type DealRole } from "@/lib/deal-emails";
+import {
+  WAITLIST_AUDIENCE_LABEL,
+  WAITLIST_COUNTRIES,
+  type WaitlistAudience,
+  type WaitlistCountryCode,
+} from "@/lib/prelaunch";
 
 /**
  * Email notifications for the moments buyers/sellers/shippers need to know
@@ -794,4 +800,79 @@ export async function notifyInspectorDecision(
   } catch (err) {
     console.error("notifyInspectorDecision failed:", err);
   }
+}
+
+// ── Waitlist signups ─────────────────────────────────────────────────────
+
+/**
+ * Where the founder hears about every new waitlist / partner-interest
+ * signup, instead of having to keep checking /admin/waitlist. Deliberately
+ * not "every admin" (adminEmails()) — this is the founder's own inbox,
+ * independent of who else is registered as an admin user.
+ */
+const WAITLIST_ALERT_EMAIL = "tobi@shipmova.com";
+
+const waitlistJoinedAt = new Intl.DateTimeFormat("en-US", {
+  month: "short",
+  day: "numeric",
+  year: "numeric",
+  hour: "numeric",
+  minute: "2-digit",
+});
+
+/** What a signup is told to expect next, by audience — kept to one line. */
+const WAITLIST_CONFIRM_LINE: Record<WaitlistAudience, (country: string) => string> = {
+  buyer: (country) => `We&rsquo;ll email you the moment buying opens in ${country}.`,
+  seller: (country) => `We&rsquo;ll email you the moment buyers can reserve in ${country}.`,
+  shipper: (country) => `We&rsquo;ll email you as soon as ShipMova is ready for shippers in ${country}.`,
+  inspector: (country) => `We&rsquo;ll email you as soon as ShipMova is ready for inspectors in ${country}.`,
+  clearing_agent: (country) =>
+    `We&rsquo;ll email you as soon as ShipMova is ready for clearing agents in ${country}.`,
+};
+
+/**
+ * A new row in waitlist_signups (app/waitlist/actions.ts, both the buyer/
+ * seller form and the inspector/clearing-agent "register your interest"
+ * form) — right after the insert succeeds. Confirms to the signer, only if
+ * they gave an email (a WhatsApp-only buyer/seller signup gets no
+ * confirmation email, since there's nowhere to send one), and always alerts
+ * the founder directly so new signups don't require checking the admin
+ * page. Returns whether the signer's own confirmation was accepted by
+ * Resend, so the form can say so if it wasn't — the signup itself is
+ * already saved either way.
+ */
+export async function notifyWaitlistSignup({
+  email,
+  audience,
+  country,
+}: {
+  email: string | null;
+  audience: WaitlistAudience;
+  country: WaitlistCountryCode;
+}): Promise<boolean> {
+  const countryName = WAITLIST_COUNTRIES.find((c) => c.code === country)?.name ?? country;
+  const roleLabel = WAITLIST_AUDIENCE_LABEL[audience];
+
+  let confirmed = false;
+  if (email) {
+    confirmed = await sendEmail({
+      to: email,
+      subject: "You're on the list",
+      html: renderEmailShell({
+        heading: "You're on the list",
+        bodyHtml: `<p style="margin:0 0 8px;">Thanks for joining the ShipMova waitlist. ${WAITLIST_CONFIRM_LINE[audience](escapeHtml(countryName))}</p><p style="margin:0;">ShipMova will never ask you to pay a person directly. If anyone does, it&rsquo;s a scam &mdash; stop and message us.</p>`,
+      }),
+    });
+  }
+
+  await sendEmail({
+    to: WAITLIST_ALERT_EMAIL,
+    subject: `New waitlist signup — ${roleLabel}, ${countryName}`,
+    html: renderEmailShell({
+      heading: "New waitlist signup",
+      bodyHtml: `<p style="margin:0;">${escapeHtml(roleLabel)} &middot; ${escapeHtml(countryName)} &middot; ${waitlistJoinedAt.format(new Date())}</p>`,
+    }),
+  });
+
+  return confirmed;
 }
