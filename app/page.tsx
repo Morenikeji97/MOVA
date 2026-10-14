@@ -294,9 +294,67 @@ export default async function Home() {
         </ul>
       </section>
 
+      {/* ---------------- Where buying is open ---------------- */}
+      <section className="border-b border-line bg-band">
+        <div className="mx-auto max-w-6xl px-4 py-8 sm:px-6">
+          <ul className="flex flex-wrap gap-2">
+            {BUYER_COUNTRY_STATUS.map((c) => (
+              <li
+                key={c.code}
+                className={cn(
+                  "flex h-9 items-center rounded-full border px-3 text-sm font-semibold",
+                  c.status === "open" ? "border-ink bg-ink text-white" : "border-line text-muted",
+                )}
+              >
+                {c.name}
+                {c.status === "coming_soon" ? " — coming soon" : ""}
+              </li>
+            ))}
+          </ul>
+          <p className="mt-3 max-w-2xl text-sm text-muted">
+            Buying is open in Nigeria. Choose your country at sign-up — Ghana, Togo and Benin are coming soon, with a
+            &ldquo;Notify me&rdquo; sign-up if that&rsquo;s you.
+          </p>
+          <Link href="/signup" className={buttonClasses({ variant: "secondary", className: "mt-4 w-full sm:w-auto" })}>
+            Get started <ArrowRightIcon size={16} />
+          </Link>
+        </div>
+      </section>
+
+      {/* ---------------- Role cards ---------------- */}
+      <section className="bg-band">
+        <div className="mx-auto max-w-6xl px-4 py-14 sm:px-6 sm:py-20">
+          <SectionHeading title="How will you use ShipMova?" />
+          <ul className="mt-8 grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-4">
+            {ROLE_CARDS.map((card) => (
+              <li key={card.title} className={cardClasses({ padded: false, className: "flex flex-col overflow-hidden" })}>
+                {/* eslint-disable-next-line @next/next/no-img-element */}
+                <img
+                  src={card.image.src}
+                  alt=""
+                  width={card.image.width}
+                  height={card.image.height}
+                  loading="lazy"
+                  decoding="async"
+                  className="aspect-[8/5] w-full object-cover"
+                />
+                <div className="flex flex-1 flex-col p-5">
+                  <h3 className="font-display text-xl font-bold text-ink">{card.title}</h3>
+                  <p className="mt-2 flex-1 text-sm text-muted">{card.body}</p>
+                  <Link href={card.href} className={buttonClasses({ className: "mt-5 w-full" })}>
+                    {card.cta}
+                  </Link>
+                </div>
+              </li>
+            ))}
+          </ul>
+        </div>
+      </section>
+
       {/* ---------------- Earn $1,000 with ShipMova (signed-out only) ----------------
-          Inverted black block (founder, 2026-10-15): same position as always,
-          styled to stand out against the plain white sections around it. */}
+          Inverted black block (founder, 2026-10-15; moved here 2026-10-14
+          per the founder, directly after "How will you use ShipMova"):
+          styled to stand out against the plain white/band sections around it. */}
       {signedOut ? (
         <section id="refer" className="scroll-mt-4 border-b border-line bg-ink text-white">
           <div className="mx-auto max-w-6xl px-4 py-14 sm:px-6 sm:py-20">
@@ -355,63 +413,6 @@ export default async function Home() {
           </div>
         </section>
       ) : null}
-
-      {/* ---------------- Where buying is open ---------------- */}
-      <section className="border-b border-line bg-band">
-        <div className="mx-auto max-w-6xl px-4 py-8 sm:px-6">
-          <ul className="flex flex-wrap gap-2">
-            {BUYER_COUNTRY_STATUS.map((c) => (
-              <li
-                key={c.code}
-                className={cn(
-                  "flex h-9 items-center rounded-full border px-3 text-sm font-semibold",
-                  c.status === "open" ? "border-ink bg-ink text-white" : "border-line text-muted",
-                )}
-              >
-                {c.name}
-                {c.status === "coming_soon" ? " — coming soon" : ""}
-              </li>
-            ))}
-          </ul>
-          <p className="mt-3 max-w-2xl text-sm text-muted">
-            Buying is open in Nigeria. Choose your country at sign-up — Ghana, Togo and Benin are coming soon, with a
-            &ldquo;Notify me&rdquo; sign-up if that&rsquo;s you.
-          </p>
-          <Link href="/signup" className={buttonClasses({ variant: "secondary", className: "mt-4 w-full sm:w-auto" })}>
-            Get started <ArrowRightIcon size={16} />
-          </Link>
-        </div>
-      </section>
-
-      {/* ---------------- Role cards ---------------- */}
-      <section className="bg-band">
-        <div className="mx-auto max-w-6xl px-4 py-14 sm:px-6 sm:py-20">
-          <SectionHeading title="How will you use ShipMova?" />
-          <ul className="mt-8 grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-4">
-            {ROLE_CARDS.map((card) => (
-              <li key={card.title} className={cardClasses({ padded: false, className: "flex flex-col overflow-hidden" })}>
-                {/* eslint-disable-next-line @next/next/no-img-element */}
-                <img
-                  src={card.image.src}
-                  alt=""
-                  width={card.image.width}
-                  height={card.image.height}
-                  loading="lazy"
-                  decoding="async"
-                  className="aspect-[8/5] w-full object-cover"
-                />
-                <div className="flex flex-1 flex-col p-5">
-                  <h3 className="font-display text-xl font-bold text-ink">{card.title}</h3>
-                  <p className="mt-2 flex-1 text-sm text-muted">{card.body}</p>
-                  <Link href={card.href} className={buttonClasses({ className: "mt-5 w-full" })}>
-                    {card.cta}
-                  </Link>
-                </div>
-              </li>
-            ))}
-          </ul>
-        </div>
-      </section>
 
       {prelaunch ? (
         <section id="waitlist" className="scroll-mt-4 border-b border-line bg-white">
